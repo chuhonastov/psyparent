@@ -1,8 +1,9 @@
 export const routes = {
-  home: '/',
-  diagnoses: '/diagnoses',
+  home: () => '/',
+  diagnoses: () => '/diagnoses',
   diagnosis: (id: string) => `/diagnoses/${id}`,
-  medications: '/medications',
+  diagnosisGroup: (id: string) => `/diagnoses/group/${id}`,
+  medications: () => '/medications',
   medication: (id: string) => `/medications/${id}`,
-  visit: '/visit',
+  visit: () => '/visit'
 } as const;
