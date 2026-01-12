@@ -29,7 +29,7 @@ export default function DiagnosisGroupPage() {
   if (!group) {
     return (
       <div className="container">
-        <Link className="muted" to={routes.diagnoses()}>&larr; Назад</Link>
+        <Link className="muted" to={routes.diagnoses}>&larr; Назад</Link>
         <h1 className="h1">Рубрика не найдена</h1>
       </div>
     );
@@ -37,7 +37,7 @@ export default function DiagnosisGroupPage() {
 
   return (
     <div className="container">
-      <Link className="muted" to={routes.diagnoses()}>&larr; Диагнозы</Link>
+      <Link className="muted" to={routes.diagnoses}>&larr; Диагнозы</Link>
 
       <h1 className="h1">{group.title}</h1>
       {!!group.summary && <div className="muted">{group.summary}</div>}
