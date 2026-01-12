@@ -124,8 +124,7 @@ export default function DiagnosisDetail() {
               if (!m) return null;
               return (
                 <Link key={mid} className="item" to={routes.medication(mid)}>
-                  <div style={{ fontWeight: 800 }}>{m.title}</div>
-                  {!!m.summary && <div className="muted">{m.summary}</div>}
+                  <div style={{ fontWeight: 800 }}>{m.name}</div>
                 </Link>
               );
             })}
