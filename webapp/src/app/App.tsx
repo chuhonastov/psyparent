@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import Home from '../pages/Home';
 import Diagnoses from '../pages/Diagnoses';
+import DiagnosisGroup from '../pages/DiagnosisGroup';
 import DiagnosisDetail from '../pages/DiagnosisDetail';
 import Medications from '../pages/Medications';
 import MedicationDetail from '../pages/MedicationDetail';
@@ -19,6 +20,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/diagnoses" element={<Diagnoses />} />
+        <Route path="/diagnoses/group/:id" element={<DiagnosisGroup />} />
         <Route path="/diagnoses/:id" element={<DiagnosisDetail />} />
         <Route path="/medications" element={<Medications />} />
         <Route path="/medications/:id" element={<MedicationDetail />} />
