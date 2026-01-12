@@ -5,8 +5,12 @@ import medications from '../content/medications.json';
 import { routes } from '../app/routes';
 import { loadVisitSheet, saveVisitSheet } from '../lib/storage';
 
-type Diagnosis = typeof diagnoses[number];
-type Medication = typeof medications[number];
+// JSON imports infer strict literal types. We allow `sources.url` optionally
+// to keep the content model flexible (some sources may be plain labels).
+type Source = { label: string; url?: string };
+
+type Diagnosis = Omit<typeof diagnoses[number], 'sources'> & { sources?: Source[] };
+type Medication = Omit<typeof medications[number], 'sources'> & { sources?: Source[] };
 
 function findDiagnosis(id: string): Diagnosis | undefined {
   return (diagnoses as Diagnosis[]).find(d => d.id === id);
@@ -134,7 +138,11 @@ export default function DiagnosisDetail() {
         <div className="h2">Источники</div>
         <ul>
           {(d.sources ?? []).map((s, i) => (
-            <li key={i}>{('url' in s && s.url) ? (<a href={s.url} target="_blank" rel="noreferrer">{s.label}</a>) : (<span>{s.label}</span>)}</li>
+            <li key={i}>
+              {s.url
+                ? (<a href={s.url} target="_blank" rel="noreferrer">{s.label}</a>)
+                : (<span>{s.label}</span>)}
+            </li>
           ))}
         </ul>
       </div>

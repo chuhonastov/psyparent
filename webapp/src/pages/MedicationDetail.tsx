@@ -4,7 +4,10 @@ import meds from '../content/medications.json';
 import { routes } from '../app/routes';
 import { loadVisitSheet, saveVisitSheet } from '../lib/storage';
 
-type Med = typeof meds[number];
+// JSON imports infer strict literal types. We allow `sources.url` optionally
+// (some sources may be plain labels, some may include a link).
+type Source = { label: string; url?: string };
+type Med = Omit<typeof meds[number], 'sources'> & { sources?: Source[] };
 
 function findMed(id: string): Med | undefined {
   return (meds as Med[]).find(m => m.id === id);
@@ -66,7 +69,11 @@ export default function MedicationDetail() {
         <div className="h2">Источники</div>
         <ul>
           {(m.sources ?? []).map((s, i) => (
-            <li key={i}>{('url' in s && s.url) ? (<a href={s.url} target="_blank" rel="noreferrer">{s.label}</a>) : (<span>{s.label}</span>)}</li>
+            <li key={i}>
+              {s.url
+                ? (<a href={s.url} target="_blank" rel="noreferrer">{s.label}</a>)
+                : (<span>{s.label}</span>)}
+            </li>
           ))}
         </ul>
       </div>
