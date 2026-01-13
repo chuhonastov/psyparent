@@ -329,3 +329,51 @@ html, body, #root{
 .card{
   box-shadow: 0 8px 22px rgba(0,0,0,0.14);
 }
+/* Bottom navigation */
+.bottomNav{
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 12px;
+  padding-bottom: calc(10px + var(--tg-safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--bg) 92%, black);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  z-index: 50;
+}
+
+.bottomNavInner{
+  max-width: var(--container);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.navBtn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  padding: 10px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.navBtn:hover{
+  text-decoration: none;
+  filter: brightness(1.05);
+}
+
+.navBtn.active{
+  background: var(--accent);
+  color: var(--accentText);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
