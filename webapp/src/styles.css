@@ -152,3 +152,19 @@ input[type="checkbox"]{
   border: 0;
   margin: var(--space-4) 0;
 }
+/* App layout */
+.app-shell{
+  min-height: var(--tg-viewport-height, 100vh);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main{
+  flex: 1;
+  padding-bottom: 84px; /* запас под BottomNav */
+}
+
+.app-card{
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
+}
