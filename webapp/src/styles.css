@@ -1402,3 +1402,88 @@ export default function Medications() {
     background: rgba(255,255,255,.06);
   }
 }
+/* Disclosure polish */
+.disclosure{
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--cardBg, rgba(255,255,255,.55));
+}
+
+@media (prefers-color-scheme: dark){
+  .disclosure{
+    background: var(--cardBg, rgba(255,255,255,.05));
+  }
+}
+
+.disclosureHeader{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.disclosureHeaderMain{
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.disclosureTitle{
+  font-weight: 950;
+  letter-spacing: -0.1px;
+  line-height: 1.2;
+}
+
+.disclosureRight{
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.disclosureChevron{
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-weight: 950;
+  transition: transform 0.15s ease;
+  transform: rotate(0deg);
+}
+
+.disclosure.open .disclosureChevron{
+  transform: rotate(90deg);
+}
+
+.disclosureBody{
+  border-top: 1px solid var(--border);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+/* Typography / spacing inside cards and disclosures */
+.card .h2{
+  margin: 0 0 10px 0;
+}
+
+.card ul, .card ol,
+.disclosureBody ul, .disclosureBody ol{
+  margin: 0;
+  padding-left: 18px;
+}
+
+.card li,
+.disclosureBody li{
+  margin: 6px 0;
+  line-height: 1.45;
+}
+
+/* Make nested cards inside disclosure feel lighter */
+.disclosureBody .card{
+  padding: 10px;
+}
