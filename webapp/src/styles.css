@@ -224,3 +224,108 @@ input[type="checkbox"]{
 }
 .icon-btn:hover{ filter: brightness(1.05); }
 .icon-btn:active{ transform: translateY(1px); }
+/* --- Layout shell (keeps content above BottomNav) --- */
+.app-shell{
+  min-height: var(--tg-viewport-height, 100vh);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content{
+  flex: 1;
+  padding-bottom: calc(80px + var(--tg-safe-area-inset-bottom, 0px));
+}
+
+/* Never allow horizontal overflow */
+html, body, #root{
+  overflow-x: hidden;
+}
+
+/* --- Missing utility classes used across pages --- */
+.col{
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.h1{
+  margin: 0 0 var(--space-3);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.h2{
+  margin: 0 0 var(--space-2);
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+/* Inputs: make sure className="input" looks good */
+.input{
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 70%, var(--bg));
+  color: var(--text);
+  outline: none;
+}
+
+.input::placeholder{
+  color: var(--muted);
+}
+
+/* Pills (quick links, tags) */
+.pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 70%, var(--bg));
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* --- Fix the main problem: buttons “run away” on small screens --- */
+.row{
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap; /* THIS prevents overflow */
+}
+
+/* Buttons should behave like UI controls even when they are <a> */
+.btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+.btn:hover{
+  text-decoration: none;
+}
+
+/* When buttons are inside .row, allow wrapping and equal widths */
+.row .btn{
+  flex: 1 1 160px;   /* two buttons become two columns, then wrap nicely */
+}
+
+/* List items should be full-width blocks (works for <a> and <label>) */
+.item{
+  display: block;
+}
+
+/* Cards: slightly calmer look (optional but usually nicer) */
+.card{
+  box-shadow: 0 8px 22px rgba(0,0,0,0.14);
+}
