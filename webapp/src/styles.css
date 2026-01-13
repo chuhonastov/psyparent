@@ -859,3 +859,339 @@ button:disabled{
 .container{
   padding-bottom: calc(92px + env(safe-area-inset-bottom));
 }
+/* =========================
+   Design system / polish v1
+   ========================= */
+
+:root{
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: rgba(15, 23, 42, .62);
+  --border: rgba(15, 23, 42, .10);
+  --shadow: 0 12px 30px rgba(15, 23, 42, .08);
+  --shadow2: 0 8px 20px rgba(15, 23, 42, .10);
+  --radius: 18px;
+
+  --accent: #2563eb;
+  --accentHover: #1d4ed8;
+  --accentSoft: rgba(37, 99, 235, .12);
+
+  --danger: #ef4444;
+  --success: #22c55e;
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg: #0b0c10;
+    --card: rgba(255,255,255,.06);
+    --text: rgba(255,255,255,.92);
+    --muted: rgba(255,255,255,.64);
+    --border: rgba(255,255,255,.10);
+    --shadow: 0 18px 50px rgba(0,0,0,.55);
+    --shadow2: 0 10px 28px rgba(0,0,0,.55);
+
+    --accent: #60a5fa;
+    --accentHover: #3b82f6;
+    --accentSoft: rgba(96, 165, 250, .18);
+  }
+}
+
+*{ box-sizing: border-box; }
+
+html, body{
+  height: 100%;
+}
+
+body{
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  line-height: 1.45;
+}
+
+/* Links */
+a{
+  color: var(--accent);
+}
+a:hover{
+  color: var(--accentHover);
+}
+
+/* Container */
+.container{
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px 12px calc(92px + env(safe-area-inset-bottom));
+}
+
+/* Typography helpers */
+.h1{
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.h2{
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: -0.1px;
+  margin: 0 0 8px 0;
+  font-weight: 900;
+}
+
+.muted{
+  color: var(--muted);
+}
+
+ol.muted, ul.muted{
+  color: var(--muted);
+}
+
+ul, ol{
+  padding-left: 18px;
+}
+
+/* Card */
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px;
+}
+
+@media (prefers-color-scheme: dark){
+  .card{
+    box-shadow: none;
+  }
+}
+
+/* Rows / columns */
+.row{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.col{
+  display: grid;
+  gap: 12px;
+}
+
+/* Buttons */
+.btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0);
+
+  background: var(--accent);
+  color: white;
+  font-weight: 900;
+  text-decoration: none;
+
+  box-shadow: var(--shadow2);
+  transition: transform .08s ease, background .12s ease, box-shadow .12s ease, opacity .12s ease;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.btn:hover{
+  background: var(--accentHover);
+}
+
+.btn:active{
+  transform: scale(.98);
+}
+
+.btn.secondary{
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.btn.secondary:hover{
+  background: rgba(15, 23, 42, .06);
+}
+
+@media (prefers-color-scheme: dark){
+  .btn.secondary:hover{
+    background: rgba(255,255,255,.08);
+  }
+}
+
+.btn:disabled,
+button:disabled{
+  opacity: .55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Inputs */
+.input{
+  width: 100%;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.75);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 10px 12px;
+  outline: none;
+  transition: box-shadow .12s ease, border-color .12s ease, background .12s ease;
+}
+
+@media (prefers-color-scheme: dark){
+  .input{
+    background: rgba(255,255,255,.06);
+  }
+}
+
+.input:focus{
+  border-color: rgba(37,99,235,.55);
+  box-shadow: 0 0 0 4px var(--accentSoft);
+}
+
+/* Pills / tags */
+.pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.6);
+  color: var(--text);
+  font-weight: 900;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark){
+  .pill{
+    background: rgba(255,255,255,.06);
+  }
+}
+
+.tag{
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--accentSoft);
+  color: var(--text);
+  border: 1px solid rgba(37,99,235,.20);
+  font-weight: 900;
+}
+
+/* Lists */
+.list{
+  display: grid;
+  gap: 10px;
+}
+
+.item{
+  display: block;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.6);
+  text-decoration: none;
+  color: var(--text);
+  transition: transform .08s ease, background .12s ease;
+}
+
+@media (prefers-color-scheme: dark){
+  .item{
+    background: rgba(255,255,255,.05);
+  }
+}
+
+.item:hover{
+  background: rgba(37,99,235,.06);
+}
+
+.item:active{
+  transform: scale(.99);
+}
+
+/* Page header */
+.pageHeader{
+  margin: 0 auto 12px auto;
+  max-width: 720px;
+  padding: 14px 12px 0 12px;
+}
+
+.pageHeaderInner{
+  background: linear-gradient(180deg, rgba(37,99,235,.10), rgba(37,99,235,0));
+  border: 1px solid rgba(37,99,235,.16);
+  border-radius: calc(var(--radius) + 4px);
+  padding: 14px 14px 12px 14px;
+}
+
+@media (prefers-color-scheme: dark){
+  .pageHeaderInner{
+    border-color: rgba(96,165,250,.18);
+    background: linear-gradient(180deg, rgba(96,165,250,.14), rgba(96,165,250,0));
+  }
+}
+
+.pageHeaderTop{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.backLink{
+  text-decoration: none;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.backLink:hover{
+  color: var(--text);
+}
+
+.pageHeaderMain{
+  display: grid;
+  gap: 6px;
+}
+
+.pageHeaderTitle{
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.2px;
+  font-weight: 950;
+}
+
+.pageHeaderSubtitle{
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.pageHeader.center .pageHeaderMain{
+  text-align: center;
+}
+
+/* Textareas */
+.textarea{
+  resize: vertical;
+  white-space: pre-wrap;
+  line-height: 1.35;
+  min-height: 44px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.textareaAuto{
+  resize: none;
+}
