@@ -377,3 +377,11 @@ html, body, #root{
   color: var(--accentText);
   border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
 }
+@media (min-width: 720px){
+  .item > div[style*="display: grid"]{
+    grid-template-columns: 1fr 1fr;
+  }
+  .item > div[style*="display: grid"] > div:last-child{
+    grid-column: 1 / -1;
+  }
+}
