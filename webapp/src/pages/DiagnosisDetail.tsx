@@ -1,4 +1,5 @@
 import PageHeader from '../components/PageHeader';
+import { toast } from '../lib/toast';
 import React, { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import diagnosesRaw from '../content/diagnoses.json';
@@ -150,7 +151,8 @@ export default function DiagnosisDetail() {
       `[DX] ${d.title}: Полные критерии\n` +
       (lines.length ? lines.join('\n') : '(пока нет отмеченных пунктов)');
     addVisitQuestion(text);
-    alert('Чек-лист добавлен в «К врачу».');
+    toast('Чек-лист добавлен в «К врачу» → «Диагнозы (чек-листы)».', { variant: 'success' });
+
   }}
 />
 
