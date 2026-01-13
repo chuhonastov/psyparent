@@ -70,6 +70,38 @@ function makeMedSummary(d: MedDetail) {
   return `Заполнено: ${parts.join(' • ')}`;
 }
 
+function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Вытаскиваем название диагноза из строки чек-листа:
+ * "[DX] СДВГ: Полные критерии\n1. ...\n2. ..."
+ */
+function extractDxName(raw: string) {
+  const text = raw.replace(/^\[DX\]\s*/, '');
+  const firstLine = text.split('\n')[0]?.trim() ?? '';
+  if (!firstLine) return 'Диагноз';
+
+  // берём всё до ":" или "—" или "-" как имя диагноза
+  const m = firstLine.match(/^(.+?)(:|—|-)\s*/);
+  const name = (m?.[1] ?? firstLine).trim();
+
+  // защита от слишком длинных заголовков
+  return name.length > 60 ? name.slice(0, 60) + '…' : name;
+}
+
+function extractChecklistTitleInsideDx(raw: string, dxName: string) {
+  // пример: "СДВГ: Полные критерии" -> "Полные критерии"
+  const text = raw.replace(/^\[DX\]\s*/, '');
+  const firstLine = text.split('\n')[0]?.trim() ?? '';
+  if (!firstLine) return 'Чек-лист';
+
+  const re = new RegExp(`^${escapeRegExp(dxName)}\\s*[:—-]\\s*`, 'i');
+  const t = firstLine.replace(re, '').trim();
+  return t || 'Чек-лист';
+}
+
 /**
  * Auto-growing textarea, but capped to MAX px.
  * After cap, it becomes internally scrollable.
@@ -146,7 +178,7 @@ export default function VisitSheet() {
     return () => unsub();
   }, []);
 
-  // --- NEW: split questions into "diagnosis checklists" and regular questions
+  // split questions: diagnosis checklists vs normal questions
   const dxChecklists = useMemo(() => {
     return (visit.questions ?? []).filter((x: string) => x.startsWith('[DX] '));
   }, [visit.questions]);
@@ -155,15 +187,35 @@ export default function VisitSheet() {
     return (visit.questions ?? []).filter((x: string) => !x.startsWith('[DX] '));
   }, [visit.questions]);
 
+  // NEW: group dx checklists by diagnosis name
+  const dxGroups = useMemo(() => {
+    const order: string[] = [];
+    const map = new Map<string, string[]>();
+
+    for (const raw of dxChecklists) {
+      const name = extractDxName(raw);
+      if (!map.has(name)) {
+        map.set(name, []);
+        order.push(name);
+      }
+      map.get(name)!.push(raw);
+    }
+
+    return order.map((name) => ({ name, items: map.get(name)! }));
+  }, [dxChecklists]);
+
+  const dxNamesLine = useMemo(() => {
+    if (!dxGroups.length) return '';
+    return dxGroups.map((g) => g.name).join(', ');
+  }, [dxGroups]);
+
   const copyAll = async () => {
     const parts: string[] = [];
     parts.push('К врачу — список для приёма');
 
-    // Diagnosis checklists
     if (dxChecklists.length) {
       parts.push('\nДиагнозы / чек-листы:');
       dxChecklists.forEach((raw: string, i: number) => {
-        // компактная строка: заголовок + краткое тело
         const text = raw.replace(/^\[DX\]\s*/, '');
         parts.push(`${i + 1}. ${text.replace(/\n/g, ' | ')}`);
       });
@@ -171,7 +223,6 @@ export default function VisitSheet() {
       parts.push('\nДиагнозы / чек-листы: (пока нет)');
     }
 
-    // Regular questions
     if (normalQuestions.length) {
       parts.push('\nВопросы:');
       normalQuestions.forEach((q: string, i: number) => parts.push(`${i + 1}. ${q}`));
@@ -179,7 +230,6 @@ export default function VisitSheet() {
       parts.push('\nВопросы: (пока нет)');
     }
 
-    // Meds
     if (visit.meds.length) {
       parts.push('\nЛечение / препараты:');
       visit.meds.forEach((id: string, i: number) => {
@@ -265,38 +315,64 @@ export default function VisitSheet() {
 
       <div style={{ height: 12 }} />
 
-      {/* NEW: Diagnosis checklists */}
+      {/* Diagnosis checklists grouped */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Диагнозы (чек-листы)</div>
 
-        {dxChecklists.length === 0 ? (
+        {dxGroups.length === 0 ? (
           <div className="muted">
             Пока нет чек-листов. Они появятся здесь после отправки из «Полных критериев».
           </div>
         ) : (
-          <div style={{ display: 'grid', gap: 10 }}>
-            {dxChecklists.map((raw: string) => {
-              const text = raw.replace(/^\[DX\]\s*/, '');
-              const [titleLine, ...rest] = text.split('\n');
+          <>
+            <div className="muted" style={{ marginBottom: 10 }}>
+              Диагнозы: <b>{dxNamesLine}</b>
+            </div>
 
-              return (
-                <div key={raw} className="card" style={{ padding: 10 }}>
-                  <div style={{ fontWeight: 900, marginBottom: 6 }}>{titleLine}</div>
+            <div style={{ display: 'grid', gap: 10 }}>
+              {dxGroups.map((g) => (
+                <Disclosure
+                  key={g.name}
+                  title={`${g.name}${g.items.length > 1 ? ` (${g.items.length})` : ''}`}
+                  defaultOpen={false}
+                  tone="neutral"
+                >
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    {g.items.map((raw) => {
+                      const titleInside = extractChecklistTitleInsideDx(raw, g.name);
+                      const text = raw.replace(/^\[DX\]\s*/, '');
+                      const lines = text.split('\n');
+                      // убираем первую строку (там заголовок), показываем тело
+                      const body = lines.slice(1).join('\n').trim();
 
-                  {!!rest.length && (
-                    <div className="muted" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.35 }}>
-                      {rest.join('\n')}
-                    </div>
-                  )}
+                      return (
+                        <div key={raw} className="card" style={{ padding: 10 }}>
+                          <div style={{ fontWeight: 900, marginBottom: 6 }}>{titleInside}</div>
 
-                  <div style={{ height: 10 }} />
-                  <button className="btn secondary" type="button" onClick={() => removeVisitQuestion(raw)}>
-                    Удалить
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                          {body ? (
+                            <div className="muted" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.35 }}>
+                              {body}
+                            </div>
+                          ) : (
+                            <div className="muted">Пока нет отмеченных пунктов.</div>
+                          )}
+
+                          <div style={{ height: 10 }} />
+                          <button
+                            className="btn secondary"
+                            type="button"
+                            onClick={() => removeVisitQuestion(raw)}
+                          >
+                            Удалить
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Disclosure>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
