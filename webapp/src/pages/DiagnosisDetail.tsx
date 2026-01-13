@@ -1,12 +1,11 @@
-import React, { useMemo } from 'react';
-import { toast } from '../lib/toast';
-import { Link, useParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
-import Disclosure from '../components/Disclosure';
-import Checklist, { ChecklistItem } from '../components/Checklist';
+import React, { useMemo } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import diagnosesRaw from '../content/diagnoses.json';
 import medsRaw from '../content/medications.json';
 import { routes } from '../app/routes';
+import Disclosure from '../components/Disclosure';
+import Checklist, { ChecklistItem } from '../components/Checklist';
 import { addVisitQuestion } from '../lib/visit';
 
 type Source = { label: string; url?: string };
@@ -60,9 +59,12 @@ export default function DiagnosisDetail() {
   if (!item) {
     return (
       <div className="container">
-        <PageHeader title="Диагноз не найден" subtitle="Проверьте ссылку или выберите диагноз из списка" back />
-        <Link className="btn secondary" to={routes.diagnoses}>Перейти к диагнозам</Link>
-        <div style={{ height: 80 }} />
+        <PageHeader
+          title="Диагноз не найден"
+          subtitle="Проверьте ссылку или выберите диагноз из списка"
+          backTo={routes.diagnoses}
+          backLabel="Диагнозы"
+        />
       </div>
     );
   }
@@ -73,7 +75,12 @@ export default function DiagnosisDetail() {
 
     return (
       <div className="container">
-        <PageHeader title={g.title} subtitle={g.summary ?? 'Выберите диагноз из рубрики'} back />
+        <PageHeader
+          title={g.title}
+          subtitle={g.summary}
+          backTo={routes.diagnoses}
+          backLabel="Диагнозы"
+        />
 
         <div className="card" style={{ padding: 12 }}>
           <div style={{ fontWeight: 900, marginBottom: 10 }}>Выберите диагноз</div>
@@ -86,8 +93,13 @@ export default function DiagnosisDetail() {
 
               return (
                 <Link key={cid} className="item" to={routes.diagnosis(cid)}>
-                  <div style={{ fontWeight: 800 }}>{child?.title ?? cid}</div>
-                  {!!child?.summary && <div className="muted">{child.summary}</div>}
+                  <div className="listItem">
+                    <div className="listItemMain">
+                      <div className="listItemTitle">{child?.title ?? cid}</div>
+                      {!!child?.summary && <div className="listItemDesc">{child.summary}</div>}
+                    </div>
+                    <div className="listItemRight">›</div>
+                  </div>
                 </Link>
               );
             })}
@@ -101,171 +113,140 @@ export default function DiagnosisDetail() {
 
   // --- NORMAL DIAGNOSIS VIEW
   const d = item as DiagnosisContent;
-const addAllQuestions = () => {
-  const qs = d.questionsToDoctor ?? [];
-  if (!qs.length) {
-    toast('В этом разделе пока нет вопросов.', { variant: 'info' });
-    return;
-  }
-  qs.forEach((x) => addVisitQuestion(x));
-  toast(`Добавлено вопросов: ${qs.length}`, { variant: 'success' });
-};
-
-const kpi = {
-  criteria: !!d.fullCriteriaChecklist?.items?.length,
-  questions: (d.questionsToDoctor?.length ?? 0),
-  meds: (d.effectiveMeds?.length ?? 0),
-  approaches: (d.evidenceApproaches?.length ?? 0),
-  redflags: (d.redFlags?.length ?? 0),
-};
 
   return (
     <div className="container">
-      <PageHeader title={d.title} subtitle={d.summary ?? 'Критерии, терапия и вопросы к врачу'} back />
-<div className="card" style={{ padding: 12 }}>
-  <div className="summaryCard">
-    <div className="summaryTitle">Подсказка</div>
-    <div className="summaryMeta">
-      Начните с критериев и уточняющих вопросов. Затем сравните лечение с доказательными
-      подходами и проверьте «красные флаги».
-    </div>
-
-    <div className="summaryBtns">
-      {kpi.criteria && (
-        <a className="btn secondary" href="#criteria">
-          К критериям
-        </a>
-      )}
-      {!!kpi.meds && (
-        <a className="btn secondary" href="#treatment">
-          К лечению
-        </a>
-      )}
-    </div>
-  </div>
-</div>
-      
-<div style={{ height: 12 }} />
-
-      {!!(d.simplifiedCriteria && d.simplifiedCriteria.length) && (
-        <div className="card" style={{ padding: 12 }}>
-          <div style={{ fontWeight: 900, marginBottom: 8 }}>Упрощённые критерии</div>
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {d.simplifiedCriteria.map((x, i) => <li key={i}>{x}</li>)}
-          </ul>
-        </div>
-      )}
-
-      <div style={{ height: 12 }} />
-
-     {!!d.fullCriteriaChecklist?.items?.length && (
-  <div id="criteria">
-    <Disclosure title="Полные критерии (чек-лист)" defaultOpen={false} tone="neutral">
-      <Checklist
-        storageKey={`dx:${d.id}:fullCriteria`}
-        items={d.fullCriteriaChecklist.items}
-        hint={d.fullCriteriaChecklist.title}
+      <PageHeader
+        title={d.title}
+        subtitle={d.summary}
+        backTo={routes.diagnoses}
+        backLabel="Диагнозы"
       />
-    </Disclosure>
-  </div>
-)}
 
-
-      <div style={{ height: 12 }} />
-
-      {!!(d.questionsToDoctor && d.questionsToDoctor.length) && (
-        <div className="card" style={{ padding: 12 }}>
-          <div style={{ fontWeight: 900, marginBottom: 8 }}>Вопросы к врачу</div>
-
-          <div style={{ display: 'grid', gap: 10 }}>
-            {d.questionsToDoctor.map((q, i) => (
-              <div key={i} className="card" style={{ padding: 10 }}>
-                <div style={{ marginBottom: 8 }}>{q}</div>
-                <button
-  className="btn"
-  type="button"
-  onClick={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addVisitQuestion(q);
-  }}
->
-  Добавить
-</button>
-              </div>
-            ))}
-          </div>
-
-          <div className="muted" style={{ marginTop: 10 }}>
-            Все добавленные вопросы будут в разделе “К врачу”.
-          </div>
-        </div>
+      {/* Упрощённые критерии — свернуты по умолчанию */}
+      {!!(d.simplifiedCriteria && d.simplifiedCriteria.length) && (
+        <>
+          <Disclosure title="Упрощённые критерии" defaultOpen={false} tone="neutral">
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {d.simplifiedCriteria.map((x, i) => <li key={i}>{x}</li>)}
+            </ul>
+          </Disclosure>
+          <div style={{ height: 12 }} />
+        </>
       )}
 
-      <div style={{ height: 12 }} />
+      {/* Полные критерии (чек-лист) — уже свернуты по умолчанию */}
+      {!!d.fullCriteriaChecklist?.items?.length && (
+        <>
+          <Disclosure title="Полные критерии (чек-лист)" defaultOpen={false} tone="neutral">
+            <Checklist
+              storageKey={`dx:${d.id}:fullCriteria`}
+              items={d.fullCriteriaChecklist.items}
+              hint={d.fullCriteriaChecklist.title}
+            />
+          </Disclosure>
+          <div style={{ height: 12 }} />
+        </>
+      )}
 
-{!!(d.effectiveMeds && d.effectiveMeds.length) && (
-  <div id="treatment">
-    <Disclosure title="Эффективные препараты" defaultOpen={false} tone="green">
-      <div className="list">
-        {d.effectiveMeds.map((mid) => {
-          const m = medsById.get(mid);
-          if (!m) return null;
-          return (
-            <Link key={mid} className="item" to={routes.medication(mid)}>
-              <div style={{ fontWeight: 800 }}>{m.name ?? m.title ?? mid}</div>
-              {!!m.class && <div className="muted">{m.class}</div>}
-            </Link>
-          );
-        })}
-      </div>
-    </Disclosure>
-  </div>
-)}
+      {/* Вопросы к врачу — теперь тоже свернуты по умолчанию */}
+      {!!(d.questionsToDoctor && d.questionsToDoctor.length) && (
+        <>
+          <Disclosure title="Вопросы к врачу" defaultOpen={false} tone="neutral">
+            <div style={{ display: 'grid', gap: 10 }}>
+              {d.questionsToDoctor.map((q, i) => (
+                <div key={i} className="card" style={{ padding: 10 }}>
+                  <div style={{ marginBottom: 8 }}>{q}</div>
+                  <button className="btn" type="button" onClick={() => addVisitQuestion(q)}>
+                    Добавить в «К врачу»
+                  </button>
+                </div>
+              ))}
+            </div>
 
+            <div className="muted" style={{ marginTop: 10 }}>
+              Все добавленные вопросы будут в разделе “К врачу”.
+            </div>
+          </Disclosure>
+          <div style={{ height: 12 }} />
+        </>
+      )}
+
+      {!!(d.effectiveMeds && d.effectiveMeds.length) && (
+        <>
+          <Disclosure title="Эффективные препараты" defaultOpen={false} tone="green">
+            <div className="list">
+              {d.effectiveMeds.map((mid) => {
+                const m = medsById.get(mid);
+                if (!m) return null;
+                return (
+                  <Link key={mid} className="item" to={routes.medication(mid)}>
+                    <div className="listItem">
+                      <div className="listItemMain">
+                        <div className="listItemTitle">{m.name ?? m.title ?? mid}</div>
+                        {!!m.class && <div className="listItemDesc">{m.class}</div>}
+                      </div>
+                      <div className="listItemRight">›</div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </Disclosure>
+          <div style={{ height: 12 }} />
+        </>
+      )}
 
       {!!(d.evidenceApproaches && d.evidenceApproaches.length) && (
-        <Disclosure title="Доказательные подходы" defaultOpen={false} tone="lime">
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {d.evidenceApproaches.map((x, i) => <li key={i}>{x}</li>)}
-          </ul>
-        </Disclosure>
+        <>
+          <Disclosure title="Доказательные подходы" defaultOpen={false} tone="lime">
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {d.evidenceApproaches.map((x, i) => <li key={i}>{x}</li>)}
+            </ul>
+          </Disclosure>
+          <div style={{ height: 12 }} />
+        </>
       )}
 
       {!!(d.ineffectivePharm && d.ineffectivePharm.length) && (
-        <Disclosure title="Неэффективная фармакотерапия" defaultOpen={false} tone="red">
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {d.ineffectivePharm.map((x, i) => <li key={i}>{x}</li>)}
-          </ul>
-        </Disclosure>
+        <>
+          <Disclosure title="Неэффективная фармакотерапия" defaultOpen={false} tone="red">
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {d.ineffectivePharm.map((x, i) => <li key={i}>{x}</li>)}
+            </ul>
+          </Disclosure>
+          <div style={{ height: 12 }} />
+        </>
       )}
-
-      <div style={{ height: 12 }} />
 
       {!!(d.redFlags && d.redFlags.length) && (
-        <Disclosure title="Красные флаги — когда нужно обращаться срочно" defaultOpen={false} tone="red">
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {d.redFlags.map((x, i) => <li key={i}>{x}</li>)}
-          </ul>
-        </Disclosure>
+        <>
+          <Disclosure title="Красные флаги — когда нужно обращаться срочно" defaultOpen={false} tone="red">
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {d.redFlags.map((x, i) => <li key={i}>{x}</li>)}
+            </ul>
+          </Disclosure>
+          <div style={{ height: 12 }} />
+        </>
       )}
 
-      <div style={{ height: 12 }} />
-
       {!!(d.sources && d.sources.length) && (
-        <Disclosure title="Источники" defaultOpen={false} tone="neutral">
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {d.sources.map((s, i) => (
-              <li key={i}>
-                {s.url ? (
-                  <a href={s.url} target="_blank" rel="noreferrer">{s.label}</a>
-                ) : (
-                  <span>{s.label}</span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </Disclosure>
+        <>
+          <Disclosure title="Источники" defaultOpen={false} tone="neutral">
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {d.sources.map((s, i) => (
+                <li key={i}>
+                  {s.url ? (
+                    <a href={s.url} target="_blank" rel="noreferrer">{s.label}</a>
+                  ) : (
+                    <span>{s.label}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </Disclosure>
+          <div style={{ height: 12 }} />
+        </>
       )}
 
       <div style={{ height: 80 }} />
