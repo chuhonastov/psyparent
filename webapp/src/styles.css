@@ -1329,3 +1329,76 @@ export default function Medications() {
     </div>
   );
 }
+/* Diagnosis summary (quick actions) */
+.summaryGrid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 560px){
+  .summaryGrid{
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.summaryCard{
+  background: rgba(255,255,255,.55);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+@media (prefers-color-scheme: dark){
+  .summaryCard{
+    background: rgba(255,255,255,.05);
+  }
+}
+
+.summaryTitle{
+  font-weight: 950;
+  margin-bottom: 6px;
+}
+
+.summaryMeta{
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.summaryBtns{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn.full{
+  width: 100%;
+}
+
+.kpiRow{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.kpi{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.55);
+  color: var(--text);
+  font-weight: 900;
+  font-size: 12px;
+}
+
+@media (prefers-color-scheme: dark){
+  .kpi{
+    background: rgba(255,255,255,.06);
+  }
+}
