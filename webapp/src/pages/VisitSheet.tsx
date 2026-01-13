@@ -57,7 +57,7 @@ export default function VisitSheet() {
   const [visit, setVisit] = useState(() => getVisit());
   const [newQ, setNewQ] = useState('');
 
-  // local draft (so cursor doesn't jump); saved onBlur
+  // Draft so cursor doesn't jump; persisted onBlur
   const [draft, setDraft] = useState<Record<string, MedDetail>>({});
 
   const medsById = useMemo(() => {
@@ -86,14 +86,14 @@ export default function VisitSheet() {
 
     if (visit.questions.length) {
       parts.push('\nВопросы:');
-      visit.questions.forEach((q, i) => parts.push(`${i + 1}. ${q}`));
+      visit.questions.forEach((q: string, i: number) => parts.push(`${i + 1}. ${q}`));
     } else {
       parts.push('\nВопросы: (пока нет)');
     }
 
     if (visit.meds.length) {
       parts.push('\nЛечение / препараты:');
-      visit.meds.forEach((id, i) => {
+      visit.meds.forEach((id: string, i: number) => {
         const m = medsById.get(id);
         const name = m?.name ?? m?.title ?? id;
         const d = (visit.medDetails?.[id] ?? {}) as MedDetail;
@@ -148,7 +148,6 @@ export default function VisitSheet() {
         }
       />
 
-      {/* Добавить свой вопрос */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Добавить свой вопрос</div>
         <div className="row">
@@ -172,15 +171,16 @@ export default function VisitSheet() {
 
       <div style={{ height: 12 }} />
 
-      {/* Вопросы */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Вопросы</div>
 
         {visit.questions.length === 0 ? (
-          <div className="muted">Пока нет вопросов. Добавляйте их на страницах диагнозов/препаратов или вручную выше.</div>
+          <div className="muted">
+            Пока нет вопросов. Добавляйте их на страницах диагнозов/препаратов или вручную выше.
+          </div>
         ) : (
           <div style={{ display: 'grid', gap: 10 }}>
-            {visit.questions.map((q) => (
+            {visit.questions.map((q: string) => (
               <div key={q} className="card" style={{ padding: 10 }}>
                 <div style={{ marginBottom: 8 }}>{q}</div>
                 <button className="btn secondary" type="button" onClick={() => removeVisitQuestion(q)}>
@@ -194,15 +194,16 @@ export default function VisitSheet() {
 
       <div style={{ height: 12 }} />
 
-      {/* Лечение / препараты */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Лечение / препараты</div>
 
         {visit.meds.length === 0 ? (
-          <div className="muted">Пока нет препаратов. Добавляйте их на странице препарата кнопкой «Добавить препарат».</div>
+          <div className="muted">
+            Пока нет препаратов. Добавляйте их на странице препарата кнопкой «Добавить препарат».
+          </div>
         ) : (
           <div className="list">
-            {visit.meds.map((id) => {
+            {visit.meds.map((id: string) => {
               const m = medsById.get(id);
               const name = m?.name ?? m?.title ?? id;
               const cls = m?.class;
@@ -211,4 +212,93 @@ export default function VisitSheet() {
 
               return (
                 <div key={id} className="item">
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyConten
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      justifyContent: 'space-between',
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: 800 }}>{name}</div>
+                      {!!cls && <div className="muted">{cls}</div>}
+                    </div>
+
+                    <div className="row">
+                      <Link className="btn secondary" to={routes.medication(id)}>
+                        Открыть
+                      </Link>
+                      <button className="btn secondary" type="button" onClick={() => removeVisitMedication(id)}>
+                        Удалить
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="medFields" style={{ marginTop: 10 }}>
+                    <div>
+                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Доза</div>
+                      <input
+                        className="input"
+                        placeholder="Напр.: 25 мг"
+                        value={d.dose ?? ''}
+                        onChange={(e) => setDraftField(id, 'dose', e.target.value)}
+                        onBlur={() => commitField(id, 'dose')}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Режим / кратность</div>
+                      <input
+                        className="input"
+                        placeholder="Напр.: утром, 1 раз/день"
+                        value={d.schedule ?? ''}
+                        onChange={(e) => setDraftField(id, 'schedule', e.target.value)}
+                        onBlur={() => commitField(id, 'schedule')}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Цель / критерии эффекта</div>
+                      <input
+                        className="input"
+                        placeholder="Напр.: уменьшение симптомов через 4–6 недель"
+                        value={d.goal ?? ''}
+                        onChange={(e) => setDraftField(id, 'goal', e.target.value)}
+                        onBlur={() => commitField(id, 'goal')}
+                      />
+                    </div>
+
+                    <div>
+                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Мониторинг</div>
+                      <input
+                        className="input"
+                        placeholder="Напр.: АД/пульс, рост/вес, сон, аппетит"
+                        value={d.monitoring ?? ''}
+                        onChange={(e) => setDraftField(id, 'monitoring', e.target.value)}
+                        onBlur={() => commitField(id, 'monitoring')}
+                      />
+                    </div>
+
+                    <div className="medFieldsSpan2">
+                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Комментарий (опционально)</div>
+                      <input
+                        className="input"
+                        placeholder="Любые дополнительные пометки"
+                        value={d.note ?? ''}
+                        onChange={(e) => setDraftField(id, 'note', e.target.value)}
+                        onBlur={() => commitField(id, 'note')}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div style={{ height: 80 }} />
+    </div>
+  );
+}
