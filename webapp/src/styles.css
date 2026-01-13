@@ -1202,3 +1202,54 @@ button:disabled{
   cursor: pointer;
   font: inherit;
 }
+/* List item layout v2 */
+.listItem{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.listItemMain{
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.listItemTitle{
+  font-weight: 950;
+  letter-spacing: -0.1px;
+}
+
+.listItemDesc{
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.listItemRight{
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-weight: 900;
+  opacity: .9;
+  margin-top: 2px;
+}
+
+.searchBar{
+  display: grid;
+  gap: 10px;
+}
+
+.emptyState{
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  color: var(--muted);
+  background: rgba(255,255,255,.35);
+}
+
+@media (prefers-color-scheme: dark){
+  .emptyState{
+    background: rgba(255,255,255,.04);
+  }
+}
