@@ -9,63 +9,63 @@ export default function Home() {
   const name = getTgUserFirstName();
 
   return (
-    <>
+    <div className="container">
       <PageHeader
         title="PsyParent"
         subtitle="Второе мнение по диагнозу и терапии по международным рекомендациям"
       />
 
-      <div className="container">
-        <div className="card">
-          <div className="col">
-            <div>
-              <div style={{ fontWeight: 700 }}>
-                {name ? `Привет, ${name}!` : 'Привет!'}
-              </div>
-              <div className="muted">
-                Это справочник для родителей: критерии, доказательные подходы и вопросы к врачу.
-                Не заменяет очную консультацию.
-              </div>
+      <div className="card">
+        <div className="col">
+          <div>
+            <div style={{ fontWeight: 800 }}>
+              {name ? `Привет, ${name}!` : 'Привет!'}
             </div>
-
-            <div className="row">
-              <Link className="btn" to={routes.diagnoses}>Выбрать диагноз</Link>
-              <Link className="btn secondary" to={routes.medications}>Препараты</Link>
+            <div className="muted">
+              Это справочник для родителей: критерии, доказательные подходы и вопросы к врачу.
+              Не заменяет очную консультацию.
             </div>
           </div>
-        </div>
 
-        <div style={{ height: 12 }} />
-
-        <div className="card">
-          <div className="h2">Быстрый старт</div>
-          <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
-            <Link className="pill" to={routes.diagnosis('adhd')}>СДВГ</Link>
-            <Link className="pill" to={routes.diagnosis('asd')}>РАС</Link>
-            <Link className="pill" to={routes.diagnosis('anxiety')}>Тревога</Link>
-          </div>
-          <div className="muted" style={{ marginTop: 8 }}>
-            Это справочник. Он не заменяет очную консультацию.
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="h2">Как пользоваться</div>
-          <ol className="muted">
-            <li>Выберите диагноз (как он написан в заключении).</li>
-            <li>Посмотрите критерии и что важно уточнить у врача.</li>
-            <li>Соберите список вопросов на приём в разделе «К врачу».</li>
-          </ol>
-        </div>
-
-        <div className="card">
-          <div className="h2">О проекте</div>
-          <div className="muted">{meta.disclaimer}</div>
-          <div className="muted" style={{ marginTop: 8 }}>
-            Версия контента: <b>{meta.contentVersion}</b>
+          <div className="row">
+            <Link className="btn" to={routes.diagnoses}>Выбрать диагноз</Link>
+            <Link className="btn secondary" to={routes.medications}>Препараты</Link>
           </div>
         </div>
       </div>
-    </>
+
+      <div style={{ height: 12 }} />
+
+      <div className="card">
+        <div className="h2">Быстрый старт</div>
+        <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
+          <Link className="pill" to={routes.diagnosis('adhd')}>СДВГ</Link>
+          <Link className="pill" to={routes.diagnosis('asd')}>РАС</Link>
+          <Link className="pill" to={routes.diagnosis('anxiety')}>Тревога</Link>
+        </div>
+        <div className="muted" style={{ marginTop: 8 }}>
+          Это справочник. Он не заменяет очную консультацию.
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="h2">Как пользоваться</div>
+        <ol className="muted">
+          <li>Выберите диагноз (как он написан в заключении).</li>
+          <li>Посмотрите критерии и что важно уточнить у врача.</li>
+          <li>Соберите список вопросов на приём в разделе «К врачу».</li>
+        </ol>
+      </div>
+
+      <div className="card">
+        <div className="h2">О проекте</div>
+        <div className="muted">{meta.disclaimer}</div>
+        <div className="muted" style={{ marginTop: 8 }}>
+          Версия контента: <b>{meta.contentVersion}</b>
+        </div>
+      </div>
+
+      <div style={{ height: 12 }} />
+    </div>
   );
 }
