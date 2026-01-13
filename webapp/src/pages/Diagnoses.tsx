@@ -25,6 +25,10 @@ export default function Diagnoses() {
   }, [q]);
 
   return (
+    <PageHeader
+  title="Диагнозы"
+  subtitle="Выберите диагноз, чтобы проверить критерии и лечение"
+/>
     <div className="container">
       <h1 className="h1">Диагнозы</h1>
 
