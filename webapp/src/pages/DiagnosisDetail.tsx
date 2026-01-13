@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { toast } from '../lib/toast';
 import { Link, useParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Disclosure from '../components/Disclosure';
@@ -100,10 +101,79 @@ export default function DiagnosisDetail() {
 
   // --- NORMAL DIAGNOSIS VIEW
   const d = item as DiagnosisContent;
+const addAllQuestions = () => {
+  const qs = d.questionsToDoctor ?? [];
+  if (!qs.length) {
+    toast('В этом разделе пока нет вопросов.', { variant: 'info' });
+    return;
+  }
+  qs.forEach((x) => addVisitQuestion(x));
+  toast(`Добавлено вопросов: ${qs.length}`, { variant: 'success' });
+};
+
+const kpi = {
+  criteria: !!d.fullCriteriaChecklist?.items?.length,
+  questions: (d.questionsToDoctor?.length ?? 0),
+  meds: (d.effectiveMeds?.length ?? 0),
+  approaches: (d.evidenceApproaches?.length ?? 0),
+  redflags: (d.redFlags?.length ?? 0),
+};
 
   return (
     <div className="container">
       <PageHeader title={d.title} subtitle={d.summary ?? 'Критерии, терапия и вопросы к врачу'} back />
+<div className="card" style={{ padding: 12 }}>
+  <div className="summaryGrid">
+    <div className="summaryCard">
+      <div className="summaryTitle">Быстрые действия</div>
+      <div className="summaryMeta">
+        Добавляйте вопросы в «К врачу» и сохраняйте чек-лист критериев.
+      </div>
+
+      <div className="summaryBtns">
+        {!!kpi.questions && (
+          <button className="btn" type="button" onClick={addAllQuestions}>
+            Добавить все вопросы
+          </button>
+        )}
+        <Link className="btn secondary" to={routes.visit}>
+          Открыть «К врачу»
+        </Link>
+      </div>
+
+      <div className="kpiRow">
+        {kpi.criteria && <span className="kpi">Критерии: чек-лист</span>}
+        {!!kpi.questions && <span className="kpi">Вопросов: {kpi.questions}</span>}
+        {!!kpi.meds && <span className="kpi">Препараты: {kpi.meds}</span>}
+        {!!kpi.approaches && <span className="kpi">Подходы: {kpi.approaches}</span>}
+        {!!kpi.redflags && <span className="kpi">Красные флаги: {kpi.redflags}</span>}
+      </div>
+    </div>
+
+    <div className="summaryCard">
+      <div className="summaryTitle">Подсказка</div>
+      <div className="summaryMeta">
+        Начните с критериев и уточняющих вопросов. Затем сравните лечение с доказательными
+        подходами и проверьте «красные флаги».
+      </div>
+
+      <div className="summaryBtns">
+        {kpi.criteria && (
+          <a className="btn secondary" href="#criteria">
+            К критериям
+          </a>
+        )}
+        {!!kpi.meds && (
+          <a className="btn secondary" href="#treatment">
+            К лечению
+          </a>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style={{ height: 12 }} />
 
       {!!(d.simplifiedCriteria && d.simplifiedCriteria.length) && (
         <div className="card" style={{ padding: 12 }}>
@@ -116,15 +186,18 @@ export default function DiagnosisDetail() {
 
       <div style={{ height: 12 }} />
 
-      {!!d.fullCriteriaChecklist?.items?.length && (
-        <Disclosure title="Полные критерии (чек-лист)" defaultOpen={false} tone="neutral">
-          <Checklist
-            storageKey={`dx:${d.id}:fullCriteria`}
-            items={d.fullCriteriaChecklist.items}
-            hint={d.fullCriteriaChecklist.title}
-          />
-        </Disclosure>
-      )}
+     {!!d.fullCriteriaChecklist?.items?.length && (
+  <div id="criteria">
+    <Disclosure title="Полные критерии (чек-лист)" defaultOpen={false} tone="neutral">
+      <Checklist
+        storageKey={`dx:${d.id}:fullCriteria`}
+        items={d.fullCriteriaChecklist.items}
+        hint={d.fullCriteriaChecklist.title}
+      />
+    </Disclosure>
+  </div>
+)}
+
 
       <div style={{ height: 12 }} />
 
@@ -159,22 +232,25 @@ export default function DiagnosisDetail() {
 
       <div style={{ height: 12 }} />
 
-      {!!(d.effectiveMeds && d.effectiveMeds.length) && (
-        <Disclosure title="Эффективные препараты" defaultOpen={false} tone="green">
-          <div className="list">
-            {d.effectiveMeds.map((mid) => {
-              const m = medsById.get(mid);
-              if (!m) return null;
-              return (
-                <Link key={mid} className="item" to={routes.medication(mid)}>
-                  <div style={{ fontWeight: 800 }}>{m.name ?? m.title ?? mid}</div>
-                  {!!m.class && <div className="muted">{m.class}</div>}
-                </Link>
-              );
-            })}
-          </div>
-        </Disclosure>
-      )}
+{!!(d.effectiveMeds && d.effectiveMeds.length) && (
+  <div id="treatment">
+    <Disclosure title="Эффективные препараты" defaultOpen={false} tone="green">
+      <div className="list">
+        {d.effectiveMeds.map((mid) => {
+          const m = medsById.get(mid);
+          if (!m) return null;
+          return (
+            <Link key={mid} className="item" to={routes.medication(mid)}>
+              <div style={{ fontWeight: 800 }}>{m.name ?? m.title ?? mid}</div>
+              {!!m.class && <div className="muted">{m.class}</div>}
+            </Link>
+          );
+        })}
+      </div>
+    </Disclosure>
+  </div>
+)}
+
 
       {!!(d.evidenceApproaches && d.evidenceApproaches.length) && (
         <Disclosure title="Доказательные подходы" defaultOpen={false} tone="lime">
