@@ -2,14 +2,32 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import meds from '../content/medications.json';
 import { routes } from '../app/routes';
-import { addVisitMedication, addVisitQuestion } from '../lib/visit';
+import { addVisitMedication, addVisitQuestion, getVisit, setVisitMedicationField } from '../lib/visit';
 
-// JSON imports infer strict literal types. We allow `sources.url` optionally
 type Source = { label: string; url?: string };
 type Med = Omit<typeof meds[number], 'sources'> & { sources?: Source[] };
 
 function findMed(id: string): Med | undefined {
   return (meds as Med[]).find(m => m.id === id);
+}
+
+function mergeListText(existing: string | undefined, items: string[]) {
+  const cur = (existing ?? '').trim();
+  const incoming = (items ?? []).map(x => (x ?? '').toString().trim()).filter(Boolean);
+  if (incoming.length === 0) return existing ?? '';
+
+  if (!cur) return incoming.join('; ');
+
+  const parts = cur.split(';').map(x => x.trim()).filter(Boolean);
+  const s = new Set(parts.map(x => x.toLowerCase()));
+  for (const it of incoming) {
+    const key = it.toLowerCase();
+    if (!s.has(key)) {
+      parts.push(it);
+      s.add(key);
+    }
+  }
+  return parts.join('; ');
 }
 
 export default function MedicationDetail() {
@@ -37,6 +55,23 @@ export default function MedicationDetail() {
     e.stopPropagation();
     addVisitQuestion(`Про препарат «${m.name}»: зачем назначен, как оценивать эффект, что мониторить?`);
     alert('Вопрос добавлен в «К врачу» → «Вопросы».');
+  };
+
+  const fillMonitoringAndWarnings = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const v = getVisit();
+    const d = (v.medDetails?.[m.id] ?? {}) as any;
+
+    const monitoringText = mergeListText(d.monitoring, (m.monitoring ?? []) as any);
+    const warningsText = mergeListText(d.warnings, (m.warnings ?? []) as any);
+
+    // These calls also ensure the medication exists in the list
+    setVisitMedicationField(m.id, 'monitoring', monitoringText);
+    setVisitMedicationField(m.id, 'warnings', warningsText);
+
+    alert('Готово: «Мониторинг» и «Важно» заполнены в «К врачу» → «Лечение / препараты».');
   };
 
   return (
@@ -73,6 +108,9 @@ export default function MedicationDetail() {
           </button>
           <button className="btn secondary" type="button" onClick={addQuestionToVisit}>
             Добавить вопрос
+          </button>
+          <button className="btn secondary" type="button" onClick={fillMonitoringAndWarnings}>
+            Заполнить мониторинг и важно
           </button>
         </div>
       </div>
