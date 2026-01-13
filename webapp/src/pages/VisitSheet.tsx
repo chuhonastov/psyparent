@@ -20,7 +20,7 @@ type MedDetail = {
   schedule?: string;
   goal?: string;
   monitoring?: string;
-  warnings?: string; // NEW
+  warnings?: string;
   note?: string;
 };
 
@@ -235,84 +235,24 @@ export default function VisitSheet() {
                     </div>
                   </div>
 
-                 <div className="medFields" style={{ marginTop: 10 }}>
-  <div>
-    <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Доза</div>
-    <textarea
-      className="input textarea"
-      rows={2}
-      placeholder="Напр.: 25 мг"
-      value={d.dose ?? ''}
-      onChange={(e) => setDraftField(id, 'dose', e.target.value)}
-      onBlur={() => commitField(id, 'dose')}
-    />
-  </div>
-
-  <div>
-    <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Режим / кратность</div>
-    <textarea
-      className="input textarea"
-      rows={2}
-      placeholder="Напр.: утром, 1 раз/день"
-      value={d.schedule ?? ''}
-      onChange={(e) => setDraftField(id, 'schedule', e.target.value)}
-      onBlur={() => commitField(id, 'schedule')}
-    />
-  </div>
-
-  <div>
-    <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Цель / критерии эффекта</div>
-    <textarea
-      className="input textarea"
-      rows={2}
-      placeholder="Напр.: уменьшение симптомов через 4–6 недель"
-      value={d.goal ?? ''}
-      onChange={(e) => setDraftField(id, 'goal', e.target.value)}
-      onBlur={() => commitField(id, 'goal')}
-    />
-  </div>
-
-  <div>
-    <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Мониторинг</div>
-    <textarea
-      className="input textarea"
-      rows={3}
-      placeholder="Напр.: АД/пульс, рост/вес, сон, аппетит"
-      value={d.monitoring ?? ''}
-      onChange={(e) => setDraftField(id, 'monitoring', e.target.value)}
-      onBlur={() => commitField(id, 'monitoring')}
-    />
-  </div>
-
-  <div className="medFieldsSpan2">
-    <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Важно</div>
-    <textarea
-      className="input textarea"
-      rows={3}
-      placeholder="Напр.: основные предупреждения/риски"
-      value={d.warnings ?? ''}
-      onChange={(e) => setDraftField(id, 'warnings', e.target.value)}
-      onBlur={() => commitField(id, 'warnings')}
-    />
-  </div>
-
-  <div className="medFieldsSpan2">
-    <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Комментарий (опционально)</div>
-    <textarea
-      className="input textarea"
-      rows={4}
-      placeholder="Любые дополнительные пометки"
-      value={d.note ?? ''}
-      onChange={(e) => setDraftField(id, 'note', e.target.value)}
-      onBlur={() => commitField(id, 'note')}
-    />
-  </div>
-</div>
+                  <div className="medFields" style={{ marginTop: 10 }}>
+                    <div>
+                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Доза</div>
+                      <textarea
+                        className="input textarea"
+                        rows={2}
+                        placeholder="Напр.: 25 мг"
+                        value={d.dose ?? ''}
+                        onChange={(e) => setDraftField(id, 'dose', e.target.value)}
+                        onBlur={() => commitField(id, 'dose')}
+                      />
+                    </div>
 
                     <div>
                       <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Режим / кратность</div>
-                      <input
-                        className="input"
+                      <textarea
+                        className="input textarea"
+                        rows={2}
                         placeholder="Напр.: утром, 1 раз/день"
                         value={d.schedule ?? ''}
                         onChange={(e) => setDraftField(id, 'schedule', e.target.value)}
@@ -322,8 +262,9 @@ export default function VisitSheet() {
 
                     <div>
                       <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Цель / критерии эффекта</div>
-                      <input
-                        className="input"
+                      <textarea
+                        className="input textarea"
+                        rows={2}
                         placeholder="Напр.: уменьшение симптомов через 4–6 недель"
                         value={d.goal ?? ''}
                         onChange={(e) => setDraftField(id, 'goal', e.target.value)}
@@ -333,8 +274,9 @@ export default function VisitSheet() {
 
                     <div>
                       <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Мониторинг</div>
-                      <input
-                        className="input"
+                      <textarea
+                        className="input textarea"
+                        rows={3}
                         placeholder="Напр.: АД/пульс, рост/вес, сон, аппетит"
                         value={d.monitoring ?? ''}
                         onChange={(e) => setDraftField(id, 'monitoring', e.target.value)}
@@ -344,8 +286,9 @@ export default function VisitSheet() {
 
                     <div className="medFieldsSpan2">
                       <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Важно</div>
-                      <input
-                        className="input"
+                      <textarea
+                        className="input textarea"
+                        rows={3}
                         placeholder="Напр.: основные предупреждения/риски"
                         value={d.warnings ?? ''}
                         onChange={(e) => setDraftField(id, 'warnings', e.target.value)}
@@ -355,8 +298,9 @@ export default function VisitSheet() {
 
                     <div className="medFieldsSpan2">
                       <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Комментарий (опционально)</div>
-                      <input
-                        className="input"
+                      <textarea
+                        className="input textarea"
+                        rows={4}
                         placeholder="Любые дополнительные пометки"
                         value={d.note ?? ''}
                         onChange={(e) => setDraftField(id, 'note', e.target.value)}
