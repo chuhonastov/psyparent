@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from '../lib/toast';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Disclosure from '../components/Disclosure';
@@ -28,7 +29,7 @@ type MedDetail = {
 async function copyToClipboard(text: string) {
   try {
     await navigator.clipboard.writeText(text);
-    alert('Скопировано.');
+    toast('Скопировано.', { variant: 'success' });
   } catch {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -38,7 +39,7 @@ async function copyToClipboard(text: string) {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    alert('Скопировано.');
+    toast('Скопировано.', { variant: 'success' });
   }
 }
 
