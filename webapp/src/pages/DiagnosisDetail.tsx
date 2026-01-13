@@ -140,10 +140,20 @@ export default function DiagnosisDetail() {
         <>
           <Disclosure title="Полные критерии (чек-лист)" defaultOpen={false} tone="neutral">
             <Checklist
-              storageKey={`dx:${d.id}:fullCriteria`}
-              items={d.fullCriteriaChecklist.items}
-              hint={d.fullCriteriaChecklist.title}
-            />
+  storageKey={`dx:${d.id}:fullCriteria`}
+  items={d.fullCriteriaChecklist.items}
+  hint={d.fullCriteriaChecklist.title}
+  submitLabel="Отправить чек-лист в «К врачу»"
+  onSubmit={(selected) => {
+    const lines = selected.map((x, i) => `${i + 1}. ${x.text}`);
+    const text =
+      `[DX] ${d.title}: Полные критерии\n` +
+      (lines.length ? lines.join('\n') : '(пока нет отмеченных пунктов)');
+    addVisitQuestion(text);
+    alert('Чек-лист добавлен в «К врачу».');
+  }}
+/>
+
           </Disclosure>
           <div style={{ height: 12 }} />
         </>
