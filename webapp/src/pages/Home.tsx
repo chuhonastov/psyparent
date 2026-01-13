@@ -8,11 +8,18 @@ import meta from '../content/meta.json';
 export default function Home() {
   const name = getTgUserFirstName();
 
-  return (
+return (
+  <>
     <PageHeader
-  title="PsyParent"
-  subtitle="Второе мнение по диагнозу и терапии по международным рекомендациям"
-/>
+      title="PsyParent"
+      subtitle="Второе мнение по диагнозу и терапии по международным рекомендациям"
+    />
+
+    {/* дальше твой существующий JSX как был */}
+    <div>...</div>
+  </>
+);
+
     <div className="container">
       <h1 className="h1">ParentGuide</h1>
       <div className="card">
