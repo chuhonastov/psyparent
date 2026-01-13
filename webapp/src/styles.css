@@ -1,131 +1,154 @@
+/* Modern Telegram-native base theme
+   Uses Telegram theme CSS vars when available.
+*/
 
-:root {
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  line-height: 1.3;
-  color: var(--tg-theme-text-color, #111);
-  background: var(--tg-theme-bg-color, #fff);
+:root{
+  --bg: var(--tg-theme-bg-color, #0b1220);
+  --text: var(--tg-theme-text-color, #e9edf5);
+  --muted: var(--tg-theme-hint-color, #a3adbd);
+  --link: var(--tg-theme-link-color, #66a3ff);
+
+  --card: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.06));
+  --border: var(--tg-theme-section-separator-color, rgba(255,255,255,0.10));
+
+  --accent: var(--tg-theme-button-color, #3b82f6);
+  --accentText: var(--tg-theme-button-text-color, #ffffff);
+
+  --radius: 16px;
+  --radius-sm: 12px;
+  --shadow: 0 10px 28px rgba(0,0,0,0.18);
+  --container: 920px;
+
+  --space-1: 6px;
+  --space-2: 10px;
+  --space-3: 14px;
+  --space-4: 18px;
+  --space-5: 24px;
 }
 
 * { box-sizing: border-box; }
 
-body { margin: 0; }
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
 
-a { color: var(--tg-theme-link-color, #1b76ff); text-decoration: none; }
+/* Telegram safe areas & viewport */
+#root{
+  min-height: var(--tg-viewport-height, 100vh);
+  padding-top: max(var(--space-4), var(--tg-safe-area-inset-top, 0px));
+  padding-bottom: max(var(--space-4), var(--tg-safe-area-inset-bottom, 0px));
+}
+
+/* General content container */
+.container{
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-.container {
-  padding: 12px 12px 72px;
-  max-width: 860px;
-  margin: 0 auto;
+h1,h2,h3{
+  margin: 0 0 var(--space-3);
+  line-height: 1.15;
+}
+h1{ font-size: 22px; letter-spacing: -0.02em; }
+h2{ font-size: 18px; letter-spacing: -0.01em; }
+h3{ font-size: 16px; }
+
+.muted{
+  color: var(--muted);
 }
 
-.card {
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 14px;
-  padding: 12px;
-  background: var(--tg-theme-secondary-bg-color, #f6f6f6);
-}
-
-.row { display: flex; gap: 10px; align-items: center; }
-.col { display: flex; flex-direction: column; gap: 10px; }
-
-.h1 { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
-.h2 { font-size: 16px; font-weight: 700; margin: 0 0 8px; }
-.muted { opacity: 0.75; font-size: 13px; }
-
-input, select, textarea, button {
-  font: inherit;
-}
-
-.search {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.12);
-  background: var(--tg-theme-bg-color, #fff);
-  color: var(--tg-theme-text-color, #111);
-}
-
-.btn {
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 0;
-  background: var(--tg-theme-button-color, #1b76ff);
-  color: var(--tg-theme-button-text-color, #fff);
-  cursor: pointer;
-}
-
-.btn.secondary {
-  background: rgba(0,0,0,0.08);
-  color: var(--tg-theme-text-color, #111);
-}
-
-.list { display: grid; gap: 10px; }
-
-.item {
+/* Layout helpers used in your components */
+.row{
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(0,0,0,0.08);
-  background: var(--tg-theme-bg-color, #fff);
+  gap: var(--space-2);
+  align-items: center;
 }
 
-.tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  padding: 4px 8px;
+/* Cards */
+.card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-4);
+}
+
+/* Buttons (matches your class names: btn, secondary) */
+.btn{
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: var(--accent);
+  color: var(--accentText);
   border-radius: 999px;
-  background: rgba(0,0,0,0.06);
-}
-
-.bottomNav {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  border-top: 1px solid rgba(0,0,0,0.12);
-  background: var(--tg-theme-bg-color, #fff);
-  display: flex;
-  justify-content: center;
-}
-
-.bottomNavInner {
-  width: 100%;
-  max-width: 860px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-}
-
-.navBtn {
-  padding: 10px 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--tg-theme-hint-color, #666);
-}
-
-.navBtn.active {
-  color: var(--tg-theme-text-color, #111);
+  padding: 10px 14px;
   font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.05s ease, filter 0.15s ease;
+  user-select: none;
+}
+.btn:hover{ filter: brightness(1.02); }
+.btn:active{ transform: translateY(1px); }
+.btn:disabled{ opacity: 0.6; cursor: not-allowed; }
+
+.btn.secondary{
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 12px;
-  border-radius: 999px;
-  background: var(--tg-theme-secondary-bg-color, #f3f3f3);
-  border: 1px solid rgba(0,0,0,0.08);
-  text-decoration: none;
-  color: var(--tg-theme-text-color, #111);
-  font-weight: 600;
+/* Inputs */
+input[type="text"], input[type="search"], textarea, select{
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 70%, var(--bg));
+  color: var(--text);
+  outline: none;
 }
-.pill:active {
-  transform: translateY(1px);
+input::placeholder, textarea::placeholder { color: var(--muted); }
+
+/* Checklist styles (list / item are used in Checklist.tsx) */
+.list{
+  display: grid;
+  gap: var(--space-2);
+}
+
+.item{
+  background: color-mix(in srgb, var(--card) 70%, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+}
+
+label.item:hover{
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+input[type="checkbox"]{
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+/* Simple separators */
+.hr{
+  height: 1px;
+  background: var(--border);
+  border: 0;
+  margin: var(--space-4) 0;
 }
