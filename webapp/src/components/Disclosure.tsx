@@ -1,56 +1,49 @@
-import React, { useMemo, useState } from 'react';
+import React, { useId, useState } from 'react';
+
+type Tone = 'neutral' | 'green' | 'lime' | 'red';
 
 type Props = {
   title: string;
-  defaultOpen?: boolean;
-  tone?: 'green' | 'lime' | 'red' | 'neutral';
   children: React.ReactNode;
+  defaultOpen?: boolean;
+  tone?: Tone;
+  right?: React.ReactNode;
 };
 
-function toneStyles(tone: Props['tone']) {
-  switch (tone) {
-    case 'green':
-      return { border: '1px solid rgba(0,128,0,0.35)', background: 'rgba(0,128,0,0.06)' };
-    case 'lime':
-      return { border: '1px solid rgba(120,180,0,0.35)', background: 'rgba(120,180,0,0.06)' };
-    case 'red':
-      return { border: '1px solid rgba(200,0,0,0.35)', background: 'rgba(200,0,0,0.06)' };
-    default:
-      return { border: '1px solid rgba(0,0,0,0.12)', background: 'rgba(0,0,0,0.03)' };
-  }
-}
-
-export default function Disclosure({ title, defaultOpen = false, tone = 'neutral', children }: Props) {
+export default function Disclosure({
+  title,
+  children,
+  defaultOpen = false,
+  tone = 'neutral',
+  right,
+}: Props) {
   const [open, setOpen] = useState(defaultOpen);
-  const styles = useMemo(() => toneStyles(tone), [tone]);
+  const contentId = useId();
 
   return (
-    <div className="card" style={{ ...styles, padding: 12 }}>
+    <section className={`disclosure tone-${tone} ${open ? 'open' : ''}`}>
       <button
-        className="btn-ghost"
         type="button"
-        onClick={() => setOpen(o => !o)}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-          padding: 0,
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer'
-        }}
+        className="disclosureHeader"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls={contentId}
       >
-        <div style={{ fontWeight: 900 }}>{title}</div>
-        <div className="muted" style={{ fontSize: 18, lineHeight: 1 }}>{open ? '▾' : '▸'}</div>
+        <div className="disclosureHeaderMain">
+          <div className="disclosureTitle">{title}</div>
+          {!!right && <div className="disclosureRight">{right}</div>}
+        </div>
+
+        <div className="disclosureChevron" aria-hidden="true">
+          ›
+        </div>
       </button>
 
       {open && (
-        <div style={{ marginTop: 10 }}>
+        <div id={contentId} className="disclosureBody">
           {children}
         </div>
       )}
-    </div>
+    </section>
   );
 }
