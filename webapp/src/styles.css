@@ -710,11 +710,16 @@ export default function VisitSheet() {
     </div>
   );
 }
+/* Multi-line fields */
 .textarea{
   resize: vertical;
   white-space: pre-wrap;
-  overflow: auto;
   line-height: 1.35;
   min-height: 44px;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Auto-grow behavior (JS sets height). */
+.textareaAuto{
+  resize: none;      /* авто-рост -> руками не тянем */
 }
