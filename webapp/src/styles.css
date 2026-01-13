@@ -1487,3 +1487,16 @@ export default function Medications() {
 .disclosureBody .card{
   padding: 10px;
 }
+/* Compact buttons for dense UI (lists, cards, disclosures) */
+.btn.compact{
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* Make secondary compact buttons look a bit lighter */
+.btn.secondary.compact{
+  opacity: .95;
+}
