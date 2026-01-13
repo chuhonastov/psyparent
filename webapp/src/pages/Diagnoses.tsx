@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import diagnosesRaw from '../content/diagnoses.json';
 import { routes } from '../app/routes';
+import PageHeader from '../components/PageHeader';
+
 
 type DiagnosisLeaf = { id: string; title: string; summary?: string };
 type DiagnosisGroup = { kind: 'group'; id: string; title: string; summary?: string; children: string[] };
@@ -25,43 +27,47 @@ export default function Diagnoses() {
   }, [q]);
 
   return (
-    <PageHeader
-  title="Диагнозы"
-  subtitle="Выберите диагноз, чтобы проверить критерии и лечение"
-/>
-    <div className="container">
-      <h1 className="h1">Диагнозы</h1>
-
-      <input
-        className="input"
-        placeholder="Поиск (например: СДВГ, РАС, тревожные)"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
+    <>
+      <PageHeader
+        title="Диагнозы"
+        subtitle="Выберите диагноз, чтобы проверить критерии и лечение"
       />
 
-      <div style={{ height: 12 }} />
+      <div className="container">
+        <h1 className="h1">Диагнозы</h1>
 
-      <div className="list">
-        {items.map((d: any) => {
-          const isGroup = d.kind === 'group';
-          const to = isGroup ? routes.diagnosisGroup(d.id) : routes.diagnosis(d.id);
+        <input
+          className="input"
+          placeholder="Поиск (например: СДВГ, РАС, тревожные)"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
 
-          return (
-            <Link key={d.id} className="item" to={to}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <div style={{ fontWeight: 800 }}>
-                  {d.title}
-                  {isGroup && <span className="pill" style={{ marginLeft: 8 }}>рубрика</span>}
+        <div style={{ height: 12 }} />
+
+        <div className="list">
+          {items.map((d: any) => {
+            const isGroup = d.kind === 'group';
+            const to = isGroup ? routes.diagnosisGroup(d.id) : routes.diagnosis(d.id);
+
+            return (
+              <Link key={d.id} className="item" to={to}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <div style={{ fontWeight: 800 }}>
+                    {d.title}
+                    {isGroup && <span className="pill" style={{ marginLeft: 8 }}>рубрика</span>}
+                  </div>
+                  <div className="muted">›</div>
                 </div>
-                <div className="muted">{isGroup ? '›' : '›'}</div>
-              </div>
-              {!!d.summary && <div className="muted">{d.summary}</div>}
-            </Link>
-          );
-        })}
-      </div>
+                {!!d.summary && <div className="muted">{d.summary}</div>}
+              </Link>
+            );
+          })}
+        </div>
 
-      <div style={{ height: 60 }} />
-    </div>
+        <div style={{ height: 60 }} />
+      </div>
+    </>
   );
+
 }
