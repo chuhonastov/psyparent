@@ -358,13 +358,10 @@ export default function VisitSheet() {
                           )}
 
                           <div style={{ height: 10 }} />
-                          <button
-                            className="btn secondary"
-                            type="button"
-                            onClick={() => removeVisitQuestion(raw)}
-                          >
-                            Удалить
-                          </button>
+                          <button className="btn secondary compact" type="button" onClick={() => removeVisitQuestion(raw)}>
+  Удалить
+</button>
+
                         </div>
                       );
                     })}
@@ -391,9 +388,10 @@ export default function VisitSheet() {
             {normalQuestions.map((q: string) => (
               <div key={q} className="card" style={{ padding: 10 }}>
                 <div style={{ marginBottom: 8 }}>{q}</div>
-                <button className="btn secondary" type="button" onClick={() => removeVisitQuestion(q)}>
-                  Удалить
-                </button>
+                <button className="btn secondary compact" type="button" onClick={() => removeVisitQuestion(raw)}>
+  Удалить
+</button>
+
               </div>
             ))}
           </div>
@@ -439,9 +437,10 @@ export default function VisitSheet() {
                       <Link className="btn secondary compact" to={routes.medication(id)}>
   Открыть
 </Link>
-<button className="btn secondary compact" type="button" onClick={() => removeVisitMedication(id)}>
+<button className="btn secondary compact" type="button" onClick={() => removeVisitQuestion(raw)}>
   Удалить
 </button>
+
 
                     </div>
                   </div>
