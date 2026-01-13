@@ -1,75 +1,116 @@
-const STORAGE_KEY = 'parentguide:visitQuestions';
-
-export type VisitQuestion = {
-  id: string;
-  text: string;
-  createdAt: number;
+type VisitState = {
+  questions: string[];
+  meds: string[];
 };
 
-function safeParse<T>(raw: string | null): T | null {
-  if (!raw) return null;
+const KEY = 'parentguide.visit.v1';
+const EVENT = 'parentguide:visit:updated';
+
+function uniq(arr: string[]) {
+  const out: string[] = [];
+  const s = new Set<string>();
+  for (const x of arr) {
+    const v = (x ?? '').toString().trim();
+    if (!v) continue;
+    if (s.has(v)) continue;
+    s.add(v);
+    out.push(v);
+  }
+  return out;
+}
+
+function normalize(raw: any): VisitState {
+  // Legacy: sometimes stored as array of questions
+  if (Array.isArray(raw)) {
+    return { questions: uniq(raw), meds: [] };
+  }
+
+  // Current: object with questions/meds
+  if (raw && typeof raw === 'object') {
+    const questions = Array.isArray(raw.questions) ? raw.questions : [];
+    const meds = Array.isArray(raw.meds) ? raw.meds : [];
+    return { questions: uniq(questions), meds: uniq(meds) };
+  }
+
+  return { questions: [], meds: [] };
+}
+
+export function getVisit(): VisitState {
   try {
-    return JSON.parse(raw) as T;
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return { questions: [], meds: [] };
+    return normalize(JSON.parse(raw));
   } catch {
-    return null;
+    return { questions: [], meds: [] };
   }
 }
 
-function load(): VisitQuestion[] {
-  const data = safeParse<VisitQuestion[]>(localStorage.getItem(STORAGE_KEY));
-  if (!Array.isArray(data)) return [];
-  // sanitize
-  return data
-    .filter((x) => x && typeof x.text === 'string')
-    .map((x) => ({
-      id: typeof x.id === 'string' ? x.id : cryptoId(),
-      text: x.text,
-      createdAt: typeof x.createdAt === 'number' ? x.createdAt : Date.now()
-    }));
+function setVisit(next: VisitState) {
+  const safe: VisitState = {
+    questions: uniq(next.questions),
+    meds: uniq(next.meds),
+  };
+
+  localStorage.setItem(KEY, JSON.stringify(safe));
+
+  // IMPORTANT: same-tab updates (storage event does not fire in same tab)
+  window.dispatchEvent(new CustomEvent(EVENT));
 }
 
-function save(items: VisitQuestion[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+export function clearVisit() {
+  setVisit({ questions: [], meds: [] });
 }
 
-function cryptoId() {
-  // works in modern browsers; fallback just in case
-  // @ts-ignore
-  return (globalThis.crypto?.randomUUID?.() ?? `q_${Date.now()}_${Math.random().toString(16).slice(2)}`);
-}
-
-/** Add a question (deduplicates by text). */
 export function addVisitQuestion(text: string) {
-  const t = (text ?? '').trim();
-  if (!t) return;
+  const q = (text ?? '').toString().trim();
+  if (!q) return;
 
-  const items = load();
-  const exists = items.some((q) => q.text.toLowerCase() === t.toLowerCase());
-  if (exists) return;
+  const cur = getVisit();
+  if (cur.questions.includes(q)) return;
 
-  items.unshift({ id: cryptoId(), text: t, createdAt: Date.now() });
-  save(items);
+  setVisit({ ...cur, questions: [...cur.questions, q] });
 }
 
-/** Get all saved questions (newest first). */
-export function getVisitQuestions(): VisitQuestion[] {
-  return load().sort((a, b) => b.createdAt - a.createdAt);
+export function removeVisitQuestion(text: string) {
+  const q = (text ?? '').toString().trim();
+  if (!q) return;
+
+  const cur = getVisit();
+  setVisit({ ...cur, questions: cur.questions.filter((x) => x !== q) });
 }
 
-/** Remove one question by id. */
-export function removeVisitQuestion(id: string) {
-  const items = load().filter((q) => q.id !== id);
-  save(items);
+export function addVisitMedication(medId: string) {
+  const id = (medId ?? '').toString().trim();
+  if (!id) return;
+
+  const cur = getVisit();
+  if (cur.meds.includes(id)) return;
+
+  setVisit({ ...cur, meds: [...cur.meds, id] });
 }
 
-/** Clear all questions. */
-export function clearVisitQuestions() {
-  save([]);
+export function removeVisitMedication(medId: string) {
+  const id = (medId ?? '').toString().trim();
+  if (!id) return;
+
+  const cur = getVisit();
+  setVisit({ ...cur, meds: cur.meds.filter((x) => x !== id) });
 }
 
-/** Export questions as plain text for copying. */
-export function exportVisitText(title = 'Вопросы к врачу'): string {
-  const items = getVisitQuestions();
-  if (!items.length) return `${title}:\n— (пока пусто)`;
-  return `${title}:\n` + items.map((q, i) => `${i + 1}. ${q.text}`).join('\n');
+// Optional alias for compatibility if somewhere used
+export const addVisitMed = addVisitMedication;
+
+/** Subscribe to updates inside the same tab and across tabs */
+export function subscribeVisit(onChange: () => void) {
+  const handler = () => onChange();
+
+  window.addEventListener(EVENT, handler);
+  window.addEventListener('storage', (e) => {
+    if (e.key === KEY) onChange();
+  });
+
+  return () => {
+    window.removeEventListener(EVENT, handler);
+    // storage listener can't be removed easily since it's inline above; keep simple
+  };
 }
