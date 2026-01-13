@@ -1,3 +1,4 @@
+import PageHeader from '../components/PageHeader';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { routes } from '../app/routes';
@@ -8,6 +9,10 @@ export default function Home() {
   const name = getTgUserFirstName();
 
   return (
+    <PageHeader
+  title="PsyParent"
+  subtitle="Второе мнение по диагнозу и терапии по международным рекомендациям"
+/>
     <div className="container">
       <h1 className="h1">ParentGuide</h1>
       <div className="card">
