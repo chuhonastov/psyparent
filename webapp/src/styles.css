@@ -784,3 +784,78 @@ button:disabled{
   opacity: .6;
   cursor: not-allowed;
 }
+/* Bottom navigation (mobile-like) */
+.bottomNav{
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0,0,0,.06);
+  z-index: 1000;
+}
+
+.bottomNavInner{
+  max-width: 720px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.navBtn{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  color: rgba(15, 23, 42, .72);
+  border-radius: 14px;
+  padding: 10px 6px;
+  min-height: 52px;
+  transition: transform .08s ease, background .12s ease, color .12s ease;
+}
+
+.navBtn:active{
+  transform: scale(.98);
+}
+
+.navIcon{
+  display: inline-flex;
+  opacity: .9;
+}
+
+.navLabel{
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: .2px;
+  white-space: nowrap;
+}
+
+.navBtn.active{
+  background: rgba(15, 23, 42, .08);
+  color: rgba(15, 23, 42, .96);
+}
+
+@media (prefers-color-scheme: dark){
+  .bottomNav{
+    background: rgba(10,10,12,.65);
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .navBtn{
+    color: rgba(255,255,255,.72);
+  }
+  .navBtn.active{
+    background: rgba(255,255,255,.10);
+    color: rgba(255,255,255,.96);
+  }
+}
+
+/* Ensure content never hides behind BottomNav */
+.container{
+  padding-bottom: calc(92px + env(safe-area-inset-bottom));
+}
