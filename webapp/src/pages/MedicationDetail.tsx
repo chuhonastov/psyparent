@@ -1,34 +1,19 @@
 import React from 'react';
-import { toast } from '../lib/toast';
 import { Link, useParams } from 'react-router-dom';
-import meds from '../content/medications.json';
+import PageHeader from '../components/PageHeader';
+import medsRaw from '../content/medications.json';
 import { routes } from '../app/routes';
-import { addVisitMedication, addVisitQuestion, getVisit, setVisitMedicationField } from '../lib/visit';
+import { toast } from '../lib/toast';
+import { addVisitMedication, addVisitQuestion } from '../lib/visit';
 
+// JSON imports infer strict literal types; allow optional url in sources
 type Source = { label: string; url?: string };
-type Med = Omit<typeof meds[number], 'sources'> & { sources?: Source[] };
+type Med = Omit<(typeof medsRaw)[number], 'sources'> & { sources?: Source[] };
+
+const meds = medsRaw as unknown as Med[];
 
 function findMed(id: string): Med | undefined {
-  return (meds as Med[]).find(m => m.id === id);
-}
-
-function mergeListText(existing: string | undefined, items: string[]) {
-  const cur = (existing ?? '').trim();
-  const incoming = (items ?? []).map(x => (x ?? '').toString().trim()).filter(Boolean);
-  if (incoming.length === 0) return existing ?? '';
-
-  if (!cur) return incoming.join('; ');
-
-  const parts = cur.split(';').map(x => x.trim()).filter(Boolean);
-  const s = new Set(parts.map(x => x.toLowerCase()));
-  for (const it of incoming) {
-    const key = it.toLowerCase();
-    if (!s.has(key)) {
-      parts.push(it);
-      s.add(key);
-    }
-  }
-  return parts.join('; ');
+  return meds.find((m) => m.id === id);
 }
 
 export default function MedicationDetail() {
@@ -38,96 +23,118 @@ export default function MedicationDetail() {
   if (!m) {
     return (
       <div className="container">
-        <h1 className="h1">Не найдено</h1>
-        <Link to={routes.medications}>← Назад</Link>
+        <PageHeader
+          title="Препарат не найден"
+          subtitle="Проверьте ссылку или выберите препарат из списка"
+          backTo={routes.medications}
+          backLabel="Лечение"
+        />
       </div>
     );
   }
 
-  const addMedToVisit = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const addMedToVisit = () => {
     addVisitMedication(m.id);
-    toast('Препарат добавлен в «К врачу» → «Лечение / препараты».');
+    toast('Препарат добавлен в «К врачу» → «Лечение / препараты».', { variant: 'success' });
   };
 
-  const addQuestionToVisit = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addVisitQuestion(`Про препарат «${m.name}»: зачем назначен, как оценивать эффект, что мониторить?`);
-    toast('Вопрос добавлен в «К врачу» → «Вопросы».');
-  };
-
-  const fillMonitoringAndWarnings = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const v = getVisit();
-    const d = (v.medDetails?.[m.id] ?? {}) as any;
-
-    const monitoringText = mergeListText(d.monitoring, (m.monitoring ?? []) as any);
-    const warningsText = mergeListText(d.warnings, (m.warnings ?? []) as any);
-
-    // These calls also ensure the medication exists in the list
-    setVisitMedicationField(m.id, 'monitoring', monitoringText);
-    setVisitMedicationField(m.id, 'warnings', warningsText);
-
-    toast('Готово: «Мониторинг» и «Важно» заполнены.');
+  const addQuestionToVisit = () => {
+    const q = `Про препарат «${m.name ?? m.title ?? m.id}»: зачем назначен, как оценивать эффект, что мониторить?`;
+    addVisitQuestion(q);
+    toast('Вопрос добавлен в «К врачу» → «Вопросы».', { variant: 'success' });
   };
 
   return (
     <div className="container">
-      <Link to={routes.medications}>← Препараты</Link>
-      <h1 className="h1">{m.name}</h1>
+      <PageHeader
+        title={m.name ?? m.title ?? m.id}
+        subtitle={m.class}
+        backTo={routes.medications}
+        backLabel="Лечение"
+      />
 
-      <div className="card">
-        <div className="tag">{m.class}</div>
-        <div style={{ height: 8 }} />
+      <div style={{ display: 'grid', gap: 12 }}>
+        <div className="card" style={{ padding: 12 }}>
+          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div>
+              {!!m.class && <div className="tag">{m.class}</div>}
+            </div>
 
-        <div className="h2">Когда обсуждают</div>
-        <ul>
-          {(m.whenDiscussed ?? []).map((x, i) => <li key={i}>{x}</li>)}
-        </ul>
+            <div className="row" style={{ flexWrap: 'wrap' }}>
+              <button className="btn secondary compact" type="button" onClick={addQuestionToVisit}>
+                Добавить вопрос
+              </button>
+              <button className="btn compact" type="button" onClick={addMedToVisit}>
+                Добавить препарат
+              </button>
+            </div>
+          </div>
 
-        <div style={{ height: 8 }} />
-        <div className="h2">Что обычно мониторят</div>
-        <ul>
-          {(m.monitoring ?? []).map((x, i) => <li key={i}>{x}</li>)}
-        </ul>
+          <div style={{ height: 10 }} />
 
-        <div style={{ height: 8 }} />
-        <div className="h2">Важно</div>
-        <ul>
-          {(m.warnings ?? []).map((x, i) => <li key={i}>{x}</li>)}
-        </ul>
+          {!!(m.whenDiscussed?.length) && (
+            <>
+              <div className="h2">Когда обсуждают</div>
+              <ul>
+                {m.whenDiscussed.map((x: string, i: number) => (
+                  <li key={i}>{x}</li>
+                ))}
+              </ul>
+              <div style={{ height: 10 }} />
+            </>
+          )}
 
-        <div style={{ height: 10 }} />
+          {!!(m.monitoring?.length) && (
+            <>
+              <div className="h2">Что обычно мониторят</div>
+              <ul>
+                {m.monitoring.map((x: string, i: number) => (
+                  <li key={i}>{x}</li>
+                ))}
+              </ul>
+              <div style={{ height: 10 }} />
+            </>
+          )}
 
-        <div className="row">
-          <button className="btn" type="button" onClick={addMedToVisit}>
-            Добавить препарат
-          </button>
-          <button className="btn secondary" type="button" onClick={addQuestionToVisit}>
-            Добавить вопрос
-          </button>
-          <button className="btn secondary" type="button" onClick={fillMonitoringAndWarnings}>
-            Заполнить мониторинг и важно
-          </button>
+          {!!(m.warnings?.length) && (
+            <>
+              <div className="h2">Важно</div>
+              <ul>
+                {m.warnings.map((x: string, i: number) => (
+                  <li key={i}>{x}</li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
-      </div>
 
-      <div style={{ height: 12 }} />
-      <div className="card">
-        <div className="h2">Источники</div>
-        <ul>
-          {(m.sources ?? []).map((s, i) => (
-            <li key={i}>
-              {s.url
-                ? (<a href={s.url} target="_blank" rel="noreferrer">{s.label}</a>)
-                : (<span>{s.label}</span>)}
-            </li>
-          ))}
-        </ul>
+        <div className="card" style={{ padding: 12 }}>
+          <div className="h2">Источники</div>
+
+          {!(m.sources?.length) ? (
+            <div className="muted">Источники не указаны.</div>
+          ) : (
+            <ul>
+              {m.sources.map((s, i) => (
+                <li key={i}>
+                  {s.url ? (
+                    <a href={s.url} target="_blank" rel="noreferrer">
+                      {s.label}
+                    </a>
+                  ) : (
+                    <span>{s.label}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="muted" style={{ fontSize: 13 }}>
+          Важно: информация носит справочный характер и не заменяет очную консультацию.
+        </div>
+
+        <div style={{ height: 40 }} />
       </div>
     </div>
   );
