@@ -9,11 +9,19 @@ import {
   getVisit,
   removeVisitMedication,
   removeVisitQuestion,
-  setVisitMedicationNote,
+  setVisitMedicationField,
   subscribeVisit
 } from '../lib/visit';
 
 const meds = medsRaw as unknown as any[];
+
+type MedDetail = {
+  dose?: string;
+  schedule?: string;
+  goal?: string;
+  monitoring?: string;
+  note?: string;
+};
 
 async function copyToClipboard(text: string) {
   try {
@@ -32,10 +40,25 @@ async function copyToClipboard(text: string) {
   }
 }
 
+function formatMedLine(name: string, d?: MedDetail) {
+  if (!d) return name;
+  const parts: string[] = [];
+
+  if (d.dose?.trim()) parts.push(`доза: ${d.dose.trim()}`);
+  if (d.schedule?.trim()) parts.push(`режим: ${d.schedule.trim()}`);
+  if (d.goal?.trim()) parts.push(`цель: ${d.goal.trim()}`);
+  if (d.monitoring?.trim()) parts.push(`мониторинг: ${d.monitoring.trim()}`);
+  if (d.note?.trim()) parts.push(`коммент.: ${d.note.trim()}`);
+
+  return parts.length ? `${name} — ${parts.join('; ')}` : name;
+}
+
 export default function VisitSheet() {
   const [visit, setVisit] = useState(() => getVisit());
   const [newQ, setNewQ] = useState('');
-  const [draftNotes, setDraftNotes] = useState<Record<string, string>>({});
+
+  // local draft (so cursor doesn't jump); saved onBlur
+  const [draft, setDraft] = useState<Record<string, MedDetail>>({});
 
   const medsById = useMemo(() => {
     const m = new Map<string, any>();
@@ -46,12 +69,12 @@ export default function VisitSheet() {
   useEffect(() => {
     const v = getVisit();
     setVisit(v);
-    setDraftNotes(v.notes ?? {});
+    setDraft((v.medDetails ?? {}) as any);
 
     const unsub = subscribeVisit(() => {
       const next = getVisit();
       setVisit(next);
-      setDraftNotes(next.notes ?? {});
+      setDraft((next.medDetails ?? {}) as any);
     });
 
     return () => unsub();
@@ -73,8 +96,8 @@ export default function VisitSheet() {
       visit.meds.forEach((id, i) => {
         const m = medsById.get(id);
         const name = m?.name ?? m?.title ?? id;
-        const note = (visit.notes?.[id] ?? '').trim();
-        parts.push(`${i + 1}. ${name}${note ? ` — ${note}` : ''}`);
+        const d = (visit.medDetails?.[id] ?? {}) as MedDetail;
+        parts.push(`${i + 1}. ${formatMedLine(name, d)}`);
       });
     } else {
       parts.push('\nЛечение / препараты: (пока нет)');
@@ -88,6 +111,18 @@ export default function VisitSheet() {
     if (!t) return;
     addVisitQuestion(t);
     setNewQ('');
+  };
+
+  const setDraftField = (id: string, field: keyof MedDetail, value: string) => {
+    setDraft((prev) => ({
+      ...prev,
+      [id]: { ...(prev[id] ?? {}), [field]: value },
+    }));
+  };
+
+  const commitField = (id: string, field: keyof MedDetail) => {
+    const v = (draft[id]?.[field] ?? '') as string;
+    setVisitMedicationField(id, field, v);
   };
 
   return (
@@ -172,51 +207,8 @@ export default function VisitSheet() {
               const name = m?.name ?? m?.title ?? id;
               const cls = m?.class;
 
-              const noteValue = draftNotes[id] ?? '';
+              const d = (draft[id] ?? {}) as MedDetail;
 
               return (
                 <div key={id} className="item">
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 800 }}>{name}</div>
-                      {!!cls && <div className="muted">{cls}</div>}
-                    </div>
-
-                    <div className="row">
-                      <Link className="btn secondary" to={routes.medication(id)}>
-                        Открыть
-                      </Link>
-                      <button className="btn secondary" type="button" onClick={() => removeVisitMedication(id)}>
-                        Удалить
-                      </button>
-                    </div>
-                  </div>
-
-                  <div style={{ marginTop: 10 }}>
-                    <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>
-                      Доза / режим / заметки
-                    </div>
-                    <input
-                      className="input"
-                      placeholder="Напр.: 25 мг утром, оценка эффекта через 4–6 недель, мониторить АД/пульс"
-                      value={noteValue}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setDraftNotes((prev) => ({ ...prev, [id]: v }));
-                      }}
-                      onBlur={() => {
-                        setVisitMedicationNote(id, noteValue);
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <div style={{ height: 80 }} />
-    </div>
-  );
-}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyConten
