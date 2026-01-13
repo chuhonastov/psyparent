@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { toast } from '../lib/toast';
 
 export type ChecklistItem = { id: string; text: string };
 
@@ -31,7 +32,7 @@ function safeWrite(key: string, ids: string[]) {
 async function copyToClipboard(text: string) {
   try {
     await navigator.clipboard.writeText(text);
-    alert('Скопировано.');
+    toast('Скопировано.', { variant: 'success' });
   } catch {
     // Fallback
     const ta = document.createElement('textarea');
@@ -42,7 +43,7 @@ async function copyToClipboard(text: string) {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    alert('Скопировано.');
+    toast('Скопировано.', { variant: 'success' });
   }
 }
 
