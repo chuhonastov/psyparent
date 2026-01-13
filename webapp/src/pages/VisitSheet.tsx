@@ -20,6 +20,7 @@ type MedDetail = {
   schedule?: string;
   goal?: string;
   monitoring?: string;
+  warnings?: string; // NEW
   note?: string;
 };
 
@@ -48,6 +49,7 @@ function formatMedLine(name: string, d?: MedDetail) {
   if (d.schedule?.trim()) parts.push(`режим: ${d.schedule.trim()}`);
   if (d.goal?.trim()) parts.push(`цель: ${d.goal.trim()}`);
   if (d.monitoring?.trim()) parts.push(`мониторинг: ${d.monitoring.trim()}`);
+  if (d.warnings?.trim()) parts.push(`важно: ${d.warnings.trim()}`);
   if (d.note?.trim()) parts.push(`коммент.: ${d.note.trim()}`);
 
   return parts.length ? `${name} — ${parts.join('; ')}` : name;
@@ -56,8 +58,6 @@ function formatMedLine(name: string, d?: MedDetail) {
 export default function VisitSheet() {
   const [visit, setVisit] = useState(() => getVisit());
   const [newQ, setNewQ] = useState('');
-
-  // Draft so cursor doesn't jump; persisted onBlur
   const [draft, setDraft] = useState<Record<string, MedDetail>>({});
 
   const medsById = useMemo(() => {
@@ -277,6 +277,17 @@ export default function VisitSheet() {
                         value={d.monitoring ?? ''}
                         onChange={(e) => setDraftField(id, 'monitoring', e.target.value)}
                         onBlur={() => commitField(id, 'monitoring')}
+                      />
+                    </div>
+
+                    <div className="medFieldsSpan2">
+                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Важно</div>
+                      <input
+                        className="input"
+                        placeholder="Напр.: основные предупреждения/риски"
+                        value={d.warnings ?? ''}
+                        onChange={(e) => setDraftField(id, 'warnings', e.target.value)}
+                        onBlur={() => commitField(id, 'warnings')}
                       />
                     </div>
 
