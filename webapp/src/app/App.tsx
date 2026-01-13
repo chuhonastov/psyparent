@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
+import ToastHost from '../components/ToastHost';
 import Home from '../pages/Home';
 import Diagnoses from '../pages/Diagnoses';
 import DiagnosisGroup from '../pages/DiagnosisGroup';
@@ -16,20 +17,19 @@ export default function App() {
   }, []);
 
   return (
-    <div className="app-shell">
-      <div className="app-content">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/diagnoses" element={<Diagnoses />} />
-          <Route path="/diagnoses/group/:id" element={<DiagnosisGroup />} />
-          <Route path="/diagnoses/:id" element={<DiagnosisDetail />} />
-          <Route path="/medications" element={<Medications />} />
-          <Route path="/medications/:id" element={<MedicationDetail />} />
-          <Route path="/visit" element={<VisitSheet />} />
-        </Routes>
-      </div>
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/diagnoses" element={<Diagnoses />} />
+        <Route path="/diagnoses/group/:id" element={<DiagnosisGroup />} />
+        <Route path="/diagnoses/:id" element={<DiagnosisDetail />} />
+        <Route path="/medications" element={<Medications />} />
+        <Route path="/medications/:id" element={<MedicationDetail />} />
+        <Route path="/visit" element={<VisitSheet />} />
+      </Routes>
 
+      <ToastHost />
       <BottomNav />
-    </div>
+    </>
   );
 }
