@@ -436,12 +436,13 @@ export default function VisitSheet() {
                     </div>
 
                     <div className="row">
-                      <Link className="btn secondary" to={routes.medication(id)}>
-                        Открыть
-                      </Link>
-                      <button className="btn secondary" type="button" onClick={() => removeVisitMedication(id)}>
-                        Удалить
-                      </button>
+                      <Link className="btn secondary compact" to={routes.medication(id)}>
+  Открыть
+</Link>
+<button className="btn secondary compact" type="button" onClick={() => removeVisitMedication(id)}>
+  Удалить
+</button>
+
                     </div>
                   </div>
 
