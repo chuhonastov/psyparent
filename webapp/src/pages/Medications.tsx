@@ -9,19 +9,6 @@ const meds = medsRaw as unknown as any[];
 export default function Medications() {
   const [q, setQ] = useState('');
 
-  const topClasses = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const m of meds) {
-      const cls = (m?.class ?? '').toString().trim();
-      if (!cls) continue;
-      counts.set(cls, (counts.get(cls) ?? 0) + 1);
-    }
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 8)
-      .map(([cls]) => cls);
-  }, []);
-
   const items = useMemo(() => {
     const query = q.trim().toLowerCase();
     if (!query) return meds;
@@ -41,40 +28,21 @@ export default function Medications() {
         back
       />
 
-      <div className="stickyBar">
-        <div className="card">
-          <div className="searchBar">
-            <div className="searchRow">
-              <input
-                className="input"
-                placeholder="Поиск (например: атомоксетин, стимуляторы, СИОЗС)"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
-              {!!q.trim() && (
-                <button className="btn secondary btnSmall" type="button" onClick={() => setQ('')}>
-                  Очистить
-                </button>
-              )}
-            </div>
-
-            <div className="chipRow" aria-label="Быстрые фильтры">
-              <button className="pill" type="button" onClick={() => setQ('')}>
-                Все
-              </button>
-              {topClasses.map((cls) => (
-                <button key={cls} className="pill" type="button" onClick={() => setQ(cls)}>
-                  {cls}
-                </button>
-              ))}
-            </div>
-
-            <div className="muted" style={{ fontSize: 13 }}>
-              {q.trim() ? `Найдено: ${items.length}` : `Всего: ${meds.length}`}
-            </div>
+      <div className="card">
+        <div className="searchBar">
+          <input
+            className="input"
+            placeholder="Поиск (например: атомоксетин, стимуляторы, СИОЗС)"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          <div className="muted" style={{ fontSize: 13 }}>
+            {q.trim() ? `Найдено: ${items.length}` : `Всего: ${meds.length}`}
           </div>
         </div>
       </div>
+
+      <div style={{ height: 12 }} />
 
       {items.length === 0 ? (
         <div className="emptyState">
