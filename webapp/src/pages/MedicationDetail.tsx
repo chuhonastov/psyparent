@@ -48,14 +48,14 @@ export default function MedicationDetail() {
     e.preventDefault();
     e.stopPropagation();
     addVisitMedication(m.id);
-    alert('Препарат добавлен в «К врачу» → «Лечение / препараты».');
+    toast('Препарат добавлен в «К врачу» → «Лечение / препараты».');
   };
 
   const addQuestionToVisit = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     addVisitQuestion(`Про препарат «${m.name}»: зачем назначен, как оценивать эффект, что мониторить?`);
-    alert('Вопрос добавлен в «К врачу» → «Вопросы».');
+    toast('Вопрос добавлен в «К врачу» → «Вопросы».');
   };
 
   const fillMonitoringAndWarnings = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -72,7 +72,7 @@ export default function MedicationDetail() {
     setVisitMedicationField(m.id, 'monitoring', monitoringText);
     setVisitMedicationField(m.id, 'warnings', warningsText);
 
-    alert('Готово: «Мониторинг» и «Важно» заполнены в «К врачу» → «Лечение / препараты».');
+    toast('Готово: «Мониторинг» и «Важно» заполнены.');
   };
 
   return (
