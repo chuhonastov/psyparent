@@ -1,12 +1,17 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 type Props = {
   title: string;
   subtitle?: string;
   right?: React.ReactNode;
+
+  /** New way: explicit link */
   backTo?: string;
   backLabel?: string;
+
+  /** Legacy compatibility: pages may still pass `back` */
+  back?: boolean;
 };
 
 export default function PageHeader({
@@ -15,9 +20,13 @@ export default function PageHeader({
   right,
   backTo,
   backLabel = 'Назад',
+  back = false,
 }: Props) {
-  const hasTopRow = !!backTo || !!right;
-  const center = !hasTopRow; // главная и простые страницы будут выглядеть “геройски”
+  const navigate = useNavigate();
+
+  const hasBack = !!backTo || back;
+  const hasTopRow = hasBack || !!right;
+  const center = !hasTopRow;
 
   return (
     <header className={`pageHeader ${center ? 'center' : ''}`}>
@@ -29,6 +38,14 @@ export default function PageHeader({
                 <Link className="backLink" to={backTo}>
                   ← {backLabel}
                 </Link>
+              ) : back ? (
+                <button
+                  type="button"
+                  className="backLink backLinkBtn"
+                  onClick={() => navigate(-1)}
+                >
+                  ← {backLabel}
+                </button>
               ) : (
                 <span />
               )}
