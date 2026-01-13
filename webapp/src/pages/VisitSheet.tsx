@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
+import Disclosure from '../components/Disclosure';
 import medsRaw from '../content/medications.json';
 import { routes } from '../app/routes';
 import {
@@ -53,6 +54,70 @@ function formatMedLine(name: string, d?: MedDetail) {
   if (d.note?.trim()) parts.push(`коммент.: ${d.note.trim()}`);
 
   return parts.length ? `${name} — ${parts.join('; ')}` : name;
+}
+
+function makeMedSummary(d: MedDetail) {
+  const parts: string[] = [];
+  if (d.dose?.trim()) parts.push(`доза: ${d.dose.trim()}`);
+  if (d.schedule?.trim()) parts.push(`режим: ${d.schedule.trim()}`);
+  if (d.monitoring?.trim()) parts.push(`мониторинг`);
+  if (d.warnings?.trim()) parts.push(`важно`);
+  if (d.goal?.trim()) parts.push(`цель`);
+  if (d.note?.trim()) parts.push(`комм.`);
+
+  if (parts.length === 0) return 'Ничего не заполнено — нажмите, чтобы добавить детали';
+  return parts.join(' • ');
+}
+
+/**
+ * Auto-growing textarea, but capped to MAX px.
+ * After cap, it becomes internally scrollable.
+ */
+function AutoTextarea(props: {
+  value: string;
+  placeholder?: string;
+  onChange: (v: string) => void;
+  onBlur?: () => void;
+  minRows?: number;
+}) {
+  const { value, placeholder, onChange, onBlur, minRows = 2 } = props;
+  const ref = useRef<HTMLTextAreaElement | null>(null);
+
+  const resize = () => {
+    const el = ref.current;
+    if (!el) return;
+
+    const MAX = 180; // px
+    el.style.height = 'auto';
+    el.style.overflowY = 'hidden';
+
+    const next = el.scrollHeight;
+    if (next > MAX) {
+      el.style.height = `${MAX}px`;
+      el.style.overflowY = 'auto';
+    } else {
+      el.style.height = `${next}px`;
+      el.style.overflowY = 'hidden';
+    }
+  };
+
+  useEffect(() => {
+    resize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  return (
+    <textarea
+      ref={ref}
+      className="input textarea textareaAuto"
+      rows={minRows}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onInput={resize}
+      onBlur={onBlur}
+    />
+  );
 }
 
 export default function VisitSheet() {
@@ -209,6 +274,7 @@ export default function VisitSheet() {
               const cls = m?.class;
 
               const d = (draft[id] ?? {}) as MedDetail;
+              const summary = makeMedSummary(d);
 
               return (
                 <div key={id} className="item">
@@ -235,79 +301,81 @@ export default function VisitSheet() {
                     </div>
                   </div>
 
-                  <div className="medFields" style={{ marginTop: 10 }}>
-                    <div>
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Доза</div>
-                      <textarea
-                        className="input textarea"
-                        rows={2}
-                        placeholder="Напр.: 25 мг"
-                        value={d.dose ?? ''}
-                        onChange={(e) => setDraftField(id, 'dose', e.target.value)}
-                        onBlur={() => commitField(id, 'dose')}
-                      />
+                  <div style={{ height: 8 }} />
+
+                  <Disclosure title="Детали (доза/мониторинг/важно)" defaultOpen={false} tone="neutral">
+                    <div className="muted" style={{ marginBottom: 10 }}>
+                      {summary}
                     </div>
 
-                    <div>
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Режим / кратность</div>
-                      <textarea
-                        className="input textarea"
-                        rows={2}
-                        placeholder="Напр.: утром, 1 раз/день"
-                        value={d.schedule ?? ''}
-                        onChange={(e) => setDraftField(id, 'schedule', e.target.value)}
-                        onBlur={() => commitField(id, 'schedule')}
-                      />
-                    </div>
+                    <div className="medFields">
+                      <div>
+                        <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Доза</div>
+                        <AutoTextarea
+                          minRows={2}
+                          placeholder="Напр.: 25 мг"
+                          value={d.dose ?? ''}
+                          onChange={(v) => setDraftField(id, 'dose', v)}
+                          onBlur={() => commitField(id, 'dose')}
+                        />
+                      </div>
 
-                    <div>
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Цель / критерии эффекта</div>
-                      <textarea
-                        className="input textarea"
-                        rows={2}
-                        placeholder="Напр.: уменьшение симптомов через 4–6 недель"
-                        value={d.goal ?? ''}
-                        onChange={(e) => setDraftField(id, 'goal', e.target.value)}
-                        onBlur={() => commitField(id, 'goal')}
-                      />
-                    </div>
+                      <div>
+                        <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Режим / кратность</div>
+                        <AutoTextarea
+                          minRows={2}
+                          placeholder="Напр.: утром, 1 раз/день"
+                          value={d.schedule ?? ''}
+                          onChange={(v) => setDraftField(id, 'schedule', v)}
+                          onBlur={() => commitField(id, 'schedule')}
+                        />
+                      </div>
 
-                    <div>
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Мониторинг</div>
-                      <textarea
-                        className="input textarea"
-                        rows={3}
-                        placeholder="Напр.: АД/пульс, рост/вес, сон, аппетит"
-                        value={d.monitoring ?? ''}
-                        onChange={(e) => setDraftField(id, 'monitoring', e.target.value)}
-                        onBlur={() => commitField(id, 'monitoring')}
-                      />
-                    </div>
+                      <div>
+                        <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Цель / критерии эффекта</div>
+                        <AutoTextarea
+                          minRows={2}
+                          placeholder="Напр.: уменьшение симптомов через 4–6 недель"
+                          value={d.goal ?? ''}
+                          onChange={(v) => setDraftField(id, 'goal', v)}
+                          onBlur={() => commitField(id, 'goal')}
+                        />
+                      </div>
 
-                    <div className="medFieldsSpan2">
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Важно</div>
-                      <textarea
-                        className="input textarea"
-                        rows={3}
-                        placeholder="Напр.: основные предупреждения/риски"
-                        value={d.warnings ?? ''}
-                        onChange={(e) => setDraftField(id, 'warnings', e.target.value)}
-                        onBlur={() => commitField(id, 'warnings')}
-                      />
-                    </div>
+                      <div>
+                        <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Мониторинг</div>
+                        <AutoTextarea
+                          minRows={3}
+                          placeholder="Напр.: АД/пульс, рост/вес, сон, аппетит"
+                          value={d.monitoring ?? ''}
+                          onChange={(v) => setDraftField(id, 'monitoring', v)}
+                          onBlur={() => commitField(id, 'monitoring')}
+                        />
+                      </div>
 
-                    <div className="medFieldsSpan2">
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Комментарий (опционально)</div>
-                      <textarea
-                        className="input textarea"
-                        rows={4}
-                        placeholder="Любые дополнительные пометки"
-                        value={d.note ?? ''}
-                        onChange={(e) => setDraftField(id, 'note', e.target.value)}
-                        onBlur={() => commitField(id, 'note')}
-                      />
+                      <div className="medFieldsSpan2">
+                        <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Важно</div>
+                        <AutoTextarea
+                          minRows={3}
+                          placeholder="Напр.: основные предупреждения/риски"
+                          value={d.warnings ?? ''}
+                          onChange={(v) => setDraftField(id, 'warnings', v)}
+                          onBlur={() => commitField(id, 'warnings')}
+                        />
+                      </div>
+
+                      <div className="medFieldsSpan2">
+                        <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Комментарий (опционально)</div>
+                        <AutoTextarea
+                          minRows={3}
+                          placeholder="Любые дополнительные пометки"
+                          value={d.note ?? ''}
+                          onChange={(v) => setDraftField(id, 'note', v)}
+                          onBlur={() => commitField(id, 'note')}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </Disclosure>
                 </div>
               );
             })}
