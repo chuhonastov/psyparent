@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import meds from '../content/medications.json';
 import { routes } from '../app/routes';
-import { loadVisitSheet, saveVisitSheet } from '../lib/storage';
+import { addVisitQuestion } from '../lib/visit';
 
 // JSON imports infer strict literal types. We allow `sources.url` optionally
 // (some sources may be plain labels, some may include a link).
@@ -26,12 +26,11 @@ export default function MedicationDetail() {
     );
   }
 
-  const addToVisit = () => {
-    const sheet = loadVisitSheet();
-    const items = new Set(sheet.items);
-    items.add(`Про препарат «${m.name}»: зачем назначен, как оценивать эффект, что мониторить?`);
-    const next = { ...sheet, items: Array.from(items) };
-    saveVisitSheet(next);
+  const addToVisit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    addVisitQuestion(`Про препарат «${m.name}»: зачем назначен, как оценивать эффект, что мониторить?`);
     alert('Добавлено в «К врачу».');
   };
 
@@ -43,6 +42,7 @@ export default function MedicationDetail() {
       <div className="card">
         <div className="tag">{m.class}</div>
         <div style={{ height: 8 }} />
+
         <div className="h2">Когда обсуждают</div>
         <ul>
           {(m.whenDiscussed ?? []).map((x, i) => <li key={i}>{x}</li>)}
@@ -61,7 +61,9 @@ export default function MedicationDetail() {
         </ul>
 
         <div style={{ height: 8 }} />
-        <button className="btn" onClick={addToVisit}>Добавить вопрос к врачу</button>
+        <button className="btn" type="button" onClick={addToVisit}>
+          Добавить вопрос к врачу
+        </button>
       </div>
 
       <div style={{ height: 12 }} />
