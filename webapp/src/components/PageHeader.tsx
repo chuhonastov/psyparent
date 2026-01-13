@@ -1,40 +1,48 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 type Props = {
   title: string;
   subtitle?: string;
-  /** Show back button that goes to previous page */
-  back?: boolean;
-  /** Optional element on the right (button, badge, etc.) */
   right?: React.ReactNode;
+  backTo?: string;
+  backLabel?: string;
 };
 
-export default function PageHeader({ title, subtitle, back, right }: Props) {
-  const navigate = useNavigate();
+export default function PageHeader({
+  title,
+  subtitle,
+  right,
+  backTo,
+  backLabel = 'Назад',
+}: Props) {
+  const hasTopRow = !!backTo || !!right;
+  const center = !hasTopRow; // главная и простые страницы будут выглядеть “геройски”
 
   return (
-    <header className="page-header">
-      <div className="page-header__left">
-        {back && (
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={() => navigate(-1)}
-            aria-label="Назад"
-            title="Назад"
-          >
-            ←
-          </button>
+    <header className={`pageHeader ${center ? 'center' : ''}`}>
+      <div className="pageHeaderInner">
+        {hasTopRow && (
+          <div className="pageHeaderTop">
+            <div className="pageHeaderLeft">
+              {backTo ? (
+                <Link className="backLink" to={backTo}>
+                  ← {backLabel}
+                </Link>
+              ) : (
+                <span />
+              )}
+            </div>
+
+            <div className="pageHeaderRight">{right}</div>
+          </div>
         )}
 
-        <div className="page-header__titles">
-          <h1 className="page-title">{title}</h1>
-          {subtitle && <div className="page-subtitle muted">{subtitle}</div>}
+        <div className="pageHeaderMain">
+          <div className="pageHeaderTitle">{title}</div>
+          {!!subtitle && <div className="pageHeaderSubtitle">{subtitle}</div>}
         </div>
       </div>
-
-      {!!right && <div className="page-header__right">{right}</div>}
     </header>
   );
 }
