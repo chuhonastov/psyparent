@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { toast } from '../lib/toast';
 
 export type ChecklistItem = { id: string; text: string };
 
@@ -9,6 +8,11 @@ type Props = {
   storageKey: string;
   /** Optional hint shown above the checklist */
   hint?: string;
+
+  /** Optional submit button at the bottom */
+  submitLabel?: string;
+  /** Called with selected items when user presses submit */
+  onSubmit?: (selected: ChecklistItem[], checkedIds: string[]) => void;
 };
 
 const PREFIX = 'parentguide.checklist.v1:';
@@ -29,25 +33,7 @@ function safeWrite(key: string, ids: string[]) {
   localStorage.setItem(PREFIX + key, JSON.stringify(ids));
 }
 
-async function copyToClipboard(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast('Скопировано.', { variant: 'success' });
-  } catch {
-    // Fallback
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.left = '-9999px';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    toast('Скопировано.', { variant: 'success' });
-  }
-}
-
-export default function Checklist({ items, storageKey, hint }: Props) {
+export default function Checklist({ items, storageKey, hint, submitLabel, onSubmit }: Props) {
   const [checked, setChecked] = useState<string[]>(() => safeRead(storageKey));
 
   const validIds = useMemo(() => new Set(items.map((x) => x.id)), [items]);
@@ -80,39 +66,22 @@ export default function Checklist({ items, storageKey, hint }: Props) {
     });
   };
 
-  const clearAll = () => setChecked([]);
-  const selectAll = () => setChecked(items.map((x) => x.id));
-
-  const copySelected = async () => {
+  const submit = () => {
+    if (!onSubmit) return;
     const selected = items.filter((x) => checkedSet.has(x.id));
-    const text =
-      selected.length === 0
-        ? 'Отмеченные пункты: (пока нет)'
-        : 'Отмеченные пункты:\n' +
-          selected.map((x, i) => `${i + 1}. ${x.text}`).join('\n');
-    await copyToClipboard(text);
+    onSubmit(selected, checked);
   };
 
   return (
     <div>
-      {!!hint && <div className="muted" style={{ marginBottom: 8 }}>{hint}</div>}
-
-      <div className="row" style={{ justifyContent: 'space-between', marginBottom: 10 }}>
-        <div style={{ fontWeight: 800 }}>
-          Отмечено: {done} / {total}
+      {!!hint && (
+        <div className="muted" style={{ marginBottom: 8 }}>
+          {hint}
         </div>
+      )}
 
-        <div className="row">
-          <button className="btn secondary" type="button" onClick={copySelected}>
-            Скопировать
-          </button>
-          <button className="btn secondary" type="button" onClick={clearAll}>
-            Сбросить
-          </button>
-          <button className="btn" type="button" onClick={selectAll}>
-            Все
-          </button>
-        </div>
+      <div style={{ fontWeight: 900, marginBottom: 10 }}>
+        Отмечено: {done} / {total}
       </div>
 
       <div className="list">
@@ -130,6 +99,17 @@ export default function Checklist({ items, storageKey, hint }: Props) {
           </label>
         ))}
       </div>
+
+      {!!onSubmit && (
+        <div style={{ marginTop: 12 }}>
+          <button className="btn" type="button" onClick={submit} disabled={done === 0}>
+            {submitLabel ?? 'Отправить в «К врачу»'}
+          </button>
+          <div className="muted" style={{ marginTop: 8, fontSize: 13 }}>
+            Отправится список отмеченных пунктов.
+          </div>
+        </div>
+      )}
     </div>
   );
 }
