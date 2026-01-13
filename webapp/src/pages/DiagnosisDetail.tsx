@@ -136,9 +136,17 @@ export default function DiagnosisDetail() {
             {d.questionsToDoctor.map((q, i) => (
               <div key={i} className="card" style={{ padding: 10 }}>
                 <div style={{ marginBottom: 8 }}>{q}</div>
-                <button className="btn" type="button" onClick={() => addVisitQuestion(q)}>
-                  Добавить
-                </button>
+                <button
+  className="btn"
+  type="button"
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addVisitQuestion(q);
+  }}
+>
+  Добавить
+</button>
               </div>
             ))}
           </div>
