@@ -9,6 +9,7 @@ import {
   getVisit,
   removeVisitMedication,
   removeVisitQuestion,
+  setVisitMedicationNote,
   subscribeVisit
 } from '../lib/visit';
 
@@ -34,6 +35,7 @@ async function copyToClipboard(text: string) {
 export default function VisitSheet() {
   const [visit, setVisit] = useState(() => getVisit());
   const [newQ, setNewQ] = useState('');
+  const [draftNotes, setDraftNotes] = useState<Record<string, string>>({});
 
   const medsById = useMemo(() => {
     const m = new Map<string, any>();
@@ -42,8 +44,16 @@ export default function VisitSheet() {
   }, []);
 
   useEffect(() => {
-    setVisit(getVisit());
-    const unsub = subscribeVisit(() => setVisit(getVisit()));
+    const v = getVisit();
+    setVisit(v);
+    setDraftNotes(v.notes ?? {});
+
+    const unsub = subscribeVisit(() => {
+      const next = getVisit();
+      setVisit(next);
+      setDraftNotes(next.notes ?? {});
+    });
+
     return () => unsub();
   }, []);
 
@@ -63,7 +73,8 @@ export default function VisitSheet() {
       visit.meds.forEach((id, i) => {
         const m = medsById.get(id);
         const name = m?.name ?? m?.title ?? id;
-        parts.push(`${i + 1}. ${name}`);
+        const note = (visit.notes?.[id] ?? '').trim();
+        parts.push(`${i + 1}. ${name}${note ? ` — ${note}` : ''}`);
       });
     } else {
       parts.push('\nЛечение / препараты: (пока нет)');
@@ -108,7 +119,7 @@ export default function VisitSheet() {
         <div className="row">
           <input
             className="input"
-            placeholder="Например: «Какие альтернативы, если эффекта нет через 6–8 недель?»"
+            placeholder="Например: «Что считаем хорошим эффектом и когда менять план?»"
             value={newQ}
             onChange={(e) => setNewQ(e.target.value)}
             onKeyDown={(e) => {
@@ -120,7 +131,7 @@ export default function VisitSheet() {
           </button>
         </div>
         <div className="muted" style={{ marginTop: 8 }}>
-          Можно писать любые вопросы — они сохранятся и будут доступны при следующем открытии.
+          Можно писать любые вопросы — они сохранятся.
         </div>
       </div>
 
@@ -161,10 +172,12 @@ export default function VisitSheet() {
               const name = m?.name ?? m?.title ?? id;
               const cls = m?.class;
 
+              const noteValue = draftNotes[id] ?? '';
+
               return (
                 <div key={id} className="item">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                    <div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                    <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 800 }}>{name}</div>
                       {!!cls && <div className="muted">{cls}</div>}
                     </div>
@@ -177,6 +190,24 @@ export default function VisitSheet() {
                         Удалить
                       </button>
                     </div>
+                  </div>
+
+                  <div style={{ marginTop: 10 }}>
+                    <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>
+                      Доза / режим / заметки
+                    </div>
+                    <input
+                      className="input"
+                      placeholder="Напр.: 25 мг утром, оценка эффекта через 4–6 недель, мониторить АД/пульс"
+                      value={noteValue}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setDraftNotes((prev) => ({ ...prev, [id]: v }));
+                      }}
+                      onBlur={() => {
+                        setVisitMedicationNote(id, noteValue);
+                      }}
+                    />
                   </div>
                 </div>
               );
