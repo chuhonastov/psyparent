@@ -15,21 +15,19 @@ export default function App() {
     initTwa();
   }, []);
 
-   return (
+  return (
     <div className="app-shell">
-      <main className="container app-main">
-        <div className="card app-card">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/diagnoses" element={<Diagnoses />} />
-            <Route path="/diagnoses/group/:id" element={<DiagnosisGroup />} />
-            <Route path="/diagnoses/:id" element={<DiagnosisDetail />} />
-            <Route path="/medications" element={<Medications />} />
-            <Route path="/medications/:id" element={<MedicationDetail />} />
-            <Route path="/visit" element={<VisitSheet />} />
-          </Routes>
-        </div>
-      </main>
+      <div className="app-content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/diagnoses" element={<Diagnoses />} />
+          <Route path="/diagnoses/group/:id" element={<DiagnosisGroup />} />
+          <Route path="/diagnoses/:id" element={<DiagnosisDetail />} />
+          <Route path="/medications" element={<Medications />} />
+          <Route path="/medications/:id" element={<MedicationDetail />} />
+          <Route path="/visit" element={<VisitSheet />} />
+        </Routes>
+      </div>
 
       <BottomNav />
     </div>
