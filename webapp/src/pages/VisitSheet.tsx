@@ -303,7 +303,7 @@ export default function VisitSheet() {
 
                   <div style={{ height: 8 }} />
 
-                  <Disclosure title="Детали (доза/мониторинг/важно)" defaultOpen={false} tone="neutral">
+                  <Disclosure title="Детали" defaultOpen={false} tone="neutral">
                     <div className="muted" style={{ marginBottom: 10 }}>
                       {summary}
                     </div>
