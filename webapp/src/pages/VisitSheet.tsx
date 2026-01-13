@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from '../lib/toast';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Disclosure from '../components/Disclosure';
 import medsRaw from '../content/medications.json';
 import { routes } from '../app/routes';
+import { toast } from '../lib/toast';
 import {
   addVisitQuestion,
   clearVisit,
@@ -12,7 +12,7 @@ import {
   removeVisitMedication,
   removeVisitQuestion,
   setVisitMedicationField,
-  subscribeVisit
+  subscribeVisit,
 } from '../lib/visit';
 
 const meds = medsRaw as unknown as any[];
@@ -59,15 +59,15 @@ function formatMedLine(name: string, d?: MedDetail) {
 
 function makeMedSummary(d: MedDetail) {
   const parts: string[] = [];
-  if (d.dose?.trim()) parts.push(`доза: ${d.dose.trim()}`);
-  if (d.schedule?.trim()) parts.push(`режим: ${d.schedule.trim()}`);
-  if (d.monitoring?.trim()) parts.push(`мониторинг`);
-  if (d.warnings?.trim()) parts.push(`важно`);
-  if (d.goal?.trim()) parts.push(`цель`);
-  if (d.note?.trim()) parts.push(`комм.`);
+  if (d.dose?.trim()) parts.push('доза');
+  if (d.schedule?.trim()) parts.push('режим');
+  if (d.goal?.trim()) parts.push('цель');
+  if (d.monitoring?.trim()) parts.push('мониторинг');
+  if (d.warnings?.trim()) parts.push('важно');
+  if (d.note?.trim()) parts.push('комм.');
 
   if (parts.length === 0) return 'Ничего не заполнено — нажмите, чтобы добавить детали';
-  return parts.join(' • ');
+  return `Заполнено: ${parts.join(' • ')}`;
 }
 
 /**
@@ -146,17 +146,40 @@ export default function VisitSheet() {
     return () => unsub();
   }, []);
 
+  // --- NEW: split questions into "diagnosis checklists" and regular questions
+  const dxChecklists = useMemo(() => {
+    return (visit.questions ?? []).filter((x: string) => x.startsWith('[DX] '));
+  }, [visit.questions]);
+
+  const normalQuestions = useMemo(() => {
+    return (visit.questions ?? []).filter((x: string) => !x.startsWith('[DX] '));
+  }, [visit.questions]);
+
   const copyAll = async () => {
     const parts: string[] = [];
     parts.push('К врачу — список для приёма');
 
-    if (visit.questions.length) {
+    // Diagnosis checklists
+    if (dxChecklists.length) {
+      parts.push('\nДиагнозы / чек-листы:');
+      dxChecklists.forEach((raw: string, i: number) => {
+        // компактная строка: заголовок + краткое тело
+        const text = raw.replace(/^\[DX\]\s*/, '');
+        parts.push(`${i + 1}. ${text.replace(/\n/g, ' | ')}`);
+      });
+    } else {
+      parts.push('\nДиагнозы / чек-листы: (пока нет)');
+    }
+
+    // Regular questions
+    if (normalQuestions.length) {
       parts.push('\nВопросы:');
-      visit.questions.forEach((q: string, i: number) => parts.push(`${i + 1}. ${q}`));
+      normalQuestions.forEach((q: string, i: number) => parts.push(`${i + 1}. ${q}`));
     } else {
       parts.push('\nВопросы: (пока нет)');
     }
 
+    // Meds
     if (visit.meds.length) {
       parts.push('\nЛечение / препараты:');
       visit.meds.forEach((id: string, i: number) => {
@@ -177,6 +200,7 @@ export default function VisitSheet() {
     if (!t) return;
     addVisitQuestion(t);
     setNewQ('');
+    toast('Добавлено в «Вопросы».', { variant: 'success' });
   };
 
   const setDraftField = (id: string, field: keyof MedDetail, value: string) => {
@@ -195,7 +219,7 @@ export default function VisitSheet() {
     <div className="container">
       <PageHeader
         title="К врачу"
-        subtitle="Ваш список вопросов и лечения для обсуждения"
+        subtitle="Ваш список вопросов, диагнозов и лечения для обсуждения"
         right={
           <div className="row">
             <button className="btn secondary" type="button" onClick={copyAll}>
@@ -205,7 +229,10 @@ export default function VisitSheet() {
               className="btn"
               type="button"
               onClick={() => {
-                if (confirm('Очистить весь список?')) clearVisit();
+                if (confirm('Очистить весь список?')) {
+                  clearVisit();
+                  toast('Список очищен.', { variant: 'info' });
+                }
               }}
             >
               Очистить
@@ -214,6 +241,7 @@ export default function VisitSheet() {
         }
       />
 
+      {/* Add custom question */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Добавить свой вопрос</div>
         <div className="row">
@@ -237,16 +265,54 @@ export default function VisitSheet() {
 
       <div style={{ height: 12 }} />
 
+      {/* NEW: Diagnosis checklists */}
+      <div className="card" style={{ padding: 12 }}>
+        <div className="h2">Диагнозы (чек-листы)</div>
+
+        {dxChecklists.length === 0 ? (
+          <div className="muted">
+            Пока нет чек-листов. Они появятся здесь после отправки из «Полных критериев».
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: 10 }}>
+            {dxChecklists.map((raw: string) => {
+              const text = raw.replace(/^\[DX\]\s*/, '');
+              const [titleLine, ...rest] = text.split('\n');
+
+              return (
+                <div key={raw} className="card" style={{ padding: 10 }}>
+                  <div style={{ fontWeight: 900, marginBottom: 6 }}>{titleLine}</div>
+
+                  {!!rest.length && (
+                    <div className="muted" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.35 }}>
+                      {rest.join('\n')}
+                    </div>
+                  )}
+
+                  <div style={{ height: 10 }} />
+                  <button className="btn secondary" type="button" onClick={() => removeVisitQuestion(raw)}>
+                    Удалить
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div style={{ height: 12 }} />
+
+      {/* Regular questions */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Вопросы</div>
 
-        {visit.questions.length === 0 ? (
+        {normalQuestions.length === 0 ? (
           <div className="muted">
             Пока нет вопросов. Добавляйте их на страницах диагнозов/препаратов или вручную выше.
           </div>
         ) : (
           <div style={{ display: 'grid', gap: 10 }}>
-            {visit.questions.map((q: string) => (
+            {normalQuestions.map((q: string) => (
               <div key={q} className="card" style={{ padding: 10 }}>
                 <div style={{ marginBottom: 8 }}>{q}</div>
                 <button className="btn secondary" type="button" onClick={() => removeVisitQuestion(q)}>
@@ -260,6 +326,7 @@ export default function VisitSheet() {
 
       <div style={{ height: 12 }} />
 
+      {/* Medications */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Лечение / препараты</div>
 
@@ -304,7 +371,7 @@ export default function VisitSheet() {
 
                   <div style={{ height: 8 }} />
 
-                  <Disclosure title="Детали" defaultOpen={false} tone="neutral">
+                  <Disclosure title="Детали (доза/мониторинг/важно)" defaultOpen={false} tone="neutral">
                     <div className="muted" style={{ marginBottom: 10 }}>
                       {summary}
                     </div>
