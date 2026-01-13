@@ -2,10 +2,9 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import meds from '../content/medications.json';
 import { routes } from '../app/routes';
-import { addVisitQuestion } from '../lib/visit';
+import { addVisitMedication, addVisitQuestion } from '../lib/visit';
 
 // JSON imports infer strict literal types. We allow `sources.url` optionally
-// (some sources may be plain labels, some may include a link).
 type Source = { label: string; url?: string };
 type Med = Omit<typeof meds[number], 'sources'> & { sources?: Source[] };
 
@@ -26,12 +25,18 @@ export default function MedicationDetail() {
     );
   }
 
-  const addToVisit = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const addMedToVisit = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    addVisitMedication(m.id);
+    alert('Препарат добавлен в «К врачу» → «Лечение / препараты».');
+  };
 
+  const addQuestionToVisit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     addVisitQuestion(`Про препарат «${m.name}»: зачем назначен, как оценивать эффект, что мониторить?`);
-    alert('Добавлено в «К врачу».');
+    alert('Вопрос добавлен в «К врачу» → «Вопросы».');
   };
 
   return (
@@ -60,10 +65,16 @@ export default function MedicationDetail() {
           {(m.warnings ?? []).map((x, i) => <li key={i}>{x}</li>)}
         </ul>
 
-        <div style={{ height: 8 }} />
-        <button className="btn" type="button" onClick={addToVisit}>
-          Добавить вопрос к врачу
-        </button>
+        <div style={{ height: 10 }} />
+
+        <div className="row">
+          <button className="btn" type="button" onClick={addMedToVisit}>
+            Добавить препарат
+          </button>
+          <button className="btn secondary" type="button" onClick={addQuestionToVisit}>
+            Добавить вопрос
+          </button>
+        </div>
       </div>
 
       <div style={{ height: 12 }} />
