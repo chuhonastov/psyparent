@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import PageHeader from '../components/PageHeader';
+import Disclosure from '../components/Disclosure';
+import Checklist, { ChecklistItem } from '../components/Checklist';
 import diagnosesRaw from '../content/diagnoses.json';
 import medsRaw from '../content/medications.json';
 import { routes } from '../app/routes';
-import Disclosure from '../components/Disclosure';
-import Checklist, { ChecklistItem } from '../components/Checklist';
 import { addVisitQuestion } from '../lib/visit';
 
 type Source = { label: string; url?: string };
@@ -58,8 +59,9 @@ export default function DiagnosisDetail() {
   if (!item) {
     return (
       <div className="container">
-        <Link className="muted" to={routes.diagnoses}>&larr; Назад</Link>
-        <h1 className="h1">Диагноз не найден</h1>
+        <PageHeader title="Диагноз не найден" subtitle="Проверьте ссылку или выберите диагноз из списка" back />
+        <Link className="btn secondary" to={routes.diagnoses}>Перейти к диагнозам</Link>
+        <div style={{ height: 80 }} />
       </div>
     );
   }
@@ -70,19 +72,16 @@ export default function DiagnosisDetail() {
 
     return (
       <div className="container">
-        <Link className="muted" to={routes.diagnoses}>&larr; Диагнозы</Link>
-
-        <h1 className="h1">{g.title}</h1>
-        {!!g.summary && <div className="muted">{g.summary}</div>}
-
-        <div style={{ height: 14 }} />
+        <PageHeader title={g.title} subtitle={g.summary ?? 'Выберите диагноз из рубрики'} back />
 
         <div className="card" style={{ padding: 12 }}>
           <div style={{ fontWeight: 900, marginBottom: 10 }}>Выберите диагноз</div>
 
           <div className="list">
             {g.children.map((cid) => {
-              const child = diagnoses.find((x: any) => (x as any).id === cid && (x as any).kind !== 'group') as DiagnosisContent | undefined;
+              const child = diagnoses.find(
+                (x: any) => (x as any).id === cid && (x as any).kind !== 'group'
+              ) as DiagnosisContent | undefined;
 
               return (
                 <Link key={cid} className="item" to={routes.diagnosis(cid)}>
@@ -104,12 +103,7 @@ export default function DiagnosisDetail() {
 
   return (
     <div className="container">
-      <Link className="muted" to={routes.diagnoses}>&larr; Диагнозы</Link>
-
-      <h1 className="h1">{d.title}</h1>
-      {!!d.summary && <div className="muted">{d.summary}</div>}
-
-      <div style={{ height: 14 }} />
+      <PageHeader title={d.title} subtitle={d.summary ?? 'Критерии, терапия и вопросы к врачу'} back />
 
       {!!(d.simplifiedCriteria && d.simplifiedCriteria.length) && (
         <div className="card" style={{ padding: 12 }}>
