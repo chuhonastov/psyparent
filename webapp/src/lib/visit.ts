@@ -1,7 +1,15 @@
+type MedDetail = {
+  dose?: string;
+  schedule?: string;
+  goal?: string;
+  monitoring?: string;
+  note?: string; // free text / legacy notes
+};
+
 type VisitState = {
   questions: string[];
   meds: string[]; // medication ids
-  notes: Record<string, string>; // medId -> dose/regimen/comment
+  medDetails: Record<string, MedDetail>; // medId -> structured fields
 };
 
 const KEY = 'parentguide.visit.v1';
@@ -37,83 +45,130 @@ function safeParse(key: string): any {
   }
 }
 
-function normalizeNotes(raw: any): Record<string, string> {
+function cleanStr(v: any): string | undefined {
+  const s = (v ?? '').toString();
+  const t = s.trim();
+  return t ? s : undefined; // keep original spacing, but require non-empty
+}
+
+function normalizeMedDetail(raw: any): MedDetail {
   if (!raw || typeof raw !== 'object') return {};
-  const out: Record<string, string> = {};
+  const d: MedDetail = {};
+  const dose = cleanStr((raw as any).dose);
+  const schedule = cleanStr((raw as any).schedule);
+  const goal = cleanStr((raw as any).goal);
+  const monitoring = cleanStr((raw as any).monitoring);
+  const note = cleanStr((raw as any).note);
+
+  if (dose) d.dose = dose;
+  if (schedule) d.schedule = schedule;
+  if (goal) d.goal = goal;
+  if (monitoring) d.monitoring = monitoring;
+  if (note) d.note = note;
+
+  return d;
+}
+
+function normalizeMedDetails(raw: any): Record<string, MedDetail> {
+  if (!raw || typeof raw !== 'object') return {};
+  const out: Record<string, MedDetail> = {};
+
   for (const [k, v] of Object.entries(raw)) {
     const id = (k ?? '').toString().trim();
-    const note = (v ?? '').toString();
     if (!id) continue;
-    if (note.trim() === '') continue;
-    out[id] = note;
+
+    // New format: value is an object with fields
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      const d = normalizeMedDetail(v);
+      if (Object.keys(d).length) out[id] = d;
+      continue;
+    }
+
+    // Legacy-ish: value is a string note
+    const note = cleanStr(v);
+    if (note) out[id] = { note };
   }
+
   return out;
 }
 
 function normalize(raw: any): VisitState {
   // Very old legacy: array of questions only
   if (Array.isArray(raw)) {
-    return { questions: uniq(raw), meds: [], notes: {} };
+    return { questions: uniq(raw), meds: [], medDetails: {} };
   }
 
-  // Current: object with questions/meds/notes
   if (raw && typeof raw === 'object') {
-    const questions = Array.isArray(raw.questions) ? raw.questions : [];
-    const meds = Array.isArray(raw.meds) ? raw.meds : [];
+    const questions = Array.isArray((raw as any).questions) ? (raw as any).questions : [];
+    const meds = Array.isArray((raw as any).meds) ? (raw as any).meds : [];
 
-    // notes might be stored under "notes" (new) or "medNotes" (some variants)
-    const notesRaw = (raw.notes ?? raw.medNotes ?? raw.medsNotes) as any;
+    // New: medDetails
+    const mdRaw =
+      (raw as any).medDetails ??
+      (raw as any).details ??
+      (raw as any).medsDetails;
+
+    // Previous version: notes (string per med)
+    const legacyNotesRaw =
+      (raw as any).notes ??
+      (raw as any).medNotes ??
+      (raw as any).medsNotes;
+
+    const medDetailsFromNew = normalizeMedDetails(mdRaw);
+    const medDetailsFromNotes = normalizeMedDetails(legacyNotesRaw);
 
     return {
       questions: uniq(questions),
       meds: uniq(meds),
-      notes: normalizeNotes(notesRaw),
+      medDetails: { ...medDetailsFromNotes, ...medDetailsFromNew },
     };
   }
 
-  return { questions: [], meds: [], notes: {} };
+  return { questions: [], meds: [], medDetails: {} };
 }
 
 function merge(a: VisitState, b: VisitState): VisitState {
-  // b can only add questions/meds; notes are taken from a (primary)
+  // b can add questions/meds; structured details prefer a (primary)
   return {
     questions: uniq([...(a.questions ?? []), ...(b.questions ?? [])]),
     meds: uniq([...(a.meds ?? []), ...(b.meds ?? [])]),
-    notes: { ...(a.notes ?? {}) },
+    medDetails: { ...(a.medDetails ?? {}) },
   };
 }
 
 export function getVisit(): VisitState {
   const primary = normalize(safeParse(KEY));
 
-  // Legacy stores: arrays only
   const legacyQRaw = safeParse(LEGACY_Q);
   const legacyMRaw = safeParse(LEGACY_M);
 
   const legacy: VisitState = {
     questions: Array.isArray(legacyQRaw) ? uniq(legacyQRaw) : [],
     meds: Array.isArray(legacyMRaw) ? uniq(legacyMRaw) : [],
-    notes: {},
+    medDetails: {},
   };
 
-  // Ensure notes only for meds that exist (clean up)
   const merged = merge(primary, legacy);
+
+  // Cleanup: keep details only for meds that exist
   const medSet = new Set(merged.meds);
-  const notes: Record<string, string> = {};
-  for (const [id, note] of Object.entries(merged.notes ?? {})) {
-    if (medSet.has(id) && note.trim() !== '') notes[id] = note;
+  const md: Record<string, MedDetail> = {};
+  for (const [id, d] of Object.entries(merged.medDetails ?? {})) {
+    if (!medSet.has(id)) continue;
+    if (d && typeof d === 'object' && Object.keys(d).length) md[id] = d;
   }
-  return { ...merged, notes };
+
+  return { ...merged, medDetails: md };
 }
 
 function setVisit(next: VisitState) {
   const safe: VisitState = {
     questions: uniq(next.questions ?? []),
     meds: uniq(next.meds ?? []),
-    notes: normalizeNotes(next.notes ?? {}),
+    medDetails: normalizeMedDetails(next.medDetails ?? {}),
   };
 
-  // Write primary (includes notes)
+  // Write primary (includes medDetails)
   localStorage.setItem(KEY, JSON.stringify(safe));
 
   // Write legacy arrays for older code paths
@@ -125,7 +180,7 @@ function setVisit(next: VisitState) {
 }
 
 export function clearVisit() {
-  setVisit({ questions: [], meds: [], notes: {} });
+  setVisit({ questions: [], meds: [], medDetails: {} });
 }
 
 export function addVisitQuestion(text: string) {
@@ -149,9 +204,9 @@ export function removeVisitQuestion(text: string) {
 function extractMedId(medOrId: any): string {
   if (typeof medOrId === 'string') return medOrId.trim();
   if (medOrId && typeof medOrId === 'object') {
-    if (typeof medOrId.id === 'string') return medOrId.id.trim();
-    if (typeof medOrId.medId === 'string') return medOrId.medId.trim();
-    if (typeof medOrId.slug === 'string') return medOrId.slug.trim();
+    if (typeof (medOrId as any).id === 'string') return (medOrId as any).id.trim();
+    if (typeof (medOrId as any).medId === 'string') return (medOrId as any).medId.trim();
+    if (typeof (medOrId as any).slug === 'string') return (medOrId as any).slug.trim();
   }
   return '';
 }
@@ -171,32 +226,40 @@ export function removeVisitMedication(medOrId: any) {
   if (!id) return;
 
   const cur = getVisit();
-  const nextNotes = { ...(cur.notes ?? {}) };
-  delete nextNotes[id];
+  const nextDetails = { ...(cur.medDetails ?? {}) };
+  delete nextDetails[id];
 
   setVisit({
     ...cur,
     meds: cur.meds.filter((x) => x !== id),
-    notes: nextNotes,
+    medDetails: nextDetails,
   });
 }
 
-/** NEW: set or clear note for a medication */
-export function setVisitMedicationNote(medId: string, note: string) {
+/** NEW: set one field for medication details */
+export function setVisitMedicationField(medId: string, field: keyof MedDetail, value: string) {
   const id = (medId ?? '').toString().trim();
   if (!id) return;
 
   const cur = getVisit();
-  const nextNotes = { ...(cur.notes ?? {}) };
+  const nextDetails: Record<string, MedDetail> = { ...(cur.medDetails ?? {}) };
+  const prev: MedDetail = nextDetails[id] ?? {};
 
-  const v = (note ?? '').toString();
-  if (v.trim() === '') delete nextNotes[id];
-  else nextNotes[id] = v;
+  const v = (value ?? '').toString();
+  const t = v.trim();
 
-  // If someone sets a note, ensure the med is present
+  const next: MedDetail = { ...prev };
+  if (!t) delete (next as any)[field];
+  else (next as any)[field] = v;
+
+  // Remove empty detail object
+  if (Object.keys(next).length === 0) delete nextDetails[id];
+  else nextDetails[id] = next;
+
+  // If someone edits details, ensure the med is present
   const meds = cur.meds.includes(id) ? cur.meds : [...cur.meds, id];
 
-  setVisit({ ...cur, meds, notes: nextNotes });
+  setVisit({ ...cur, meds, medDetails: nextDetails });
 }
 
 /** Backward-compatible aliases */
