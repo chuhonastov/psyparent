@@ -4,6 +4,14 @@ type VisitState = {
 };
 
 const KEY = 'parentguide.visit.v1';
+
+/**
+ * Legacy keys (for backward compatibility)
+ * Some parts of the app may still write here.
+ */
+const LEGACY_Q = 'parentguide.visit.questions.v1';
+const LEGACY_M = 'parentguide.visit.meds.v1';
+
 const EVENT = 'parentguide:visit:updated';
 
 function uniq(arr: string[]) {
@@ -17,6 +25,16 @@ function uniq(arr: string[]) {
     out.push(v);
   }
   return out;
+}
+
+function safeParse(key: string): any {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
 }
 
 function normalize(raw: any): VisitState {
@@ -35,14 +53,26 @@ function normalize(raw: any): VisitState {
   return { questions: [], meds: [] };
 }
 
+function merge(a: VisitState, b: VisitState): VisitState {
+  return {
+    questions: uniq([...(a.questions ?? []), ...(b.questions ?? [])]),
+    meds: uniq([...(a.meds ?? []), ...(b.meds ?? [])]),
+  };
+}
+
 export function getVisit(): VisitState {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return { questions: [], meds: [] };
-    return normalize(JSON.parse(raw));
-  } catch {
-    return { questions: [], meds: [] };
-  }
+  const primary = normalize(safeParse(KEY));
+
+  // Read legacy stores (if any)
+  const legacyQRaw = safeParse(LEGACY_Q);
+  const legacyMRaw = safeParse(LEGACY_M);
+
+  const legacy: VisitState = {
+    questions: Array.isArray(legacyQRaw) ? uniq(legacyQRaw) : [],
+    meds: Array.isArray(legacyMRaw) ? uniq(legacyMRaw) : [],
+  };
+
+  return merge(primary, legacy);
 }
 
 function setVisit(next: VisitState) {
@@ -51,9 +81,14 @@ function setVisit(next: VisitState) {
     meds: uniq(next.meds),
   };
 
+  // Write primary
   localStorage.setItem(KEY, JSON.stringify(safe));
 
-  // IMPORTANT: same-tab updates (storage event does not fire in same tab)
+  // Also write legacy arrays for older code paths
+  localStorage.setItem(LEGACY_Q, JSON.stringify(safe.questions));
+  localStorage.setItem(LEGACY_M, JSON.stringify(safe.meds));
+
+  // Same-tab updates (storage event does not fire in same tab)
   window.dispatchEvent(new CustomEvent(EVENT));
 }
 
@@ -79,8 +114,18 @@ export function removeVisitQuestion(text: string) {
   setVisit({ ...cur, questions: cur.questions.filter((x) => x !== q) });
 }
 
-export function addVisitMedication(medId: string) {
-  const id = (medId ?? '').toString().trim();
+function extractMedId(medOrId: any): string {
+  if (typeof medOrId === 'string') return medOrId.trim();
+  if (medOrId && typeof medOrId === 'object') {
+    if (typeof medOrId.id === 'string') return medOrId.id.trim();
+    if (typeof medOrId.medId === 'string') return medOrId.medId.trim();
+    if (typeof medOrId.slug === 'string') return medOrId.slug.trim();
+  }
+  return '';
+}
+
+export function addVisitMedication(medOrId: any) {
+  const id = extractMedId(medOrId);
   if (!id) return;
 
   const cur = getVisit();
@@ -89,28 +134,31 @@ export function addVisitMedication(medId: string) {
   setVisit({ ...cur, meds: [...cur.meds, id] });
 }
 
-export function removeVisitMedication(medId: string) {
-  const id = (medId ?? '').toString().trim();
+export function removeVisitMedication(medOrId: any) {
+  const id = extractMedId(medOrId);
   if (!id) return;
 
   const cur = getVisit();
   setVisit({ ...cur, meds: cur.meds.filter((x) => x !== id) });
 }
 
-// Optional alias for compatibility if somewhere used
+/** Backward-compatible aliases (in case some files import old names) */
 export const addVisitMed = addVisitMedication;
+export const removeVisitMed = removeVisitMedication;
+export const addVisitDrug = addVisitMedication;
+export const removeVisitDrug = removeVisitMedication;
 
-/** Subscribe to updates inside the same tab and across tabs */
 export function subscribeVisit(onChange: () => void) {
   const handler = () => onChange();
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === KEY || e.key === LEGACY_Q || e.key === LEGACY_M) onChange();
+  };
 
   window.addEventListener(EVENT, handler);
-  window.addEventListener('storage', (e) => {
-    if (e.key === KEY) onChange();
-  });
+  window.addEventListener('storage', onStorage);
 
   return () => {
     window.removeEventListener(EVENT, handler);
-    // storage listener can't be removed easily since it's inline above; keep simple
+    window.removeEventListener('storage', onStorage);
   };
 }
