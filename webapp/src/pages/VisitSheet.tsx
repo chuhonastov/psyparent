@@ -3,7 +3,14 @@ import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import medsRaw from '../content/medications.json';
 import { routes } from '../app/routes';
-import { clearVisit, getVisit, removeVisitMedication, removeVisitQuestion, subscribeVisit } from '../lib/visit';
+import {
+  addVisitQuestion,
+  clearVisit,
+  getVisit,
+  removeVisitMedication,
+  removeVisitQuestion,
+  subscribeVisit
+} from '../lib/visit';
 
 const meds = medsRaw as unknown as any[];
 
@@ -26,6 +33,7 @@ async function copyToClipboard(text: string) {
 
 export default function VisitSheet() {
   const [visit, setVisit] = useState(() => getVisit());
+  const [newQ, setNewQ] = useState('');
 
   const medsById = useMemo(() => {
     const m = new Map<string, any>();
@@ -41,7 +49,6 @@ export default function VisitSheet() {
 
   const copyAll = async () => {
     const parts: string[] = [];
-
     parts.push('К врачу — список для приёма');
 
     if (visit.questions.length) {
@@ -52,17 +59,24 @@ export default function VisitSheet() {
     }
 
     if (visit.meds.length) {
-      parts.push('\nПрепараты/лечение:');
+      parts.push('\nЛечение / препараты:');
       visit.meds.forEach((id, i) => {
         const m = medsById.get(id);
         const name = m?.name ?? m?.title ?? id;
         parts.push(`${i + 1}. ${name}`);
       });
     } else {
-      parts.push('\nПрепараты/лечение: (пока нет)');
+      parts.push('\nЛечение / препараты: (пока нет)');
     }
 
     await copyToClipboard(parts.join('\n'));
+  };
+
+  const addCustomQuestion = () => {
+    const t = newQ.trim();
+    if (!t) return;
+    addVisitQuestion(t);
+    setNewQ('');
   };
 
   return (
@@ -88,11 +102,36 @@ export default function VisitSheet() {
         }
       />
 
+      {/* Добавить свой вопрос */}
+      <div className="card" style={{ padding: 12 }}>
+        <div className="h2">Добавить свой вопрос</div>
+        <div className="row">
+          <input
+            className="input"
+            placeholder="Например: «Какие альтернативы, если эффекта нет через 6–8 недель?»"
+            value={newQ}
+            onChange={(e) => setNewQ(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') addCustomQuestion();
+            }}
+          />
+          <button className="btn" type="button" onClick={addCustomQuestion}>
+            Добавить
+          </button>
+        </div>
+        <div className="muted" style={{ marginTop: 8 }}>
+          Можно писать любые вопросы — они сохранятся и будут доступны при следующем открытии.
+        </div>
+      </div>
+
+      <div style={{ height: 12 }} />
+
+      {/* Вопросы */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Вопросы</div>
 
         {visit.questions.length === 0 ? (
-          <div className="muted">Пока нет вопросов. Добавляйте их на странице диагноза или препарата.</div>
+          <div className="muted">Пока нет вопросов. Добавляйте их на страницах диагнозов/препаратов или вручную выше.</div>
         ) : (
           <div style={{ display: 'grid', gap: 10 }}>
             {visit.questions.map((q) => (
@@ -109,11 +148,12 @@ export default function VisitSheet() {
 
       <div style={{ height: 12 }} />
 
+      {/* Лечение / препараты */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Лечение / препараты</div>
 
         {visit.meds.length === 0 ? (
-          <div className="muted">Пока нет препаратов. Добавляйте их на странице препарата.</div>
+          <div className="muted">Пока нет препаратов. Добавляйте их на странице препарата кнопкой «Добавить препарат».</div>
         ) : (
           <div className="list">
             {visit.meds.map((id) => {
