@@ -1,32 +1,157 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import PageHeader from '../components/PageHeader';
+import Disclosure from '../components/Disclosure';
+import medsRaw from '../content/medications.json';
+import { routes } from '../app/routes';
+import { toast } from '../lib/toast';
+import {
+  addVisitQuestion,
+  clearVisit,
+  getVisit,
+  removeVisitMedication,
+  removeVisitQuestion,
+  setVisitMedicationField,
+  subscribeVisit,
+} from '../lib/visit';
+
+const meds = medsRaw as unknown as any[];
+
+type MedDetail = {
+  dose?: string;
+  schedule?: string;
+  goal?: string;
+  monitoring?: string;
+  warnings?: string;
+  note?: string;
+};
+
+function cleanTitle(raw: string): string {
+  const s = (raw ?? '').toString();
+  const noParens = s.replace(/\s*\([^)]*\)\s*/g, ' ');
+  return noParens.replace(/\s{2,}/g, ' ').trim();
+}
+
+async function copyToClipboard(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Скопировано.', { variant: 'success' });
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('Скопировано.', { variant: 'success' });
+  }
+}
+
+function formatMedLine(name: string, d?: MedDetail) {
+  if (!d) return name;
+  const parts: string[] = [];
+
+  if (d.dose?.trim()) parts.push(`доза: ${d.dose.trim()}`);
+  if (d.schedule?.trim()) parts.push(`режим: ${d.schedule.trim()}`);
+  if (d.goal?.trim()) parts.push(`цель: ${d.goal.trim()}`);
+  if (d.monitoring?.trim()) parts.push(`мониторинг: ${d.monitoring.trim()}`);
+  if (d.warnings?.trim()) parts.push(`важно: ${d.warnings.trim()}`);
+  if (d.note?.trim()) parts.push(`коммент.: ${d.note.trim()}`);
+
+  return parts.length ? `${name} — ${parts.join('; ')}` : name;
+}
+
+function makeMedSummary(d: MedDetail) {
+  const parts: string[] = [];
+  if (d.dose?.trim()) parts.push('доза');
+  if (d.schedule?.trim()) parts.push('режим');
+  if (d.goal?.trim()) parts.push('цель');
+  if (d.monitoring?.trim()) parts.push('мониторинг');
+  if (d.warnings?.trim()) parts.push('важно');
+  if (d.note?.trim()) parts.push('комм.');
+
+  if (parts.length === 0) return 'Ничего не заполнено — нажмите, чтобы добавить детали';
+  return `Заполнено: ${parts.join(' • ')}`;
+}
+
+function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function extractDxName(raw: string) {
+  const text = raw.replace(/^\[DX\]\s*/, '');
+  const firstLine = text.split('\n')[0]?.trim() ?? '';
+  if (!firstLine) return 'Диагноз';
+  const m = firstLine.match(/^(.+?)(:|—|-)\s*/);
+  const name = (m?.[1] ?? firstLine).trim();
+  return name.length > 60 ? name.slice(0, 60) + '…' : name;
+}
+
+function extractChecklistTitleInsideDx(raw: string, dxName: string) {
+  const text = raw.replace(/^\[DX\]\s*/, '');
+  const firstLine = text.split('\n')[0]?.trim() ?? '';
+  if (!firstLine) return 'Чек-лист';
+
+  const re = new RegExp(`^${escapeRegExp(dxName)}\\s*[:—-]\\s*`, 'i');
+  const t = firstLine.replace(re, '').trim();
+  return t || 'Чек-лист';
+}
+
+function AutoTextarea(props: {
+  value: string;
+  placeholder?: string;
+  onChange: (v: string) => void;
+  onBlur?: () => void;
+  minRows?: number;
+}) {
+  const { value, placeholder, onChange, onBlur, minRows = 2 } = props;
+  const ref = useRef<HTMLTextAreaElement | null>(null);
+
+  const resize = () => {
+    const el = ref.current;
+    if (!el) return;
+
+    const MAX = 180;
+    el.style.height = 'auto';
+    el.style.overflowY = 'hidden';
+
+    const next = el.scrollHeight;
+    if (next > MAX) {
+      el.style.height = `${MAX}px`;
+      el.style.overflowY = 'auto';
+    } else {
+      el.style.height = `${next}px`;
+      el.style.overflowY = 'hidden';
+    }
+  };
+
+  useEffect(() => {
+    resize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  return (
+    <textarea
+      ref={ref}
+      className="input textarea textareaAuto"
+      rows={minRows}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onInput={resize}
+      onBlur={onBlur}
+    />
+  );
+}
+
 export default function VisitSheet() {
   const [visit, setVisit] = useState(() => getVisit());
   const [newQ, setNewQ] = useState('');
   const [draft, setDraft] = useState<Record<string, MedDetail>>({});
 
-  // ВАЖНО: пропускаем рубрики (kind: "group"), чтобы они не попадали в карту препаратов
-  const medsById = useMemo(() => {
-    const m = new Map<string, any>();
-    for (const it of meds) {
-      if ((it as any).kind === 'group') continue;
-      m.set((it as any).id, it);
-    }
-    return m;
-  }, []);
-
-  useEffect(() => {
-    const v = getVisit();
-    setVisit(v);
-    setDraft(((v as any).medDetails ?? {}) as Record<string, MedDetail>);
-
-    const unsub = subscribeVisit(() => {
-      const next = getVisit();
-      setVisit(next);
-      setDraft(((next as any).medDetails ?? {}) as Record<string, MedDetail>);
-    });
-
-    return () => unsub();
-  }, []);
-
+  // ВАЖНО: исключаем рубрики (kind: "group")
   const medsById = useMemo(() => {
     const m = new Map<string, any>();
     for (const it of meds) {
@@ -58,7 +183,7 @@ export default function VisitSheet() {
     return ((visit as any).questions ?? []).filter((x: string) => !x.startsWith('[DX] '));
   }, [visit]);
 
-  const dxGroups = useMemo(() => {
+  const dxGroups = useMemo((): Array<{ name: string; items: string[] }> => {
     const order: string[] = [];
     const map = new Map<string, string[]>();
 
@@ -124,7 +249,7 @@ export default function VisitSheet() {
   };
 
   const setDraftField = (id: string, field: keyof MedDetail, value: string) => {
-    setDraft((prev) => ({
+    setDraft((prev: Record<string, MedDetail>) => ({
       ...prev,
       [id]: { ...(prev[id] ?? {}), [field]: value },
     }));
