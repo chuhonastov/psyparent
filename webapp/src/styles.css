@@ -1,22 +1,25 @@
-/* Modern Telegram-native base theme
-   Uses Telegram theme CSS vars when available.
-*/
+/* PsyParent — clean UI styles (Telegram WebApp friendly) */
 
+/* ============ Theme tokens (Telegram vars + fallbacks) ============ */
 :root{
   --bg: var(--tg-theme-bg-color, #0b1220);
   --text: var(--tg-theme-text-color, #e9edf5);
-  --muted: var(--tg-theme-hint-color, #a3adbd);
+  --muted: var(--tg-theme-hint-color, rgba(233,237,245,.72));
   --link: var(--tg-theme-link-color, #66a3ff);
 
-  --card: var(--tg-theme-secondary-bg-color, rgba(255,255,255,0.06));
-  --border: var(--tg-theme-section-separator-color, rgba(255,255,255,0.10));
+  --card: var(--tg-theme-secondary-bg-color, rgba(255,255,255,.06));
+  --border: var(--tg-theme-section-separator-color, rgba(255,255,255,.12));
 
   --accent: var(--tg-theme-button-color, #3b82f6);
   --accentText: var(--tg-theme-button-text-color, #ffffff);
 
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #22c55e;
+
   --radius: 16px;
   --radius-sm: 12px;
-  --shadow: 0 10px 28px rgba(0,0,0,0.18);
+  --shadow: 0 10px 28px rgba(0,0,0,.18);
   --container: 920px;
 
   --space-1: 6px;
@@ -26,9 +29,9 @@
   --space-5: 24px;
 }
 
-* { box-sizing: border-box; }
+*{ box-sizing: border-box; }
 
-html, body {
+html, body{
   margin: 0;
   padding: 0;
   background: var(--bg);
@@ -39,45 +42,58 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-/* Telegram safe areas & viewport */
 #root{
   min-height: var(--tg-viewport-height, 100vh);
   padding-top: max(var(--space-4), var(--tg-safe-area-inset-top, 0px));
   padding-bottom: max(var(--space-4), var(--tg-safe-area-inset-bottom, 0px));
+  overflow-x: hidden;
 }
 
-/* General content container */
+a{ color: var(--link); text-decoration: none; }
+a:hover{ text-decoration: underline; }
+
+/* ============ Layout primitives ============ */
 .container{
   width: 100%;
   max-width: var(--container);
   margin: 0 auto;
   padding-left: var(--space-4);
   padding-right: var(--space-4);
+
+  /* чтобы контент не прятался под нижней навигацией */
+  padding-bottom: calc(96px + var(--tg-safe-area-inset-bottom, 0px));
 }
 
-a { color: var(--link); text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-h1,h2,h3{
-  margin: 0 0 var(--space-3);
-  line-height: 1.15;
-}
-h1{ font-size: 22px; letter-spacing: -0.02em; }
-h2{ font-size: 18px; letter-spacing: -0.01em; }
-h3{ font-size: 16px; }
-
-.muted{
-  color: var(--muted);
-}
-
-/* Layout helpers used in your components */
 .row{
   display: flex;
   gap: var(--space-2);
   align-items: center;
+  flex-wrap: wrap;
 }
 
-/* Cards */
+.col{
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.muted{ color: var(--muted); }
+
+.h1{
+  margin: 0 0 var(--space-3);
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+}
+
+.h2{
+  margin: 0 0 var(--space-2);
+  font-size: 16px;
+  font-weight: 950;
+  letter-spacing: -0.01em;
+}
+
+/* ============ Card ============ */
 .card{
   background: var(--card);
   border: 1px solid var(--border);
@@ -86,22 +102,31 @@ h3{ font-size: 16px; }
   padding: var(--space-4);
 }
 
-/* Buttons (matches your class names: btn, secondary) */
+/* ============ Buttons ============ */
 .btn{
   appearance: none;
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  border: 1px solid var(--accent);
   background: var(--accent);
   color: var(--accentText);
   border-radius: 999px;
   padding: 10px 14px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
-  transition: transform 0.05s ease, filter 0.15s ease;
   user-select: none;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  text-decoration: none;
+
+  transition: transform 0.05s ease, filter 0.15s ease;
 }
-.btn:hover{ filter: brightness(1.02); }
+.btn:hover{ filter: brightness(1.02); text-decoration: none; }
 .btn:active{ transform: translateY(1px); }
-.btn:disabled{ opacity: 0.6; cursor: not-allowed; }
+.btn:disabled,
+button:disabled{ opacity: .6; cursor: not-allowed; }
 
 .btn.secondary{
   background: transparent;
@@ -109,1100 +134,74 @@ h3{ font-size: 16px; }
   border: 1px solid var(--border);
 }
 
-/* Inputs */
-input[type="text"], input[type="search"], textarea, select{
+.btn.compact{
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.btn.full{ width: 100%; }
+
+/* ============ Inputs ============ */
+.input,
+.search,
+textarea,
+select{
   width: 100%;
   padding: 12px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--card) 70%, var(--bg));
+  background: rgba(255,255,255,.04);
   color: var(--text);
   outline: none;
 }
-input::placeholder, textarea::placeholder { color: var(--muted); }
+.input::placeholder,
+.search::placeholder,
+textarea::placeholder{ color: var(--muted); }
 
-/* Checklist styles (list / item are used in Checklist.tsx) */
+.textarea{ resize: vertical; }
+.textareaAuto{ resize: none; }
+
+/* ============ Pills ============ */
+.pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 13px;
+}
+.pill:hover{ text-decoration: none; filter: brightness(1.03); }
+
+/* ============ List items ============ */
 .list{
   display: grid;
   gap: var(--space-2);
 }
 
 .item{
-  background: color-mix(in srgb, var(--card) 70%, var(--bg));
+  display: block;
+  background: rgba(255,255,255,.04);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: var(--space-3);
-}
-
-label.item:hover{
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
-}
-
-input[type="checkbox"]{
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
-/* Simple separators */
-.hr{
-  height: 1px;
-  background: var(--border);
-  border: 0;
-  margin: var(--space-4) 0;
-}
-/* App layout */
-.app-shell{
-  min-height: var(--tg-viewport-height, 100vh);
-  display: flex;
-  flex-direction: column;
-}
-
-.app-main{
-  flex: 1;
-  padding-bottom: 84px; /* запас под BottomNav */
-}
-
-.app-card{
-  margin-top: var(--space-4);
-  margin-bottom: var(--space-4);
-}
-/* Page header */
-.page-header{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
-  padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border);
-}
-
-.page-header__left{
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-width: 0;
-}
-
-.page-header__titles{
-  min-width: 0;
-}
-
-.page-title{
-  margin: 0;
-  font-size: 20px;
-  letter-spacing: -0.02em;
-}
-
-.page-subtitle{
-  margin-top: 4px;
-  font-size: 13px;
-}
-
-.page-header__right{
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-/* Small round back button */
-.icon-btn{
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-  font-weight: 900;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.05s ease, filter 0.15s ease;
-}
-.icon-btn:hover{ filter: brightness(1.05); }
-.icon-btn:active{ transform: translateY(1px); }
-/* --- Layout shell (keeps content above BottomNav) --- */
-.app-shell{
-  min-height: var(--tg-viewport-height, 100vh);
-  display: flex;
-  flex-direction: column;
-}
-
-.app-content{
-  flex: 1;
-  padding-bottom: calc(80px + var(--tg-safe-area-inset-bottom, 0px));
-}
-
-/* Never allow horizontal overflow */
-html, body, #root{
-  overflow-x: hidden;
-}
-
-/* --- Missing utility classes used across pages --- */
-.col{
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.h1{
-  margin: 0 0 var(--space-3);
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-}
-
-.h2{
-  margin: 0 0 var(--space-2);
-  font-size: 16px;
-  font-weight: 900;
-  letter-spacing: -0.01em;
-}
-
-/* Inputs: make sure className="input" looks good */
-.input{
-  width: 100%;
-  padding: 12px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--card) 70%, var(--bg));
-  color: var(--text);
-  outline: none;
-}
-
-.input::placeholder{
-  color: var(--muted);
-}
-
-/* Pills (quick links, tags) */
-.pill{
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--card) 70%, var(--bg));
   color: var(--text);
   text-decoration: none;
-  font-weight: 700;
-  font-size: 13px;
 }
 
-/* --- Fix the main problem: buttons “run away” on small screens --- */
-.row{
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
-  flex-wrap: wrap; /* THIS prevents overflow */
-}
-
-/* Buttons should behave like UI controls even when they are <a> */
-.btn{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+label.item:hover,
+a.item:hover{
   text-decoration: none;
-  min-height: 40px;
-  white-space: nowrap;
+  filter: brightness(1.03);
 }
 
-.btn:hover{
-  text-decoration: none;
-}
-
-/* When buttons are inside .row, allow wrapping and equal widths */
-.row .btn{
-  flex: 1 1 160px;   /* two buttons become two columns, then wrap nicely */
-}
-
-/* List items should be full-width blocks (works for <a> and <label>) */
-.item{
-  display: block;
-}
-
-/* Cards: slightly calmer look (optional but usually nicer) */
-.card{
-  box-shadow: 0 8px 22px rgba(0,0,0,0.14);
-}
-/* Bottom navigation */
-.bottomNav{
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 10px 12px;
-  padding-bottom: calc(10px + var(--tg-safe-area-inset-bottom, 0px));
-  background: color-mix(in srgb, var(--bg) 92%, black);
-  border-top: 1px solid var(--border);
-  backdrop-filter: blur(10px);
-  z-index: 50;
-}
-
-.bottomNavInner{
-  max-width: var(--container);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.navBtn{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  padding: 10px 8px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--muted);
-  font-weight: 800;
-  font-size: 12px;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.navBtn:hover{
-  text-decoration: none;
-  filter: brightness(1.05);
-}
-
-.navBtn.active{
-  background: var(--accent);
-  color: var(--accentText);
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
-}
-.medFields{
-  display: grid;
-  gap: 10px;
-}
-@media (min-width: 720px){
-  .medFields{
-    grid-template-columns: 1fr 1fr;
-  }
-  .medFieldsSpan2{
-    grid-column: 1 / -1;
-  }
-}
-import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import PageHeader from '../components/PageHeader';
-import medsRaw from '../content/medications.json';
-import { routes } from '../app/routes';
-import {
-  addVisitQuestion,
-  clearVisit,
-  getVisit,
-  removeVisitMedication,
-  removeVisitQuestion,
-  setVisitMedicationField,
-  subscribeVisit
-} from '../lib/visit';
-
-const meds = medsRaw as unknown as any[];
-
-type MedDetail = {
-  dose?: string;
-  schedule?: string;
-  goal?: string;
-  monitoring?: string;
-  warnings?: string;
-  note?: string;
-};
-
-async function copyToClipboard(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    alert('Скопировано.');
-  } catch {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.left = '-9999px';
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    alert('Скопировано.');
-  }
-}
-
-function formatMedLine(name: string, d?: MedDetail) {
-  if (!d) return name;
-  const parts: string[] = [];
-
-  if (d.dose?.trim()) parts.push(`доза: ${d.dose.trim()}`);
-  if (d.schedule?.trim()) parts.push(`режим: ${d.schedule.trim()}`);
-  if (d.goal?.trim()) parts.push(`цель: ${d.goal.trim()}`);
-  if (d.monitoring?.trim()) parts.push(`мониторинг: ${d.monitoring.trim()}`);
-  if (d.warnings?.trim()) parts.push(`важно: ${d.warnings.trim()}`);
-  if (d.note?.trim()) parts.push(`коммент.: ${d.note.trim()}`);
-
-  return parts.length ? `${name} — ${parts.join('; ')}` : name;
-}
-
-export default function VisitSheet() {
-  const [visit, setVisit] = useState(() => getVisit());
-  const [newQ, setNewQ] = useState('');
-  const [draft, setDraft] = useState<Record<string, MedDetail>>({});
-
-  const medsById = useMemo(() => {
-    const m = new Map<string, any>();
-    for (const it of meds) m.set(it.id, it);
-    return m;
-  }, []);
-
-  useEffect(() => {
-    const v = getVisit();
-    setVisit(v);
-    setDraft((v.medDetails ?? {}) as any);
-
-    const unsub = subscribeVisit(() => {
-      const next = getVisit();
-      setVisit(next);
-      setDraft((next.medDetails ?? {}) as any);
-    });
-
-    return () => unsub();
-  }, []);
-
-  const copyAll = async () => {
-    const parts: string[] = [];
-    parts.push('К врачу — список для приёма');
-
-    if (visit.questions.length) {
-      parts.push('\nВопросы:');
-      visit.questions.forEach((q: string, i: number) => parts.push(`${i + 1}. ${q}`));
-    } else {
-      parts.push('\nВопросы: (пока нет)');
-    }
-
-    if (visit.meds.length) {
-      parts.push('\nЛечение / препараты:');
-      visit.meds.forEach((id: string, i: number) => {
-        const m = medsById.get(id);
-        const name = m?.name ?? m?.title ?? id;
-        const d = (visit.medDetails?.[id] ?? {}) as MedDetail;
-        parts.push(`${i + 1}. ${formatMedLine(name, d)}`);
-      });
-    } else {
-      parts.push('\nЛечение / препараты: (пока нет)');
-    }
-
-    await copyToClipboard(parts.join('\n'));
-  };
-
-  const addCustomQuestion = () => {
-    const t = newQ.trim();
-    if (!t) return;
-    addVisitQuestion(t);
-    setNewQ('');
-  };
-
-  const setDraftField = (id: string, field: keyof MedDetail, value: string) => {
-    setDraft((prev) => ({
-      ...prev,
-      [id]: { ...(prev[id] ?? {}), [field]: value },
-    }));
-  };
-
-  const commitField = (id: string, field: keyof MedDetail) => {
-    const v = (draft[id]?.[field] ?? '') as string;
-    setVisitMedicationField(id, field, v);
-  };
-
-  return (
-    <div className="container">
-      <PageHeader
-        title="К врачу"
-        subtitle="Ваш список вопросов и лечения для обсуждения"
-        right={
-          <div className="row">
-            <button className="btn secondary" type="button" onClick={copyAll}>
-              Скопировать
-            </button>
-            <button
-              className="btn"
-              type="button"
-              onClick={() => {
-                if (confirm('Очистить весь список?')) clearVisit();
-              }}
-            >
-              Очистить
-            </button>
-          </div>
-        }
-      />
-
-      <div className="card" style={{ padding: 12 }}>
-        <div className="h2">Добавить свой вопрос</div>
-        <div className="row">
-          <input
-            className="input"
-            placeholder="Например: «Что считаем хорошим эффектом и когда менять план?»"
-            value={newQ}
-            onChange={(e) => setNewQ(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') addCustomQuestion();
-            }}
-          />
-          <button className="btn" type="button" onClick={addCustomQuestion}>
-            Добавить
-          </button>
-        </div>
-        <div className="muted" style={{ marginTop: 8 }}>
-          Можно писать любые вопросы — они сохранятся.
-        </div>
-      </div>
-
-      <div style={{ height: 12 }} />
-
-      <div className="card" style={{ padding: 12 }}>
-        <div className="h2">Вопросы</div>
-
-        {visit.questions.length === 0 ? (
-          <div className="muted">
-            Пока нет вопросов. Добавляйте их на страницах диагнозов/препаратов или вручную выше.
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gap: 10 }}>
-            {visit.questions.map((q: string) => (
-              <div key={q} className="card" style={{ padding: 10 }}>
-                <div style={{ marginBottom: 8 }}>{q}</div>
-                <button className="btn secondary" type="button" onClick={() => removeVisitQuestion(q)}>
-                  Удалить
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div style={{ height: 12 }} />
-
-      <div className="card" style={{ padding: 12 }}>
-        <div className="h2">Лечение / препараты</div>
-
-        {visit.meds.length === 0 ? (
-          <div className="muted">
-            Пока нет препаратов. Добавляйте их на странице препарата кнопкой «Добавить препарат».
-          </div>
-        ) : (
-          <div className="list">
-            {visit.meds.map((id: string) => {
-              const m = medsById.get(id);
-              const name = m?.name ?? m?.title ?? id;
-              const cls = m?.class;
-
-              const d = (draft[id] ?? {}) as MedDetail;
-
-              return (
-                <div key={id} className="item">
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                    }}
-                  >
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontWeight: 800 }}>{name}</div>
-                      {!!cls && <div className="muted">{cls}</div>}
-                    </div>
-
-                    <div className="row">
-                      <Link className="btn secondary" to={routes.medication(id)}>
-                        Открыть
-                      </Link>
-                      <button className="btn secondary" type="button" onClick={() => removeVisitMedication(id)}>
-                        Удалить
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="medFields" style={{ marginTop: 10 }}>
-                    <div>
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Доза</div>
-                      <textarea
-                        className="input textarea"
-                        rows={2}
-                        placeholder="Напр.: 25 мг"
-                        value={d.dose ?? ''}
-                        onChange={(e) => setDraftField(id, 'dose', e.target.value)}
-                        onBlur={() => commitField(id, 'dose')}
-                      />
-                    </div>
-
-                    <div>
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Режим / кратность</div>
-                      <textarea
-                        className="input textarea"
-                        rows={2}
-                        placeholder="Напр.: утром, 1 раз/день"
-                        value={d.schedule ?? ''}
-                        onChange={(e) => setDraftField(id, 'schedule', e.target.value)}
-                        onBlur={() => commitField(id, 'schedule')}
-                      />
-                    </div>
-
-                    <div>
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Цель / критерии эффекта</div>
-                      <textarea
-                        className="input textarea"
-                        rows={2}
-                        placeholder="Напр.: уменьшение симптомов через 4–6 недель"
-                        value={d.goal ?? ''}
-                        onChange={(e) => setDraftField(id, 'goal', e.target.value)}
-                        onBlur={() => commitField(id, 'goal')}
-                      />
-                    </div>
-
-                    <div>
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Мониторинг</div>
-                      <textarea
-                        className="input textarea"
-                        rows={3}
-                        placeholder="Напр.: АД/пульс, рост/вес, сон, аппетит"
-                        value={d.monitoring ?? ''}
-                        onChange={(e) => setDraftField(id, 'monitoring', e.target.value)}
-                        onBlur={() => commitField(id, 'monitoring')}
-                      />
-                    </div>
-
-                    <div className="medFieldsSpan2">
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Важно</div>
-                      <textarea
-                        className="input textarea"
-                        rows={3}
-                        placeholder="Напр.: основные предупреждения/риски"
-                        value={d.warnings ?? ''}
-                        onChange={(e) => setDraftField(id, 'warnings', e.target.value)}
-                        onBlur={() => commitField(id, 'warnings')}
-                      />
-                    </div>
-
-                    <div className="medFieldsSpan2">
-                      <div className="muted" style={{ marginBottom: 6, fontSize: 12 }}>Комментарий (опционально)</div>
-                      <textarea
-                        className="input textarea"
-                        rows={4}
-                        placeholder="Любые дополнительные пометки"
-                        value={d.note ?? ''}
-                        onChange={(e) => setDraftField(id, 'note', e.target.value)}
-                        onBlur={() => commitField(id, 'note')}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <div style={{ height: 80 }} />
-    </div>
-  );
-}
-/* Multi-line fields */
-.textarea{
-  resize: vertical;
-  white-space: pre-wrap;
-  line-height: 1.35;
-  min-height: 44px;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Auto-grow behavior (JS sets height). */
-.textareaAuto{
-  resize: none;      /* авто-рост -> руками не тянем */
-}
-/* Toasts */
-.toastHost{
-  position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: calc(76px + env(safe-area-inset-bottom));
-  display: grid;
-  gap: 10px;
-  z-index: 9999;
-  pointer-events: none;
-}
-
-.toast{
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.18);
-  background: var(--card, rgba(20,20,24,.95));
-  color: var(--text, #fff);
-  border: 1px solid rgba(255,255,255,.10);
-  animation: toastIn .16s ease-out;
-}
-
-.toastMsg{
-  font-size: 14px;
-  line-height: 1.35;
-}
-
-.toastClose{
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font-size: 18px;
-  line-height: 1;
-  padding: 2px 6px;
-  opacity: .8;
-  cursor: pointer;
-}
-
-.toastClose:hover{ opacity: 1; }
-
-.toast-success{ border-color: rgba(34,197,94,.35); }
-.toast-info{ border-color: rgba(59,130,246,.35); }
-.toast-warning{ border-color: rgba(245,158,11,.35); }
-.toast-error{ border-color: rgba(239,68,68,.35); }
-
-@keyframes toastIn{
-  from{ transform: translateY(6px); opacity: 0; }
-  to{ transform: translateY(0); opacity: 1; }
-}
-
-/* Buttons: nicer disabled state */
-.btn:disabled,
-button:disabled{
-  opacity: .6;
-  cursor: not-allowed;
-}
-/* Bottom navigation (mobile-like) */
-.bottomNav{
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-  background: rgba(255,255,255,.72);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0,0,0,.06);
-  z-index: 1000;
-}
-
-.bottomNavInner{
-  max-width: 720px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-
-.navBtn{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  text-decoration: none;
-  color: rgba(15, 23, 42, .72);
-  border-radius: 14px;
-  padding: 10px 6px;
-  min-height: 52px;
-  transition: transform .08s ease, background .12s ease, color .12s ease;
-}
-
-.navBtn:active{
-  transform: scale(.98);
-}
-
-.navIcon{
-  display: inline-flex;
-  opacity: .9;
-}
-
-.navLabel{
-  font-size: 12px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: .2px;
-  white-space: nowrap;
-}
-
-.navBtn.active{
-  background: rgba(15, 23, 42, .08);
-  color: rgba(15, 23, 42, .96);
-}
-
-@media (prefers-color-scheme: dark){
-  .bottomNav{
-    background: rgba(10,10,12,.65);
-    border-top: 1px solid rgba(255,255,255,.08);
-  }
-  .navBtn{
-    color: rgba(255,255,255,.72);
-  }
-  .navBtn.active{
-    background: rgba(255,255,255,.10);
-    color: rgba(255,255,255,.96);
-  }
-}
-
-/* Ensure content never hides behind BottomNav */
-.container{
-  padding-bottom: calc(92px + env(safe-area-inset-bottom));
-}
-/* =========================
-   Design system / polish v1
-   ========================= */
-
-:root{
-  --bg: #f6f7fb;
-  --card: #ffffff;
-  --text: #0f172a;
-  --muted: rgba(15, 23, 42, .62);
-  --border: rgba(15, 23, 42, .10);
-  --shadow: 0 12px 30px rgba(15, 23, 42, .08);
-  --shadow2: 0 8px 20px rgba(15, 23, 42, .10);
-  --radius: 18px;
-
-  --accent: #2563eb;
-  --accentHover: #1d4ed8;
-  --accentSoft: rgba(37, 99, 235, .12);
-
-  --danger: #ef4444;
-  --success: #22c55e;
-}
-
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg: #0b0c10;
-    --card: rgba(255,255,255,.06);
-    --text: rgba(255,255,255,.92);
-    --muted: rgba(255,255,255,.64);
-    --border: rgba(255,255,255,.10);
-    --shadow: 0 18px 50px rgba(0,0,0,.55);
-    --shadow2: 0 10px 28px rgba(0,0,0,.55);
-
-    --accent: #60a5fa;
-    --accentHover: #3b82f6;
-    --accentSoft: rgba(96, 165, 250, .18);
-  }
-}
-
-*{ box-sizing: border-box; }
-
-html, body{
-  height: 100%;
-}
-
-body{
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
-  line-height: 1.45;
-}
-
-/* Links */
-a{
-  color: var(--accent);
-}
-a:hover{
-  color: var(--accentHover);
-}
-
-/* Container */
-.container{
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 16px 12px calc(92px + env(safe-area-inset-bottom));
-}
-
-/* Typography helpers */
-.h1{
-  font-size: 22px;
-  line-height: 1.15;
-  letter-spacing: -0.2px;
-  margin: 0;
-}
-
-.h2{
-  font-size: 16px;
-  line-height: 1.2;
-  letter-spacing: -0.1px;
-  margin: 0 0 8px 0;
-  font-weight: 900;
-}
-
-.muted{
-  color: var(--muted);
-}
-
-ol.muted, ul.muted{
-  color: var(--muted);
-}
-
-ul, ol{
-  padding-left: 18px;
-}
-
-/* Card */
-.card{
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 12px;
-}
-
-@media (prefers-color-scheme: dark){
-  .card{
-    box-shadow: none;
-  }
-}
-
-/* Rows / columns */
-.row{
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.col{
-  display: grid;
-  gap: 12px;
-}
-
-/* Buttons */
-.btn{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(0,0,0,0);
-
-  background: var(--accent);
-  color: white;
-  font-weight: 900;
-  text-decoration: none;
-
-  box-shadow: var(--shadow2);
-  transition: transform .08s ease, background .12s ease, box-shadow .12s ease, opacity .12s ease;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-}
-
-.btn:hover{
-  background: var(--accentHover);
-}
-
-.btn:active{
-  transform: scale(.98);
-}
-
-.btn.secondary{
-  background: transparent;
-  color: var(--text);
-  border: 1px solid var(--border);
-  box-shadow: none;
-}
-
-.btn.secondary:hover{
-  background: rgba(15, 23, 42, .06);
-}
-
-@media (prefers-color-scheme: dark){
-  .btn.secondary:hover{
-    background: rgba(255,255,255,.08);
-  }
-}
-
-.btn:disabled,
-button:disabled{
-  opacity: .55;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Inputs */
-.input{
-  width: 100%;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.75);
-  color: var(--text);
-  border-radius: 14px;
-  padding: 10px 12px;
-  outline: none;
-  transition: box-shadow .12s ease, border-color .12s ease, background .12s ease;
-}
-
-@media (prefers-color-scheme: dark){
-  .input{
-    background: rgba(255,255,255,.06);
-  }
-}
-
-.input:focus{
-  border-color: rgba(37,99,235,.55);
-  box-shadow: 0 0 0 4px var(--accentSoft);
-}
-
-/* Pills / tags */
-.pill{
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.6);
-  color: var(--text);
-  font-weight: 900;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-@media (prefers-color-scheme: dark){
-  .pill{
-    background: rgba(255,255,255,.06);
-  }
-}
-
-.tag{
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: var(--accentSoft);
-  color: var(--text);
-  border: 1px solid rgba(37,99,235,.20);
-  font-weight: 900;
-}
-
-/* Lists */
-.list{
-  display: grid;
-  gap: 10px;
-}
-
-.item{
-  display: block;
-  padding: 12px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.6);
-  text-decoration: none;
-  color: var(--text);
-  transition: transform .08s ease, background .12s ease;
-}
-
-@media (prefers-color-scheme: dark){
-  .item{
-    background: rgba(255,255,255,.05);
-  }
-}
-
-.item:hover{
-  background: rgba(37,99,235,.06);
-}
-
-.item:active{
-  transform: scale(.99);
-}
-
-/* Page header */
-.pageHeader{
-  margin: 0 auto 12px auto;
-  max-width: 720px;
-  padding: 14px 12px 0 12px;
-}
-
-.pageHeaderInner{
-  background: linear-gradient(180deg, rgba(37,99,235,.10), rgba(37,99,235,0));
-  border: 1px solid rgba(37,99,235,.16);
-  border-radius: calc(var(--radius) + 4px);
-  padding: 14px 14px 12px 14px;
-}
-
-@media (prefers-color-scheme: dark){
-  .pageHeaderInner{
-    border-color: rgba(96,165,250,.18);
-    background: linear-gradient(180deg, rgba(96,165,250,.14), rgba(96,165,250,0));
-  }
-}
-
-.pageHeaderTop{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.backLink{
-  text-decoration: none;
-  color: var(--muted);
-  font-weight: 800;
-}
-
-.backLink:hover{
-  color: var(--text);
-}
-
-.pageHeaderMain{
-  display: grid;
-  gap: 6px;
-}
-
-.pageHeaderTitle{
-  font-size: 22px;
-  line-height: 1.15;
-  letter-spacing: -0.2px;
-  font-weight: 950;
-}
-
-.pageHeaderSubtitle{
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.pageHeader.center .pageHeaderMain{
-  text-align: center;
-}
-
-/* Textareas */
-.textarea{
-  resize: vertical;
-  white-space: pre-wrap;
-  line-height: 1.35;
-  min-height: 44px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.textareaAuto{
-  resize: none;
-}
-.backLinkBtn{
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  font: inherit;
-}
-/* List item layout v2 */
 .listItem{
   display: flex;
   align-items: flex-start;
@@ -1218,7 +217,8 @@ button:disabled{
 
 .listItemTitle{
   font-weight: 950;
-  letter-spacing: -0.1px;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
 .listItemDesc{
@@ -1230,191 +230,115 @@ button:disabled{
 .listItemRight{
   flex: 0 0 auto;
   color: var(--muted);
-  font-weight: 900;
-  opacity: .9;
+  font-weight: 950;
+  font-size: 18px;
+  line-height: 1;
   margin-top: 2px;
 }
 
+.tag{
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+/* ============ Search bar + empty state ============ */
 .searchBar{
   display: grid;
   gap: 10px;
 }
 
 .emptyState{
+  padding: 14px;
+  border-radius: var(--radius);
   border: 1px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
   color: var(--muted);
-  background: rgba(255,255,255,.35);
 }
 
-@media (prefers-color-scheme: dark){
-  .emptyState{
-    background: rgba(255,255,255,.04);
-  }
+/* ============ PageHeader ============ */
+.pageHeader{
+  margin: 8px 0 14px;
 }
-import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import PageHeader from '../components/PageHeader';
-import medsRaw from '../content/medications.json';
-import { routes } from '../app/routes';
 
-const meds = medsRaw as unknown as any[];
-
-export default function Medications() {
-  const [q, setQ] = useState('');
-
-  const items = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    if (!query) return meds;
-
-    return meds.filter((m: any) => {
-      const name = (m.name ?? m.title ?? '').toLowerCase();
-      const cls = (m.class ?? '').toLowerCase();
-      return name.includes(query) || cls.includes(query);
-    });
-  }, [q]);
-
-  return (
-    <div className="container">
-      <PageHeader
-        title="Лечение"
-        subtitle="Препараты: когда обсуждают, что мониторят, что важно"
-        back
-      />
-
-      <div className="card">
-        <div className="searchBar">
-          <input
-            className="input"
-            placeholder="Поиск (например: атомоксетин, стимуляторы, СИОЗС)"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-          <div className="muted" style={{ fontSize: 13 }}>
-            {q.trim() ? `Найдено: ${items.length}` : `Всего: ${meds.length}`}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ height: 12 }} />
-
-      {items.length === 0 ? (
-        <div className="emptyState">
-          Ничего не найдено. Попробуйте другой запрос (например: «атомоксетин», «СИОЗС»).
-        </div>
-      ) : (
-        <div className="list">
-          {items.map((m: any) => {
-            const id = m.id;
-            const title = m.name ?? m.title ?? id;
-            const cls = m.class;
-
-            return (
-              <Link key={id} className="item" to={routes.medication(id)}>
-                <div className="listItem">
-                  <div className="listItemMain">
-                    <div className="listItemTitle">{title}</div>
-                    {!!cls && <div className="listItemDesc">{cls}</div>}
-                  </div>
-                  <div className="listItemRight">›</div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
-      <div style={{ height: 16 }} />
-    </div>
-  );
-}
-/* Diagnosis summary (quick actions) */
-.summaryGrid{
+.pageHeaderInner{
   display: grid;
-  grid-template-columns: 1fr;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pageHeaderTop{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
 
-@media (min-width: 560px){
-  .summaryGrid{
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.summaryCard{
-  background: rgba(255,255,255,.55);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
-}
-
-@media (prefers-color-scheme: dark){
-  .summaryCard{
-    background: rgba(255,255,255,.05);
-  }
-}
-
-.summaryTitle{
-  font-weight: 950;
-  margin-bottom: 6px;
-}
-
-.summaryMeta{
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.summaryBtns{
+.pageHeaderLeft,
+.pageHeaderRight{
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
-  margin-top: 10px;
 }
 
-.btn.full{
-  width: 100%;
-}
-
-.kpiRow{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.kpi{
+.backLink{
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 8px 10px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: rgba(255,255,255,.55);
   color: var(--text);
+  background: transparent;
   font-weight: 900;
-  font-size: 12px;
+  font-size: 13px;
+  text-decoration: none;
+}
+.backLink:hover{ text-decoration: none; filter: brightness(1.03); }
+
+.backLinkBtn{
+  cursor: pointer;
 }
 
-@media (prefers-color-scheme: dark){
-  .kpi{
-    background: rgba(255,255,255,.06);
-  }
+.pageHeaderMain{
+  display: grid;
+  gap: 4px;
 }
-/* Disclosure polish */
+
+.pageHeaderTitle{
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+}
+
+.pageHeaderSubtitle{
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.pageHeader.center .pageHeaderMain{
+  text-align: center;
+}
+
+/* ============ Disclosure ============ */
 .disclosure{
   border: 1px solid var(--border);
+  border-left: 4px solid transparent;
   border-radius: var(--radius);
   overflow: hidden;
-  background: var(--cardBg, rgba(255,255,255,.55));
+  background: rgba(255,255,255,.03);
 }
 
-@media (prefers-color-scheme: dark){
-  .disclosure{
-    background: var(--cardBg, rgba(255,255,255,.05));
-  }
-}
+.disclosure.tone-green{ border-left-color: var(--success); }
+.disclosure.tone-lime{ border-left-color: #84cc16; }
+.disclosure.tone-red{ border-left-color: var(--danger); }
+.disclosure.tone-neutral{ border-left-color: transparent; }
 
 .disclosureHeader{
   width: 100%;
@@ -1466,37 +390,129 @@ export default function Medications() {
   gap: 10px;
 }
 
-/* Typography / spacing inside cards and disclosures */
-.card .h2{
-  margin: 0 0 10px 0;
-}
-
+/* Typography inside cards/disclosures */
 .card ul, .card ol,
 .disclosureBody ul, .disclosureBody ol{
   margin: 0;
   padding-left: 18px;
 }
-
 .card li,
 .disclosureBody li{
   margin: 6px 0;
   line-height: 1.45;
 }
-
-/* Make nested cards inside disclosure feel lighter */
 .disclosureBody .card{
   padding: 10px;
 }
-/* Compact buttons for dense UI (lists, cards, disclosures) */
-.btn.compact{
-  padding: 8px 10px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 900;
-  line-height: 1;
+
+/* ============ Toasts ============ */
+.toastHost{
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 12px;
+  z-index: 1000;
+  pointer-events: none;
+  padding: 0 12px;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
 }
 
-/* Make secondary compact buttons look a bit lighter */
-.btn.secondary.compact{
-  opacity: .95;
+.toast{
+  pointer-events: auto;
+  width: min(var(--container), calc(100% - 24px));
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.toastMsg{
+  font-weight: 900;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.toastClose{
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.toast-success{ border-color: rgba(34,197,94,.35); }
+.toast-info{ border-color: rgba(59,130,246,.35); }
+.toast-warning{ border-color: rgba(245,158,11,.35); }
+.toast-error{ border-color: rgba(239,68,68,.35); }
+
+/* ============ Bottom navigation ============ */
+.bottomNav{
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 12px;
+  padding-bottom: calc(10px + var(--tg-safe-area-inset-bottom, 0px));
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  z-index: 900;
+}
+
+.bottomNavInner{
+  max-width: var(--container);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.navBtn{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  padding: 10px 6px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 900;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.navBtn:hover{ text-decoration: none; filter: brightness(1.05); }
+.navBtn:active{ transform: scale(.99); }
+
+.navIcon{ display: inline-flex; }
+.navLabel{ font-size: 12px; }
+
+.navBtn.active{
+  background: var(--accent);
+  color: var(--accentText);
+  border-color: var(--accent);
+}
+
+/* ============ Med fields grid ============ */
+.medFields{
+  display: grid;
+  gap: 10px;
+}
+@media (min-width: 720px){
+  .medFields{ grid-template-columns: 1fr 1fr; }
+  .medFieldsSpan2{ grid-column: 1 / -1; }
 }
