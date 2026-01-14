@@ -109,9 +109,12 @@ export default function Home() {
       <div className="card">
         <div className="h2">Быстрый старт</div>
         <div className="row" style={{ gap: 8 }}>
-          <Link className="pill" to={routes.diagnosis('adhd')}>СДВГ</Link>
-          <Link className="pill" to={routes.diagnosis('asd')}>РАС</Link>
-          <Link className="pill" to={routes.diagnosis('anxiety')}>Тревога</Link>
+<Link className="pill" to={routes.diagnosis('adhd')}>СДВГ</Link>
+<Link className="pill" to={routes.diagnosis('asd')}>РАС</Link>
+<Link className="pill" to={routes.diagnosis('anxiety')}>Тревога</Link>
+<Link className="pill" to={routes.diagnosis('depression')}>Депрессия</Link>
+<Link className="pill" to={routes.diagnosis('ocd')}>ОКР</Link>
+
         </div>
         <div className="muted" style={{ marginTop: 8 }}>
           Это справочник. Он не заменяет очную консультацию.
