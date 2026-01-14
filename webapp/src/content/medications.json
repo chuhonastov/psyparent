@@ -34,7 +34,6 @@
     "summary": "Краткосрочная симптоматическая поддержка и важные предупреждения.",
     "children": [
       "hydroxyzine",
-      "melatonin_note",
       "z_drugs_note",
       "benzodiazepines_note",
       "phenibut_note",
@@ -64,6 +63,17 @@
       "cortexin_note",
       "cerebrolysin_note",
       "mexidol_note"
+    ]
+  },
+      {
+    "kind": "group",
+    "id": "other_meds",
+    "title": "Другие препараты",
+    "summary": "Средства вне основных классов психофармакологии (например, при СДВГ и для сна).",
+    "children": [
+      "atomoxetine",
+      "guanfacine_xr",
+      "melatonin_note"
     ]
   },
   {
