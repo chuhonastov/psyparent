@@ -57,14 +57,15 @@ export default function DiagnosisDetail() {
     return diagnoses.find((x: any) => (x as any).id === dxId) as DxItem | undefined;
   }, [dxId]);
 
-  const medsById = useMemo(() => {
-    const m = new Map<string, any>();
-for (const it of meds as any[]) {
-  if (it.kind === 'group') continue;
-  m.set(it.id, it);
-}
-    return m;
-  }, []);
+const medsById = useMemo(() => {
+  const m = new Map<string, any>();
+  for (const it of meds) {
+    if ((it as any).kind === 'group') continue;
+    m.set((it as any).id, it);
+  }
+  return m;
+}, []);
+
 
   // --- Not found
   if (!item) {
