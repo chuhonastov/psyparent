@@ -1,9 +1,9 @@
 import React from 'react';
+import { toast } from '../lib/toast';
 import { Link, useParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import medsRaw from '../content/medications.json';
 import { routes } from '../app/routes';
-import { toast } from '../lib/toast';
 import { addVisitMedication, addVisitQuestion } from '../lib/visit';
 
 // JSON imports infer strict literal types; allow optional url in sources
