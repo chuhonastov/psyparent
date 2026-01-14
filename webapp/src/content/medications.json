@@ -1,35 +1,69 @@
 [
+    {
+    "kind": "group",
+    "id": "antipsychotics",
+    "title": "Антипсихотики",
+    "summary": "Когда обсуждают, что мониторят и что важно.",
+    "children": [
+      "risperidone_irritability_note",
+      "aripiprazole_irritability_note",
+      "quetiapine_note",
+      "olanzapine_note",
+      "clozapine_note",
+      "antipsychotic_safety_note"
+    ]
+  },
   {
-    "id": "methylphenidate",
-    "name": "Метилфенидат",
-    "class": "психостимулятор (СДВГ)",
-    "whenDiscussed": [
-      "СДВГ (в международных гайдлайнах часто первая линия у детей 5+ лет — по назначению врача)"
-    ],
-    "monitoring": [
-      "АД/ЧСС",
-      "масса тела/аппетит",
-      "сон",
-      "тики/тревога (если есть)",
-      "настроение"
-    ],
-    "warnings": [
-      "Назначение и титрование — только врачом",
-      "Не повышать/не отменять самостоятельно"
-    ],
-    "sources": [
-      {
-        "label": "NICE NG87: ADHD — recommendations (methylphenidate as first-line)",
-        "url": "https://www.nice.org.uk/guidance/ng87/chapter/recommendations"
-      },
-      {
-        "label": "Network meta-analysis: ADHD medications (Cortese et al., 2018) — PubMed",
-        "url": "https://pubmed.ncbi.nlm.nih.gov/30097390/"
-      },
-      {
-        "label": "Cochrane review update: methylphenidate for ADHD (Storebø et al., 2023) — PubMed",
-        "url": "https://pubmed.ncbi.nlm.nih.gov/36971690/"
-      }
+    "kind": "group",
+    "id": "antidepressants",
+    "title": "Антидепрессанты",
+    "summary": "СИОЗС и другие антидепрессанты: показания, мониторинг, риски.",
+    "children": [
+      "ssri_sertraline",
+      "ssri_fluoxetine",
+      "ssri_fluvoxamine",
+      "ssri_escitalopram",
+      "trazodone_note",
+      "mirtazapine_note"
+    ]
+  },
+  {
+    "kind": "group",
+    "id": "tranquilizers",
+    "title": "Транквилизаторы / седативные",
+    "summary": "Краткосрочная симптоматическая поддержка и важные предупреждения.",
+    "children": [
+      "hydroxyzine",
+      "melatonin_note",
+      "z_drugs_note",
+      "benzodiazepines_note",
+      "phenibut_note",
+      "valerian_note"
+    ]
+  },
+  {
+    "kind": "group",
+    "id": "mood_stabilizers",
+    "title": "Нормотимики",
+    "summary": "При БАР/мании и для профилактики: только по плану врача и с мониторингом.",
+    "children": [
+      "lithium_bipolar",
+      "valproate_bipolar_note",
+      "lamotrigine_note"
+    ]
+  },
+  {
+    "kind": "group",
+    "id": "nootropics",
+    "title": "Ноотропы",
+    "summary": "Что часто назначают «без пользы» и как обсуждать это с врачом.",
+    "children": [
+      "nootropics_generic",
+      "glycine_note",
+      "magnesium_b6_note",
+      "cortexin_note",
+      "cerebrolysin_note",
+      "mexidol_note"
     ]
   },
   {
