@@ -1,13 +1,14 @@
 import React from 'react';
-import { toast } from '../lib/toast';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import medsRaw from '../content/medications.json';
 import { routes } from '../app/routes';
+import { toast } from '../lib/toast';
 import { addVisitMedication, addVisitQuestion } from '../lib/visit';
 
-// JSON imports infer strict literal types; allow optional url in sources
+// Разрешаем url в источниках
 type Source = { label: string; url?: string };
+// Берём тип из JSON как есть, но источники типизируем мягко
 type Med = Omit<(typeof medsRaw)[number], 'sources'> & { sources?: Source[] };
 
 const meds = medsRaw as unknown as Med[];
@@ -33,13 +34,16 @@ export default function MedicationDetail() {
     );
   }
 
+  // На случай если в каких-то записях поле называется иначе — безопасно
+  const medName = (m as any).name ?? m.id;
+
   const addMedToVisit = () => {
     addVisitMedication(m.id);
     toast('Препарат добавлен в «К врачу» → «Лечение / препараты».', { variant: 'success' });
   };
 
   const addQuestionToVisit = () => {
-    const q = `Про препарат «${m.name ?? m.title ?? m.id}»: зачем назначен, как оценивать эффект, что мониторить?`;
+    const q = `Про препарат «${medName}»: зачем назначен, как оценивать эффект, что мониторить?`;
     addVisitQuestion(q);
     toast('Вопрос добавлен в «К врачу» → «Вопросы».', { variant: 'success' });
   };
@@ -47,8 +51,8 @@ export default function MedicationDetail() {
   return (
     <div className="container">
       <PageHeader
-        title={m.name ?? m.title ?? m.id}
-        subtitle={m.class}
+        title={medName}
+        subtitle={(m as any).class}
         backTo={routes.medications}
         backLabel="Лечение"
       />
@@ -56,9 +60,7 @@ export default function MedicationDetail() {
       <div style={{ display: 'grid', gap: 12 }}>
         <div className="card" style={{ padding: 12 }}>
           <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div>
-              {!!m.class && <div className="tag">{m.class}</div>}
-            </div>
+            {!!(m as any).class && <div className="tag">{(m as any).class}</div>}
 
             <div className="row" style={{ flexWrap: 'wrap' }}>
               <button className="btn secondary compact" type="button" onClick={addQuestionToVisit}>
@@ -70,37 +72,36 @@ export default function MedicationDetail() {
             </div>
           </div>
 
-          <div style={{ height: 10 }} />
-
-          {!!(m.whenDiscussed?.length) && (
+          {!!(m as any).whenDiscussed?.length && (
             <>
+              <div style={{ height: 10 }} />
               <div className="h2">Когда обсуждают</div>
               <ul>
-                {m.whenDiscussed.map((x: string, i: number) => (
+                {(m as any).whenDiscussed.map((x: string, i: number) => (
                   <li key={i}>{x}</li>
                 ))}
               </ul>
-              <div style={{ height: 10 }} />
             </>
           )}
 
-          {!!(m.monitoring?.length) && (
+          {!!(m as any).monitoring?.length && (
             <>
+              <div style={{ height: 10 }} />
               <div className="h2">Что обычно мониторят</div>
               <ul>
-                {m.monitoring.map((x: string, i: number) => (
+                {(m as any).monitoring.map((x: string, i: number) => (
                   <li key={i}>{x}</li>
                 ))}
               </ul>
-              <div style={{ height: 10 }} />
             </>
           )}
 
-          {!!(m.warnings?.length) && (
+          {!!(m as any).warnings?.length && (
             <>
+              <div style={{ height: 10 }} />
               <div className="h2">Важно</div>
               <ul>
-                {m.warnings.map((x: string, i: number) => (
+                {(m as any).warnings.map((x: string, i: number) => (
                   <li key={i}>{x}</li>
                 ))}
               </ul>
@@ -128,10 +129,6 @@ export default function MedicationDetail() {
               ))}
             </ul>
           )}
-        </div>
-
-        <div className="muted" style={{ fontSize: 13 }}>
-          Важно: информация носит справочный характер и не заменяет очную консультацию.
         </div>
 
         <div style={{ height: 40 }} />
