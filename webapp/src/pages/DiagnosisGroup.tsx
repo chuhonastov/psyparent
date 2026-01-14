@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
+
+import PageHeader from '../components/PageHeader';
 import diagnosesRaw from '../content/diagnoses.json';
 import { routes } from '../app/routes';
 
@@ -8,6 +10,10 @@ type DiagnosisGroup = { kind: 'group'; id: string; title: string; summary?: stri
 type DiagnosisItem = DiagnosisLeaf | DiagnosisGroup;
 
 const diagnoses = diagnosesRaw as unknown as DiagnosisItem[];
+
+function isGroup(x: DiagnosisItem): x is DiagnosisGroup {
+  return (x as any).kind === 'group';
+}
 
 export default function DiagnosisGroupPage() {
   const { id } = useParams();
@@ -18,40 +24,58 @@ export default function DiagnosisGroupPage() {
   }, [groupId]);
 
   const children = useMemo(() => {
-    if (!group) return [];
-    const byId = new Map<string, any>(diagnoses.map((d: any) => [d.id, d]));
+    if (!group) return [] as DiagnosisLeaf[];
+
+    const byId = new Map<string, DiagnosisItem>();
+    for (const d of diagnoses) byId.set((d as any).id, d);
+
     return group.children
-      .map(cid => byId.get(cid))
-      .filter(Boolean)
-      .map((d: any) => ({ id: d.id, title: d.title, summary: d.summary ?? '' })) as DiagnosisLeaf[];
+      .map((cid) => byId.get(cid))
+      .filter((x): x is DiagnosisLeaf => !!x && !isGroup(x))
+      .map((d) => ({ id: d.id, title: d.title, summary: d.summary }));
   }, [group]);
 
   if (!group) {
     return (
       <div className="container">
-        <Link className="muted" to={routes.diagnoses}>&larr; Назад</Link>
-        <h1 className="h1">Рубрика не найдена</h1>
+        <PageHeader
+          title="Рубрика не найдена"
+          subtitle="Проверьте ссылку или выберите рубрику из списка"
+          backTo={routes.diagnoses}
+          backLabel="Диагнозы"
+        />
       </div>
     );
   }
 
   return (
     <div className="container">
-      <Link className="muted" to={routes.diagnoses}>&larr; Диагнозы</Link>
+      <PageHeader
+        title={group.title}
+        subtitle={group.summary}
+        backTo={routes.diagnoses}
+        backLabel="Диагнозы"
+      />
 
-      <h1 className="h1">{group.title}</h1>
-      {!!group.summary && <div className="muted">{group.summary}</div>}
+      <div className="card" style={{ padding: 12 }}>
+        <div style={{ fontWeight: 900, marginBottom: 10 }}>Выберите диагноз</div>
 
-      <div style={{ height: 12 }} />
-
-      <div className="list">
-        {children.map((d) => (
-          <Link key={d.id} className="item" to={routes.diagnosis(d.id)}>
-            <div style={{ fontWeight: 700 }}>{d.title}</div>
-            {!!d.summary && <div className="muted">{d.summary}</div>}
-          </Link>
-        ))}
+        <div className="list">
+          {children.map((d) => (
+            <Link key={d.id} className="item" to={routes.diagnosis(d.id)}>
+              <div className="listItem">
+                <div className="listItemMain">
+                  <div className="listItemTitle">{d.title}</div>
+                  {!!d.summary && <div className="listItemDesc">{d.summary}</div>}
+                </div>
+                <div className="listItemRight">›</div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
+
+      <div style={{ height: 80 }} />
     </div>
   );
 }
