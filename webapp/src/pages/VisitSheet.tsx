@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { cleanTitle } from '../lib/format';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Disclosure from '../components/Disclosure';
@@ -26,6 +25,12 @@ type MedDetail = {
   warnings?: string;
   note?: string;
 };
+
+function cleanTitle(raw: string): string {
+  const s = (raw ?? '').toString();
+  const noParens = s.replace(/\s*\([^)]*\)\s*/g, ' ');
+  return noParens.replace(/\s{2,}/g, ' ').trim();
+}
 
 async function copyToClipboard(text: string) {
   try {
@@ -143,25 +148,29 @@ function AutoTextarea(props: {
 }
 
 export default function VisitSheet() {
- const medsById = useMemo(() => {
-  const m = new Map<string, any>();
-  for (const it of meds) {
-    if ((it as any).kind === 'group') continue;
-    m.set((it as any).id, it);
-  }
-  return m;
-}, []);
+  const [visit, setVisit] = useState(() => getVisit());
+  const [newQ, setNewQ] = useState('');
+  const [draft, setDraft] = useState<Record<string, MedDetail>>({});
 
+  // ВАЖНО: пропускаем рубрики (kind: "group"), чтобы они не попадали в карту препаратов
+  const medsById = useMemo(() => {
+    const m = new Map<string, any>();
+    for (const it of meds) {
+      if ((it as any).kind === 'group') continue;
+      m.set((it as any).id, it);
+    }
+    return m;
+  }, []);
 
   useEffect(() => {
     const v = getVisit();
     setVisit(v);
-    setDraft(((v as any).medDetails ?? {}) as any);
+    setDraft(((v as any).medDetails ?? {}) as Record<string, MedDetail>);
 
     const unsub = subscribeVisit(() => {
       const next = getVisit();
       setVisit(next);
-      setDraft(((next as any).medDetails ?? {}) as any);
+      setDraft(((next as any).medDetails ?? {}) as Record<string, MedDetail>);
     });
 
     return () => unsub();
@@ -221,7 +230,7 @@ export default function VisitSheet() {
       parts.push('\nЛечение / препараты:');
       ((visit as any).meds ?? []).forEach((id: string, i: number) => {
         const m = medsById.get(id);
-const name = cleanTitle((m as any)?.name ?? (m as any)?.title ?? id);
+        const name = cleanTitle((m as any)?.name ?? (m as any)?.title ?? id);
         const d = (((visit as any).medDetails?.[id] ?? {}) as MedDetail);
         parts.push(`${i + 1}. ${formatMedLine(name, d)}`);
       });
@@ -396,7 +405,7 @@ const name = cleanTitle((m as any)?.name ?? (m as any)?.title ?? id);
           <div className="list">
             {(((visit as any).meds ?? []) as string[]).map((id: string) => {
               const m = medsById.get(id);
-const name = cleanTitle((m as any)?.name ?? (m as any)?.title ?? id);
+              const name = cleanTitle((m as any)?.name ?? (m as any)?.title ?? id);
               const cls = (m as any)?.class;
 
               const d = (draft[id] ?? {}) as MedDetail;
