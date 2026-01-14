@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
-
+import { cleanTitle } from '../lib/format';
 import PageHeader from '../components/PageHeader';
 import Disclosure from '../components/Disclosure';
 import Checklist, { ChecklistItem } from '../components/Checklist';
@@ -59,7 +59,10 @@ export default function DiagnosisDetail() {
 
   const medsById = useMemo(() => {
     const m = new Map<string, any>();
-    for (const it of meds) m.set(it.id, it);
+for (const it of meds as any[]) {
+  if (it.kind === 'group') continue;
+  m.set(it.id, it);
+}
     return m;
   }, []);
 
@@ -192,7 +195,7 @@ export default function DiagnosisDetail() {
                   <Link key={mid} className="item" to={routes.medication(mid)}>
                     <div className="listItem">
                       <div className="listItemMain">
-                        <div className="listItemTitle">{m.name ?? m.title ?? mid}</div>
+<div className="listItemTitle">{cleanTitle(m.name ?? m.title ?? mid)}</div>
                         {!!m.class && <div className="listItemDesc">{m.class}</div>}
                       </div>
                       <div className="listItemRight">›</div>
