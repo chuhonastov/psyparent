@@ -1,4 +1,5 @@
 import React from 'react';
+import { cleanTitle } from '../lib/format';
 import { useParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import medsRaw from '../content/medications.json';
@@ -12,9 +13,8 @@ type Med = Omit<(typeof medsRaw)[number], 'sources'> & { sources?: Source[] };
 const meds = medsRaw as unknown as Med[];
 
 function findMed(id: string): Med | undefined {
-  return meds.find((m) => m.id === id);
+  return meds.find((m: any) => (m as any).kind !== 'group' && m.id === id);
 }
-
 export default function MedicationDetail() {
   const { id } = useParams();
   const m = id ? findMed(id) : undefined;
@@ -32,7 +32,7 @@ export default function MedicationDetail() {
     );
   }
 
-  const medName = (m as any).name ?? m.id;
+const medName = cleanTitle((m as any).name ?? (m as any).title ?? m.id);
   const medClass = (m as any).class as string | undefined;
 
   const addMedToVisit = () => {
