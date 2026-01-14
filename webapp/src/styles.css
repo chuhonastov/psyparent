@@ -4,7 +4,7 @@
 :root{
   --bg: var(--tg-theme-bg-color, #0b1220);
   --text: var(--tg-theme-text-color, #e9edf5);
-  --muted: var(--tg-theme-hint-color, rgba(233,237,245,.72));
+--muted: rgba(0,0,0,.62);
   --link: var(--tg-theme-link-color, #66a3ff);
 
   --card: var(--tg-theme-secondary-bg-color, rgba(255,255,255,.06));
@@ -27,6 +27,16 @@
   --space-3: 14px;
   --space-4: 18px;
   --space-5: 24px;
+}
+/* Fallback for dark mode (if color-mix isn't supported) */
+@media (prefers-color-scheme: dark) {
+  :root { --muted: rgba(233,237,245,.72); }
+}
+
+/* Smart muted: always readable (works in modern Chrome/Android WebView) */
+:root {
+  --muted: color-mix(in srgb, var(--text) 62%, var(--bg));
+  --border: color-mix(in srgb, var(--text) 12%, transparent);
 }
 
 *{ box-sizing: border-box; }
