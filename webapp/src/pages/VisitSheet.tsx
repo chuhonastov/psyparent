@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { cleanTitle } from '../lib/format';
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Disclosure from '../components/Disclosure';
@@ -220,7 +221,7 @@ export default function VisitSheet() {
       parts.push('\nЛечение / препараты:');
       ((visit as any).meds ?? []).forEach((id: string, i: number) => {
         const m = medsById.get(id);
-        const name = (m as any)?.name ?? id;
+const name = cleanTitle((m as any)?.name ?? (m as any)?.title ?? id);
         const d = (((visit as any).medDetails?.[id] ?? {}) as MedDetail);
         parts.push(`${i + 1}. ${formatMedLine(name, d)}`);
       });
@@ -395,7 +396,7 @@ export default function VisitSheet() {
           <div className="list">
             {(((visit as any).meds ?? []) as string[]).map((id: string) => {
               const m = medsById.get(id);
-              const name = (m as any)?.name ?? id;
+const name = cleanTitle((m as any)?.name ?? (m as any)?.title ?? id);
               const cls = (m as any)?.class;
 
               const d = (draft[id] ?? {}) as MedDetail;
