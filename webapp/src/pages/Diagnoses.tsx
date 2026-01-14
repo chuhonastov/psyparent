@@ -10,25 +10,43 @@ type DiagnosisItem = DiagnosisLeaf | DiagnosisGroup;
 
 const diagnoses = diagnosesRaw as unknown as DiagnosisItem[];
 
+function matches(item: any, q: string) {
+  const t = (item.title ?? '').toLowerCase();
+  const s = (item.summary ?? '').toLowerCase();
+  return t.includes(q) || s.includes(q);
+}
+
 export default function Diagnoses() {
   const [q, setQ] = useState('');
 
-  const items = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    if (!query) return diagnoses;
+  const { groups, matchedGroups, matchedLeafs, totalFound } = useMemo(() => {
+    const groups = diagnoses.filter((d: any) => d.kind === 'group') as DiagnosisGroup[];
+    const leafs = diagnoses.filter((d: any) => d.kind !== 'group') as DiagnosisLeaf[];
 
-    return diagnoses.filter((d: any) => {
-      const t = (d.title ?? '').toLowerCase();
-      const s = (d.summary ?? '').toLowerCase();
-      return t.includes(query) || s.includes(query);
-    });
+    const query = q.trim().toLowerCase();
+
+    if (!query) {
+      return {
+        groups,
+        matchedGroups: groups,
+        matchedLeafs: [] as DiagnosisLeaf[],
+        totalFound: groups.length,
+      };
+    }
+
+    const mg = groups.filter((x: any) => matches(x, query));
+    const ml = leafs.filter((x: any) => matches(x, query));
+
+    return { groups, matchedGroups: mg, matchedLeafs: ml, totalFound: mg.length + ml.length };
   }, [q]);
+
+  const isSearching = !!q.trim();
 
   return (
     <div className="container">
       <PageHeader
         title="Диагнозы"
-        subtitle="Выберите диагноз, чтобы проверить критерии и терапию"
+        subtitle="Сначала выберите рубрику — внутри будут конкретные диагнозы"
         back
       />
 
@@ -36,44 +54,86 @@ export default function Diagnoses() {
         <div className="searchBar">
           <input
             className="input"
-            placeholder="Поиск (например: СДВГ, РАС, тревожные)"
+            placeholder="Поиск (например: СДВГ, РАС, тревога, ОКР)"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
           <div className="muted" style={{ fontSize: 13 }}>
-            {q.trim() ? `Найдено: ${items.length}` : `Всего: ${diagnoses.length}`}
+            {isSearching ? `Найдено: ${totalFound}` : `Рубрик: ${groups.length}`}
           </div>
         </div>
       </div>
 
       <div style={{ height: 12 }} />
 
-      {items.length === 0 ? (
+      {isSearching && totalFound === 0 ? (
         <div className="emptyState">
-          Ничего не найдено. Попробуйте другой запрос (например: «СДВГ», «РАС», «тревога»).
+          Ничего не найдено. Попробуйте другой запрос (например: «СДВГ», «РАС», «тревога», «ОКР»).
         </div>
       ) : (
-        <div className="list">
-          {items.map((d: any) => {
-            const isGroup = d.kind === 'group';
-            const to = isGroup ? routes.diagnosisGroup(d.id) : routes.diagnosis(d.id);
-
-            return (
-              <Link key={d.id} className="item" to={to}>
-                <div className="listItem">
-                  <div className="listItemMain">
-                    <div className="listItemTitle">
-                      {d.title}
-                      {isGroup && <span className="tag" style={{ marginLeft: 8 }}>рубрика</span>}
+        <>
+          {/* По умолчанию показываем только рубрики */}
+          {!isSearching ? (
+            <div className="list">
+              {matchedGroups.map((g) => (
+                <Link key={g.id} className="item" to={routes.diagnosisGroup(g.id)}>
+                  <div className="listItem">
+                    <div className="listItemMain">
+                      <div className="listItemTitle">{g.title}</div>
+                      {!!g.summary && <div className="listItemDesc">{g.summary}</div>}
                     </div>
-                    {!!d.summary && <div className="listItemDesc">{d.summary}</div>}
+                    <div className="listItemRight">›</div>
                   </div>
-                  <div className="listItemRight">›</div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <>
+              {!!matchedGroups.length && (
+                <>
+                  <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
+                    Рубрики
+                  </div>
+                  <div className="list">
+                    {matchedGroups.map((g) => (
+                      <Link key={g.id} className="item" to={routes.diagnosisGroup(g.id)}>
+                        <div className="listItem">
+                          <div className="listItemMain">
+                            <div className="listItemTitle">{g.title}</div>
+                            {!!g.summary && <div className="listItemDesc">{g.summary}</div>}
+                          </div>
+                          <div className="listItemRight">›</div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                  <div style={{ height: 12 }} />
+                </>
+              )}
+
+              {!!matchedLeafs.length && (
+                <>
+                  <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
+                    Диагнозы
+                  </div>
+                  <div className="list">
+                    {matchedLeafs.map((d) => (
+                      <Link key={d.id} className="item" to={routes.diagnosis(d.id)}>
+                        <div className="listItem">
+                          <div className="listItemMain">
+                            <div className="listItemTitle">{d.title}</div>
+                            {!!d.summary && <div className="listItemDesc">{d.summary}</div>}
+                          </div>
+                          <div className="listItemRight">›</div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </>
       )}
 
       <div style={{ height: 16 }} />
