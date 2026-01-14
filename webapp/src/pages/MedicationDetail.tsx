@@ -1,6 +1,5 @@
 import React from 'react';
-import { cleanTitle } from '../lib/format';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import medsRaw from '../content/medications.json';
 import { routes } from '../app/routes';
@@ -8,16 +7,73 @@ import { toast } from '../lib/toast';
 import { addVisitMedication, addVisitQuestion } from '../lib/visit';
 
 type Source = { label: string; url?: string };
-type Med = Omit<(typeof medsRaw)[number], 'sources'> & { sources?: Source[] };
+type MedGroup = { kind: 'group'; id: string; title: string; summary?: string; children: string[] };
+type MedLeaf = Omit<(typeof medsRaw)[number], 'sources'> & { sources?: Source[] };
+type MedItem = MedLeaf | MedGroup;
 
-const meds = medsRaw as unknown as Med[];
+const meds = medsRaw as unknown as MedItem[];
 
-function findMed(id: string): Med | undefined {
-  return meds.find((m: any) => (m as any).kind !== 'group' && m.id === id);
+function isGroup(x: MedItem): x is MedGroup {
+  return (x as any).kind === 'group';
 }
+
+function findMed(id: string): MedLeaf | undefined {
+  return meds.find((m: any) => m.id === id && m.kind !== 'group') as MedLeaf | undefined;
+}
+
+function findGroup(id: string): MedGroup | undefined {
+  return meds.find((m: any) => m.id === id && m.kind === 'group') as MedGroup | undefined;
+}
+
 export default function MedicationDetail() {
   const { id } = useParams();
   const m = id ? findMed(id) : undefined;
+  const g = !m && id ? findGroup(id) : undefined;
+
+  // Если случайно открыли рубрику через /medications/:id — показываем список препаратов.
+  if (g) {
+    const byId = new Map<string, MedLeaf>();
+    for (const it of meds) {
+      if (!isGroup(it)) byId.set((it as any).id, it as MedLeaf);
+    }
+
+    return (
+      <div className="container">
+        <PageHeader
+          title={g.title}
+          subtitle={g.summary}
+          backTo={routes.medications}
+          backLabel="Лечение"
+        />
+
+        <div className="card" style={{ padding: 12 }}>
+          <div style={{ fontWeight: 900, marginBottom: 10 }}>Выберите препарат</div>
+
+          <div className="list">
+            {g.children.map((cid) => {
+              const child = byId.get(cid);
+              const title = child?.name ?? child?.title ?? cid;
+              const cls = (child as any)?.class as string | undefined;
+
+              return (
+                <Link key={cid} className="item" to={routes.medication(cid)}>
+                  <div className="listItem">
+                    <div className="listItemMain">
+                      <div className="listItemTitle">{title}</div>
+                      {!!cls && <div className="listItemDesc">{cls}</div>}
+                    </div>
+                    <div className="listItemRight">›</div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <div style={{ height: 80 }} />
+      </div>
+    );
+  }
 
   if (!m) {
     return (
@@ -32,7 +88,7 @@ export default function MedicationDetail() {
     );
   }
 
-const medName = cleanTitle((m as any).name ?? (m as any).title ?? m.id);
+  const medName = (m as any).name ?? m.id;
   const medClass = (m as any).class as string | undefined;
 
   const addMedToVisit = () => {
@@ -57,7 +113,6 @@ const medName = cleanTitle((m as any).name ?? (m as any).title ?? m.id);
 
       <div style={{ display: 'grid', gap: 12 }}>
         <div className="card" style={{ padding: 12 }}>
-          {/* Кнопки в один ряд: левая/правая */}
           <div
             style={{
               display: 'flex',
