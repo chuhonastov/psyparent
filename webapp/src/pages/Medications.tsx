@@ -3,51 +3,39 @@ import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import medsRaw from '../content/medications.json';
 import { routes } from '../app/routes';
-import { cleanTitle } from '../lib/format';
 
-type MedLeaf = { id: string; name?: string; title?: string; class?: string };
+type MedLeaf = { id: string; name?: string; title?: string; class?: string; summary?: string };
 type MedGroup = { kind: 'group'; id: string; title: string; summary?: string; children: string[] };
 type MedItem = MedLeaf | MedGroup;
 
 const meds = medsRaw as unknown as MedItem[];
 
-function matchesLeaf(m: any, q: string) {
-  const name = cleanTitle(m.name ?? m.title ?? '').toLowerCase();
-  const cls = (m.class ?? '').toLowerCase();
-  return name.includes(q) || cls.includes(q);
-}
-
-function matchesGroup(g: any, q: string) {
-  const t = (g.title ?? '').toLowerCase();
-  const s = (g.summary ?? '').toLowerCase();
-  return t.includes(q) || s.includes(q);
+function isGroup(x: MedItem): x is MedGroup {
+  return (x as any).kind === 'group';
 }
 
 export default function Medications() {
   const [q, setQ] = useState('');
 
-  const { groups, leafs, matchedGroups, matchedLeafs, totalFound } = useMemo(() => {
-    const groups = meds.filter((m: any) => m.kind === 'group') as MedGroup[];
-    const leafs = meds.filter((m: any) => m.kind !== 'group') as MedLeaf[];
-
+  const items = useMemo(() => {
     const query = q.trim().toLowerCase();
-    if (!query) {
-      return { groups, leafs, matchedGroups: groups, matchedLeafs: [] as MedLeaf[], totalFound: groups.length };
-    }
+    // По умолчанию показываем только рубрики.
+    if (!query) return meds.filter((m) => isGroup(m));
 
-    const mg = groups.filter((g: any) => matchesGroup(g, query));
-    const ml = leafs.filter((m: any) => matchesLeaf(m, query));
-
-    return { groups, leafs, matchedGroups: mg, matchedLeafs: ml, totalFound: mg.length + ml.length };
+    // При поиске показываем и рубрики, и препараты.
+    return meds.filter((m: any) => {
+      const title = (m.title ?? m.name ?? '').toLowerCase();
+      const cls = (m.class ?? '').toLowerCase();
+      const summary = (m.summary ?? '').toLowerCase();
+      return title.includes(query) || cls.includes(query) || summary.includes(query);
+    });
   }, [q]);
-
-  const isSearching = !!q.trim();
 
   return (
     <div className="container">
       <PageHeader
         title="Лечение"
-        subtitle="Сначала выберите группу препаратов — внутри будут лекарства"
+        subtitle="Препараты: когда обсуждают, что мониторят, что важно"
         back
       />
 
@@ -55,79 +43,50 @@ export default function Medications() {
         <div className="searchBar">
           <input
             className="input"
-            placeholder="Поиск (например: сертралин, рисперидон, ноотропы)"
+            placeholder="Поиск (например: атомоксетин, стимуляторы, СИОЗС)"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
           <div className="muted" style={{ fontSize: 13 }}>
-            {isSearching ? `Найдено: ${totalFound}` : `Групп: ${groups.length}`}
+            {q.trim()
+              ? `Найдено: ${items.length}`
+              : `Рубрик: ${meds.filter((m) => isGroup(m)).length}`}
           </div>
         </div>
       </div>
 
       <div style={{ height: 12 }} />
 
-      {isSearching && totalFound === 0 ? (
-        <div className="emptyState">Ничего не найдено. Попробуйте другой запрос.</div>
-      ) : !isSearching ? (
-        <div className="list">
-          {matchedGroups.map((g) => (
-            <Link key={g.id} className="item" to={routes.medicationGroup(g.id)}>
-              <div className="listItem">
-                <div className="listItemMain">
-                  <div className="listItemTitle">{g.title}</div>
-                  {!!g.summary && <div className="listItemDesc">{g.summary}</div>}
-                </div>
-                <div className="listItemRight">›</div>
-              </div>
-            </Link>
-          ))}
+      {items.length === 0 ? (
+        <div className="emptyState">
+          Ничего не найдено. Попробуйте другой запрос (например: «атомоксетин», «СИОЗС»).
         </div>
       ) : (
-        <>
-          {!!matchedGroups.length && (
-            <>
-              <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
-                Группы
-              </div>
-              <div className="list">
-                {matchedGroups.map((g) => (
-                  <Link key={g.id} className="item" to={routes.medicationGroup(g.id)}>
-                    <div className="listItem">
-                      <div className="listItemMain">
-                        <div className="listItemTitle">{g.title}</div>
-                        {!!g.summary && <div className="listItemDesc">{g.summary}</div>}
-                      </div>
-                      <div className="listItemRight">›</div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              <div style={{ height: 12 }} />
-            </>
-          )}
+        <div className="list">
+          {items.map((m: any) => {
+            const group = isGroup(m);
+            const id = m.id;
+            const title = group ? m.title : (m.name ?? m.title ?? id);
+            const cls = group ? undefined : m.class;
+            const to = group ? routes.medicationGroup(id) : routes.medication(id);
 
-          {!!matchedLeafs.length && (
-            <>
-              <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>
-                Препараты
-              </div>
-              <div className="list">
-                {matchedLeafs.map((m: any) => (
-                  <Link key={m.id} className="item" to={routes.medication(m.id)}>
-                    <div className="listItem">
-                      <div className="listItemMain">
-                        <div className="listItemTitle">{cleanTitle(m.name ?? m.title ?? m.id)}</div>
-                        {!!m.class && <div className="listItemDesc">{m.class}</div>}
-                      </div>
-                      <div className="listItemRight">›</div>
+            return (
+              <Link key={id} className="item" to={to}>
+                <div className="listItem">
+                  <div className="listItemMain">
+                    <div className="listItemTitle">
+                      {title}
+                      {group && <span className="tag" style={{ marginLeft: 8 }}>рубрика</span>}
                     </div>
-                  </Link>
-                ))}
-              </div>
-            </>
-          )}
-        </>
+                    {!!m.summary && <div className="listItemDesc">{m.summary}</div>}
+                    {!!cls && <div className="listItemDesc">{cls}</div>}
+                  </div>
+                  <div className="listItemRight">›</div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       )}
 
       <div style={{ height: 16 }} />
