@@ -143,15 +143,15 @@ function AutoTextarea(props: {
 }
 
 export default function VisitSheet() {
-  const [visit, setVisit] = useState(() => getVisit());
-  const [newQ, setNewQ] = useState('');
-  const [draft, setDraft] = useState<Record<string, MedDetail>>({});
+ const medsById = useMemo(() => {
+  const m = new Map<string, any>();
+  for (const it of meds) {
+    if ((it as any).kind === 'group') continue;
+    m.set((it as any).id, it);
+  }
+  return m;
+}, []);
 
-  const medsById = useMemo(() => {
-    const m = new Map<string, any>();
-    for (const it of meds) m.set(it.id, it);
-    return m;
-  }, []);
 
   useEffect(() => {
     const v = getVisit();
