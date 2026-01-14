@@ -62,15 +62,34 @@ export default function MedicationDetail() {
           <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
             {!!(m as any).class && <div className="tag">{(m as any).class}</div>}
 
-            <div className="row" style={{ flexWrap: 'wrap' }}>
-              <button className="btn secondary compact" type="button" onClick={addQuestionToVisit}>
-                Добавить вопрос
-              </button>
-              <button className="btn compact" type="button" onClick={addMedToVisit}>
-                Добавить препарат
-              </button>
-            </div>
-          </div>
+           <div
+  style={{
+    display: 'flex',
+    gap: 10,
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  }}
+>
+  <button
+    className="btn secondary compact"
+    type="button"
+    onClick={addQuestionToVisit}
+    style={{ flex: '0 0 auto' }}
+  >
+    Добавить вопрос
+  </button>
+
+  <button
+    className="btn compact"
+    type="button"
+    onClick={addMedToVisit}
+    style={{ flex: '0 0 auto' }}
+  >
+    Добавить препарат
+  </button>
+</div>
+
 
           {!!(m as any).whenDiscussed?.length && (
             <>
