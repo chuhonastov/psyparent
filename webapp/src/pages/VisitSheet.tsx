@@ -74,25 +74,16 @@ function escapeRegExp(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/**
- * Вытаскиваем название диагноза из строки чек-листа:
- * "[DX] СДВГ: Полные критерии\n1. ...\n2. ..."
- */
 function extractDxName(raw: string) {
   const text = raw.replace(/^\[DX\]\s*/, '');
   const firstLine = text.split('\n')[0]?.trim() ?? '';
   if (!firstLine) return 'Диагноз';
-
-  // берём всё до ":" или "—" или "-" как имя диагноза
   const m = firstLine.match(/^(.+?)(:|—|-)\s*/);
   const name = (m?.[1] ?? firstLine).trim();
-
-  // защита от слишком длинных заголовков
   return name.length > 60 ? name.slice(0, 60) + '…' : name;
 }
 
 function extractChecklistTitleInsideDx(raw: string, dxName: string) {
-  // пример: "СДВГ: Полные критерии" -> "Полные критерии"
   const text = raw.replace(/^\[DX\]\s*/, '');
   const firstLine = text.split('\n')[0]?.trim() ?? '';
   if (!firstLine) return 'Чек-лист';
@@ -102,10 +93,7 @@ function extractChecklistTitleInsideDx(raw: string, dxName: string) {
   return t || 'Чек-лист';
 }
 
-/**
- * Auto-growing textarea, but capped to MAX px.
- * After cap, it becomes internally scrollable.
- */
+/* авторастущая textarea с лимитом по высоте */
 function AutoTextarea(props: {
   value: string;
   placeholder?: string;
@@ -120,7 +108,7 @@ function AutoTextarea(props: {
     const el = ref.current;
     if (!el) return;
 
-    const MAX = 180; // px
+    const MAX = 180;
     el.style.height = 'auto';
     el.style.overflowY = 'hidden';
 
@@ -167,27 +155,25 @@ export default function VisitSheet() {
   useEffect(() => {
     const v = getVisit();
     setVisit(v);
-    setDraft((v.medDetails ?? {}) as any);
+    setDraft(((v as any).medDetails ?? {}) as any);
 
     const unsub = subscribeVisit(() => {
       const next = getVisit();
       setVisit(next);
-      setDraft((next.medDetails ?? {}) as any);
+      setDraft(((next as any).medDetails ?? {}) as any);
     });
 
     return () => unsub();
   }, []);
 
-  // split questions: diagnosis checklists vs normal questions
   const dxChecklists = useMemo(() => {
-    return (visit.questions ?? []).filter((x: string) => x.startsWith('[DX] '));
-  }, [visit.questions]);
+    return ((visit as any).questions ?? []).filter((x: string) => x.startsWith('[DX] '));
+  }, [visit]);
 
   const normalQuestions = useMemo(() => {
-    return (visit.questions ?? []).filter((x: string) => !x.startsWith('[DX] '));
-  }, [visit.questions]);
+    return ((visit as any).questions ?? []).filter((x: string) => !x.startsWith('[DX] '));
+  }, [visit]);
 
-  // NEW: group dx checklists by diagnosis name
   const dxGroups = useMemo(() => {
     const order: string[] = [];
     const map = new Map<string, string[]>();
@@ -230,12 +216,12 @@ export default function VisitSheet() {
       parts.push('\nВопросы: (пока нет)');
     }
 
-    if (visit.meds.length) {
+    if (((visit as any).meds ?? []).length) {
       parts.push('\nЛечение / препараты:');
-      visit.meds.forEach((id: string, i: number) => {
+      ((visit as any).meds ?? []).forEach((id: string, i: number) => {
         const m = medsById.get(id);
-        const name = m?.name ?? m?.title ?? id;
-        const d = (visit.medDetails?.[id] ?? {}) as MedDetail;
+        const name = (m as any)?.name ?? id;
+        const d = (((visit as any).medDetails?.[id] ?? {}) as MedDetail);
         parts.push(`${i + 1}. ${formatMedLine(name, d)}`);
       });
     } else {
@@ -291,7 +277,6 @@ export default function VisitSheet() {
         }
       />
 
-      {/* Add custom question */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Добавить свой вопрос</div>
         <div className="row">
@@ -315,7 +300,6 @@ export default function VisitSheet() {
 
       <div style={{ height: 12 }} />
 
-      {/* Diagnosis checklists grouped */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Диагнозы (чек-листы)</div>
 
@@ -338,11 +322,10 @@ export default function VisitSheet() {
                   tone="neutral"
                 >
                   <div style={{ display: 'grid', gap: 10 }}>
-                    {g.items.map((raw) => {
+                    {g.items.map((raw: string) => {
                       const titleInside = extractChecklistTitleInsideDx(raw, g.name);
                       const text = raw.replace(/^\[DX\]\s*/, '');
                       const lines = text.split('\n');
-                      // убираем первую строку (там заголовок), показываем тело
                       const body = lines.slice(1).join('\n').trim();
 
                       return (
@@ -358,10 +341,13 @@ export default function VisitSheet() {
                           )}
 
                           <div style={{ height: 10 }} />
-                          <button className="btn secondary compact" type="button" onClick={() => removeVisitQuestion(raw)}>
-  Удалить
-</button>
-
+                          <button
+                            className="btn secondary compact"
+                            type="button"
+                            onClick={() => removeVisitQuestion(raw)}
+                          >
+                            Удалить
+                          </button>
                         </div>
                       );
                     })}
@@ -375,7 +361,6 @@ export default function VisitSheet() {
 
       <div style={{ height: 12 }} />
 
-      {/* Regular questions */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Вопросы</div>
 
@@ -388,10 +373,9 @@ export default function VisitSheet() {
             {normalQuestions.map((q: string) => (
               <div key={q} className="card" style={{ padding: 10 }}>
                 <div style={{ marginBottom: 8 }}>{q}</div>
-                <button className="btn secondary compact" type="button" onClick={() => removeVisitQuestion(raw)}>
-  Удалить
-</button>
-
+                <button className="btn secondary compact" type="button" onClick={() => removeVisitQuestion(q)}>
+                  Удалить
+                </button>
               </div>
             ))}
           </div>
@@ -400,34 +384,26 @@ export default function VisitSheet() {
 
       <div style={{ height: 12 }} />
 
-      {/* Medications */}
       <div className="card" style={{ padding: 12 }}>
         <div className="h2">Лечение / препараты</div>
 
-        {visit.meds.length === 0 ? (
+        {(((visit as any).meds ?? []) as string[]).length === 0 ? (
           <div className="muted">
             Пока нет препаратов. Добавляйте их на странице препарата кнопкой «Добавить препарат».
           </div>
         ) : (
           <div className="list">
-            {visit.meds.map((id: string) => {
+            {(((visit as any).meds ?? []) as string[]).map((id: string) => {
               const m = medsById.get(id);
-              const name = m?.name ?? m?.title ?? id;
-              const cls = m?.class;
+              const name = (m as any)?.name ?? id;
+              const cls = (m as any)?.class;
 
               const d = (draft[id] ?? {}) as MedDetail;
               const summary = makeMedSummary(d);
 
               return (
                 <div key={id} className="item">
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                    }}
-                  >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 800 }}>{name}</div>
                       {!!cls && <div className="muted">{cls}</div>}
@@ -435,13 +411,15 @@ export default function VisitSheet() {
 
                     <div className="row">
                       <Link className="btn secondary compact" to={routes.medication(id)}>
-  Открыть
-</Link>
-<button className="btn secondary compact" type="button" onClick={() => removeVisitQuestion(raw)}>
-  Удалить
-</button>
-
-
+                        Открыть
+                      </Link>
+                      <button
+                        className="btn secondary compact"
+                        type="button"
+                        onClick={() => removeVisitMedication(id)}
+                      >
+                        Удалить
+                      </button>
                     </div>
                   </div>
 
