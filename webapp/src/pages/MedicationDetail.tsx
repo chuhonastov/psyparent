@@ -6,9 +6,7 @@ import { routes } from '../app/routes';
 import { toast } from '../lib/toast';
 import { addVisitMedication, addVisitQuestion } from '../lib/visit';
 
-// Разрешаем url в источниках
 type Source = { label: string; url?: string };
-// Берём тип из JSON как есть, но источники типизируем мягко
 type Med = Omit<(typeof medsRaw)[number], 'sources'> & { sources?: Source[] };
 
 const meds = medsRaw as unknown as Med[];
@@ -34,8 +32,8 @@ export default function MedicationDetail() {
     );
   }
 
-  // На случай если в каких-то записях поле называется иначе — безопасно
   const medName = (m as any).name ?? m.id;
+  const medClass = (m as any).class as string | undefined;
 
   const addMedToVisit = () => {
     addVisitMedication(m.id);
@@ -52,48 +50,44 @@ export default function MedicationDetail() {
     <div className="container">
       <PageHeader
         title={medName}
-        subtitle={(m as any).class}
+        subtitle={medClass}
         backTo={routes.medications}
         backLabel="Лечение"
       />
 
       <div style={{ display: 'grid', gap: 12 }}>
         <div className="card" style={{ padding: 12 }}>
-          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-            {!!(m as any).class && <div className="tag">{(m as any).class}</div>}
+          {/* Кнопки в один ряд: левая/правая */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 10,
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <button
+              className="btn secondary compact"
+              type="button"
+              onClick={addQuestionToVisit}
+              style={{ flex: 1 }}
+            >
+              Добавить вопрос
+            </button>
 
-           <div
-  style={{
-    display: 'flex',
-    gap: 10,
-    width: '100%',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  }}
->
-  <button
-    className="btn secondary compact"
-    type="button"
-    onClick={addQuestionToVisit}
-    style={{ flex: '0 0 auto' }}
-  >
-    Добавить вопрос
-  </button>
-
-  <button
-    className="btn compact"
-    type="button"
-    onClick={addMedToVisit}
-    style={{ flex: '0 0 auto' }}
-  >
-    Добавить препарат
-  </button>
-</div>
-
+            <button
+              className="btn compact"
+              type="button"
+              onClick={addMedToVisit}
+              style={{ flex: 1 }}
+            >
+              Добавить препарат
+            </button>
+          </div>
 
           {!!(m as any).whenDiscussed?.length && (
             <>
-              <div style={{ height: 10 }} />
+              <div style={{ height: 12 }} />
               <div className="h2">Когда обсуждают</div>
               <ul>
                 {(m as any).whenDiscussed.map((x: string, i: number) => (
@@ -105,7 +99,7 @@ export default function MedicationDetail() {
 
           {!!(m as any).monitoring?.length && (
             <>
-              <div style={{ height: 10 }} />
+              <div style={{ height: 12 }} />
               <div className="h2">Что обычно мониторят</div>
               <ul>
                 {(m as any).monitoring.map((x: string, i: number) => (
@@ -117,7 +111,7 @@ export default function MedicationDetail() {
 
           {!!(m as any).warnings?.length && (
             <>
-              <div style={{ height: 10 }} />
+              <div style={{ height: 12 }} />
               <div className="h2">Важно</div>
               <ul>
                 {(m as any).warnings.map((x: string, i: number) => (
