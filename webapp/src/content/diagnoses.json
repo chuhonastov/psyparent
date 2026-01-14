@@ -144,20 +144,6 @@
       }
     ]
   },
-  {
-    "kind": "group",
-    "id": "anxiety",
-    "title": "Тревожные расстройства",
-    "summary": "Группа диагнозов, при которых тревога и избегание становятся устойчивыми и мешают учёбе, общению и повседневной жизни. Выберите конкретный диагноз.",
-    "children": [
-      "gad",
-      "separation_anxiety",
-      "social_anxiety",
-      "selective_mutism",
-      "specific_phobia",
-      "panic_disorder"
-    ]
-},
    {
     "kind": "group",
     "id": "anxiety",
