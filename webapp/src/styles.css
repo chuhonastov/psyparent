@@ -344,3 +344,10 @@ p.danger{color:var(--danger)}
 .pickSection.open .pickSectionHead svg{transform:rotate(90deg)}
 .pickSection.open .pickList{padding:0 0 6px 10px}
 .reviewChoice .fieldLabel{display:block;margin-bottom:2px}
+/* child profiles */
+.childPick{margin:0 0 16px}
+.childPick .pickHint{margin-top:0}
+.screeningFilters .childPick{margin:16px 0 4px}
+.childHint{margin:0 0 14px}
+.childCardTop{display:flex;gap:14px;align-items:center}
+.childAvatar{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--soft);color:var(--accent);font-weight:700;font-size:1.25rem;flex:none}

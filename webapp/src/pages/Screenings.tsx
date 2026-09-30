@@ -2,10 +2,13 @@ import React from 'react';
 import {Link,useLocation,useSearchParams} from 'react-router-dom';
 import {catalogScreeners as screeners,screeningDomains,screeningModeLabel,matchesScreeningAge} from '../lib/screeningContent';
 import {useScreenings} from '../lib/useScreenings';
+import {useChildren} from '../lib/useChildren';
+import {childAge} from '../lib/children';
+import {count} from '../lib/plural';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
 export default function Screenings(){
- const results=useScreenings(),[params,setParams]=useSearchParams(),location=useLocation();
+ const results=useScreenings(),children=useChildren(),[params,setParams]=useSearchParams(),location=useLocation();
  const query=params.get('q')||'',domain=params.get('domain')||'',mode=params.get('mode')||'',age=params.get('age')||'',unit=params.get('unit')==='months'?'months':'years';
  const change=(key:string,value:string)=>{const next=new URLSearchParams(params);value?next.set(key,value):next.delete(key);setParams(next,{replace:true});};
  const domains=[...new Set(Object.values(screeningDomains).flat())];
@@ -17,6 +20,7 @@ export default function Screenings(){
  <nav className="journalTabs" aria-label="Тесты и дневники"><Link to="/screenings" className="active" aria-current="page">Тесты и шкалы</Link><Link to="/forms">Дневники и формы</Link></nav>
  <Link to="/screenings/history" className="screeningHistoryLink"><span className="actionIcon"><Icon name="clock"/></span><span><strong>Мои результаты</strong><span className="small muted">{results.length?'Сохранено: '+results.length:'История появится после сохранения'}</span></span><Icon name="arrow" size={18}/></Link>
  <section className="card screeningFilters" aria-label="Выбор теста"><div className="searchField"><Icon name="search"/><input className="input" type="search" aria-label="Найти тест или сферу" placeholder="Название или трудность" value={query} onChange={e=>change('q',e.target.value)}/></div>
+ {children.length>0&&<div className="childPick"><p className="small muted pickHint">Подобрать по возрасту ребёнка:</p><div className="pickChips">{children.map(c=>{const {months,years}=childAge(c),u=years<3?'months':'years',value=String(u==='months'?months:years),on=age===value&&unit===u;return <button type="button" className="pickChip" key={c.id} aria-pressed={on} onClick={()=>{const next=new URLSearchParams(params);if(on)next.delete('age');else{next.set('age',value);u==='months'?next.set('unit','months'):next.delete('unit');}setParams(next,{replace:true});}}>{c.label} · {u==='months'?months+' мес.':count(years,'год','года','лет')}</button>;})}</div></div>}
  <div className="screeningFilterGrid"><div><label className="fieldLabel" htmlFor="filter-age">Возраст ребёнка</label><div className="ageFilter"><input className="input" id="filter-age" type="number" min="0" max={unit==='months'?216:18} step="1" value={age} placeholder="Любой" onChange={e=>change('age',e.target.value)}/><select aria-label="Единица возраста" value={unit} onChange={e=>{const next=new URLSearchParams(params);next.set('unit',e.target.value);next.delete('age');setParams(next,{replace:true});}}><option value="years">лет</option><option value="months">месяцев</option></select></div></div>
  <div><label className="fieldLabel" htmlFor="filter-mode">Как пройти</label><select id="filter-mode" value={mode} onChange={e=>change('mode',e.target.value)}><option value="">Все варианты</option><option value="embedded">В приложении</option><option value="external">Внешняя форма</option><option value="clinical">Со специалистом</option></select></div></div>
  {!validAge&&<p className="small danger" role="alert">Укажите целый возраст: 0–18 лет или 0–216 месяцев.</p>}

@@ -15,6 +15,8 @@ import {journalTemplate} from '../lib/journalContent';
 import {includeScreening} from '../lib/screenings';
 import {screenerById,respondentLabels} from '../lib/screeningContent';
 import {useAppointment} from '../lib/useAppointment';
+import {useChildren} from '../lib/useChildren';
+import {ageLabel} from '../lib/children';
 import {appointmentIcs,clearAppointment,countdownLabel,daysUntil,formatAppointment,setAppointment} from '../lib/appointment';
 import {isTelegram,shareToTelegram} from '../lib/twa';
 const fields:{id:keyof MedDetail;label:string;placeholder:string}[]=[
@@ -26,7 +28,7 @@ const fields:{id:keyof MedDetail;label:string;placeholder:string}[]=[
  {id:'note',label:'Моя заметка',placeholder:'Например, что хочу уточнить'}
 ];
 export default function VisitSheet() {
- const visit=useVisit(),results=useScreenings(),journals=useJournals(),appointment=useAppointment(),[newQ,setNewQ]=useState('');
+ const visit=useVisit(),results=useScreenings(),journals=useJournals(),appointment=useAppointment(),children=useChildren(),[newQ,setNewQ]=useState('');
  const days=appointment?daysUntil(appointment.date):0;
  const snapshots=Object.values(visit.checklists),recordCount=visit.questions.length+visit.meds.length+snapshots.length,selectedResults=results.filter(r=>r.includeInVisit),selectedJournals=journals.filter(r=>r.includeInVisit),count=recordCount+selectedResults.length+selectedJournals.length;
  const add=()=>{if(newQ.trim()&&addVisitQuestion(newQ)){setNewQ('');toast('Вопрос сохранён');}};
@@ -44,6 +46,7 @@ export default function VisitSheet() {
  {appointment&&<><p className="appointmentWhen" role="status">{days>=0?'Приём '+countdownLabel(days):'Эта дата прошла. Укажите следующий приём.'}</p>
  <div className="buttonRow" style={{marginTop:12,alignItems:'center'}}>{days>=0&&<button className="btn secondary compact" style={{flex:'0 1 auto'}} onClick={()=>downloadFile(appointmentIcs(appointment),'PsyParent-priyom-'+appointment.date+'.ics','text/calendar;charset=utf-8')}><Icon name="calendar" size={16}/>Добавить в календарь</button>}<button className="textButton" onClick={()=>{if(!clearAppointment())toast('Не удалось убрать дату',{variant:'error'});}}>Убрать дату</button></div></>}
  </section>
+ <Link to="/children" className="screeningHistoryLink noPrint"><span className="actionIcon"><Icon name="user"/></span><span><strong>Мои дети</strong><span className="small muted">{children.length?children.map(c=>c.label+', '+ageLabel(c)).join(' · '):'Имя и возраст для тестов и дневников'}</span></span><Icon name="arrow" size={18}/></Link>
  {appointment&&<p className="printOnly">Приём: {formatAppointment(appointment)}</p>}
  {!!results.length&&<section className="card"><h2>Результаты тестов и шкал</h2><p className="small muted" style={{marginTop:10}}>В экспорт попадут только отмеченные результаты, включая ответы и пояснения. Проверьте, чьи записи вы передаёте. Снятие отметки сохраняет результат в истории.</p>{results.map(r=>{const s=screenerById(r.screenerId)!;return <div className="visitItem" key={r.id}><h3><Link to={'/screenings/result/'+r.id}>{s.name} · {r.score.total} / {r.score.max}</Link></h3><p className="small muted">{r.childLabel} · {r.completedDate} · {respondentLabels[r.respondent]}</p><p className="small">{r.score.label}</p><label className="selectionCheck"><input type="checkbox" checked={r.includeInVisit} onChange={e=>{if(!includeScreening(r.id,e.target.checked))toast('Не удалось изменить выбор',{variant:'error'});}}/><span>Включить в памятку врачу</span></label></div>;})}<Link to="/screenings/history" className="textButton">История и удаление результатов</Link></section>}
  <section className="card"><h2>Дневники и формы</h2><p className="small muted" style={{marginTop:10}}>В памятку включены только выбранные записи. Проверьте ребёнка, даты и сведения, которые хотите передать.</p>{selectedJournals.map(r=><div className="visitItem" key={r.id}><h3><Link to={'/forms/record/'+r.id}>{journalTemplate(r.templateId)?.title}</Link></h3><p className="small">{r.childLabel} · {journalPeriod(r)}</p><p className="small muted">{respondentLabels[r.respondent]}{r.observerLabel?' · '+r.observerLabel:''}</p><label className="selectionCheck"><input type="checkbox" checked onChange={()=>{if(!includeJournals([r.id],false))toast('Не удалось изменить выбор',{variant:'error'});}}/><span>Включить в памятку врачу</span></label></div>)}{!selectedJournals.length&&<p className="small">{journals.length?'Сохранённые дневники пока не выбраны для памятки.':'Сюда можно добавить наблюдения из дневников сна, поведения, лечения и других форм.'}</p>}<div className="buttonRow"><Link className="textButton" to="/forms/history">Выбрать записи из истории</Link><Link className="textButton" to="/forms">Добавить наблюдение</Link></div></section>

@@ -9,6 +9,7 @@ import {addVisitQuestion,addVisitMedication,getVisit,VISIT_KEY} from '../src/lib
 import {formatVisit} from '../src/lib/export';
 import {deleteLocalData} from '../src/lib/persist';
 import {plural} from '../src/lib/plural';
+import {CHILDREN_KEY,MAX_CHILDREN,ageLabel,childAge,getChildren,normalizeChildren,removeChild,saveChild,screeningsLink,validateChild} from '../src/lib/children';
 class MemoryStorage {
  [key:string]:any;
  getItem(key:string){return Object.hasOwn(this,key)?this[key]:null;}
@@ -97,7 +98,7 @@ test('backs up and restores all records, rejecting foreign files',()=>{
  const parsed=parseBackup(text);
  assert(parsed.ok);
  if(!parsed.ok)return;
- assert.deepEqual(summarizeBackup(parsed.data),{questions:1,meds:1,observations:0,screenings:0,journals:0,other:2});
+ assert.deepEqual(summarizeBackup(parsed.data),{questions:1,meds:1,observations:0,screenings:0,journals:0,children:0,other:2});
  assert.equal(describeSummary(summarizeBackup(parsed.data)),'вопросов: 1, назначений: 1');
  deleteLocalData();
  assert.equal(getAppointment(),null);assert.deepEqual(getRecent(),[]);assert.equal(localStorage.getItem('unrelated.site.key'),'keep');
@@ -156,4 +157,29 @@ test('every specialist can be found through a task chip',async()=>{
  const covered=new Set(specialistTasks.flatMap(t=>t.domains));
  for(const s of specialists)for(const d of s.domains)assert.ok(covered.has(d),s.id+': '+d);
  assert.equal(new Set(specialistTasks.map(t=>t.id)).size,specialistTasks.length);
+});
+
+test('child profiles keep only a nickname and birth month and give the age on a date',()=>{
+ assert.deepEqual(validateChild({label:'Маша',birth:'2019-03'},'2026-09'),[]);
+ assert.equal(validateChild({label:' ',birth:'2019-03'},'2026-09').length,1);
+ assert.equal(validateChild({label:'Маша',birth:'2019-13'},'2026-09').length,1);
+ assert.equal(validateChild({label:'Маша',birth:'2027-01'},'2026-09').length,1);
+ const masha=saveChild({label:'  Маша ',birth:'2019-03'})!;
+ assert.equal(masha.label,'Маша');
+ assert.deepEqual(childAge(masha,'2026-09-30'),{months:90,years:7});
+ assert.deepEqual(childAge(masha,'2019-01-10'),{months:0,years:0});
+ assert.equal(ageLabel(masha,'2026-09-30'),'7 лет');
+ const baby=saveChild({label:'Младший',birth:'2024-07'})!;
+ assert.equal(ageLabel(baby,'2026-09-15'),'2 года 2 мес.');
+ assert.equal(ageLabel(baby,'2025-01-15'),'6 мес.');
+ assert.equal(screeningsLink(baby,'2026-09-15'),'/screenings?unit=months&age=26');
+ assert.equal(screeningsLink(masha,'2026-09-15'),'/screenings?age=7');
+ assert(saveChild({id:masha.id,label:'Старшая',birth:'2019-04'}));
+ assert.deepEqual(getChildren().map(c=>c.label),['Старшая','Младший']);
+ assert.equal(saveChild({label:'',birth:'2020-01'}),null);
+ assert(removeChild(baby.id));
+ assert.deepEqual(getChildren().map(c=>c.id),[masha.id]);
+ localStorage.setItem(CHILDREN_KEY,JSON.stringify([{id:'a',label:'A',birth:'2020-01'},{id:'a',label:'B',birth:'2020-01'},{id:'b',label:'',birth:'2020-01'},{id:'c',label:'C',birth:'1800-01'},null]));
+ assert.deepEqual(getChildren().map(c=>c.label),['A']);
+ assert.equal(normalizeChildren(Array.from({length:12},(_,i)=>({id:'x'+i,label:'Ребёнок '+i,birth:'2020-01'}))).length,MAX_CHILDREN);
 });
