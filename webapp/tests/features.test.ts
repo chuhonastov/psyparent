@@ -128,3 +128,11 @@ test('restoring keeps previous records when storage fails',()=>{
  assert.equal(restoreBackup({[VISIT_KEY]:JSON.stringify({version:2,questions:['Новый'],meds:[],medDetails:{},checklists:{}})}),false);
  assert.deepEqual(getVisit().questions,['Остаётся']);
 });
+test('clinic data validates doctor ids, links and topics',async()=>{
+ const {validateClinic,clinic,bookingFor,initials}=await import('../src/lib/clinic');
+ assert.deepEqual(validateClinic(clinic,['adhd']),[]);
+ const bad={...clinic,doctors:[{id:'Bad id',name:'',role:'',photo:'http://x',topics:['nope']}]};
+ assert.equal(validateClinic(bad as any,['adhd']).length,4);
+ assert.equal(bookingFor(),clinic.bookingUrl);assert.equal(bookingFor({id:'a',name:'А Б',role:'r',profileUrl:'https://x.ru/a'}),'https://x.ru/a');
+ assert.equal(initials('Анна Петровна Иванова'),'АП');
+});

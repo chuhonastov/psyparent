@@ -291,3 +291,14 @@ p.danger{color:var(--danger)}
 @media(min-width:600px){.visitActions{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}}
 @media(max-width:359px){.appointment{grid-template-columns:minmax(0,1fr)}.answerOptions{gap:5px}}
 @media print{.printOnly{display:block;margin-bottom:16px}.segmented{position:static;box-shadow:none}}
+
+/* clinic doctors */
+.doctorsCta{margin-top:12px}
+.doctorCard{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--card);color:inherit;text-decoration:none}
+.doctorCard .listMain{flex:1;min-width:0}
+.doctorCard h3{font-size:1.0625rem}
+.doctorPhoto{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;background:var(--soft)}
+.doctorPhoto.initials{display:grid;place-items:center;font-weight:700;color:var(--accent);font-size:1.25rem}
+.doctorPhoto.large{width:96px;height:96px;font-size:1.75rem}
+.doctorHero{display:flex;gap:16px;align-items:center}
+.chipRow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}

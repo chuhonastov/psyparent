@@ -37,6 +37,7 @@ export default function Home() {
  <Link to="/forms" className="actionCard"><span className="actionIcon"><Icon name="clock" size={23}/></span><div className="actionMain"><h3>Дневники и формы</h3><p>Сон, поведение, переносимость лечения и наблюдения за изменениями</p></div><Icon name="arrow" size={18}/></Link>
  <Link to="/visit" className="actionCard"><span className="actionIcon"><Icon name="note" size={23}/></span><div className="actionMain"><h3>Памятка к приёму</h3><p>{count?'Сохранённых записей: '+count+'. Можно продолжить.':'Соберите всё важное в одном месте'}</p></div><Icon name="arrow" size={18}/></Link>
  </div>
+ <Link to="/doctors" className="actionCard warm doctorsCta"><span className="actionIcon"><Icon name="user" size={23}/></span><div className="actionMain"><h3>Записаться к врачу</h3><p>Детские психиатры и психологи клиники. Запись на сайте клиники</p></div><Icon name="arrow" size={18}/></Link>
  {!!recent.length&&<><div className="sectionHeading"><h2>Вы недавно смотрели</h2><button type="button" className="textButton" onClick={()=>clearRecent()}>Очистить</button></div>
  <div className="list">{recent.map(r=><Link className="listCard compact" key={r.kind+r.id} to={r.to}><div className="listMain"><h3>{r.title}</h3><p>{r.label}</p></div><Icon name="arrow" size={17}/></Link>)}</div></>}
  <div className="sectionHeading"><h2>Частые темы</h2><Link to="/diagnoses">Все темы</Link></div>

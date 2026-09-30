@@ -81,3 +81,8 @@ const snap=read('snapiv.json'),ygtss=read('ygtss-clinical.json');
 assert.equal(snap.questions.length,26);assert.equal(snap.options.length,4);sources(snap.sources,'SNAP-IV');
 assert.equal(ygtss.criteria.length,6);for(const a of ygtss.criteria)assert.equal(a.length,6);assert.equal(ygtss.groups.reduce((n,g)=>n+g.items.length,0),57);
 console.log(`Forms OK: ${forms.length} journals, SNAP-IV 26 items, YGTSS-R 36 anchors and 57 checklist items.`);
+const clinic=read('clinic.json'),https=u=>u===undefined||/^https:\/\/\S+$/.test(u);
+assert(https(clinic.site)&&clinic.site&&https(clinic.bookingUrl)&&clinic.bookingUrl,'Clinic needs HTTPS site and booking URL');
+assert.equal(new Set(clinic.doctors.map(d=>d.id)).size,clinic.doctors.length,'Duplicate doctor IDs');
+for(const d of clinic.doctors){assert.match(d.id,/^[a-z0-9-]+$/,'Bad doctor id '+d.id);assert(d.name?.trim()&&d.role?.trim(),'Doctor needs name and role: '+d.id);for(const u of [d.photo,d.profileUrl,d.bookingUrl])assert(https(u),'Doctor URL must be HTTPS: '+d.id);for(const t of d.topics||[])assert(leaves.some(x=>x.id===t),'Unknown topic '+t+' for doctor '+d.id);}
+console.log(`Clinic OK: ${clinic.doctors.length} doctors, booking at ${clinic.bookingUrl}.`);
