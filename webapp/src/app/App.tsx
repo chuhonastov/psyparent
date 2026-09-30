@@ -17,6 +17,7 @@ import Specialists from '../pages/Specialists';
 import Doctors,{DoctorDetail} from '../pages/Doctors';
 import Glossary from '../pages/Glossary';
 import Children from '../pages/Children';
+import Exams,{ExamDetail} from '../pages/Exams';
 import SpecialistDetail from '../pages/SpecialistDetail';
 import JournalCatalog from '../pages/JournalCatalog';
 import JournalEditor from '../pages/JournalEditor';
@@ -51,7 +52,7 @@ export default function App() {
  <Route path="/diagnoses/group/:id" element={<DiagnosisGroup/>}/><Route path="/diagnoses/:id" element={<DiagnosisDetail/>}/>
  <Route path="/medications" element={<Medications/>}/><Route path="/medications/group/:id" element={<MedicationGroupRedirect/>}/><Route path="/medications/:id" element={<MedicationDetail/>}/>
  <Route path="/review" element={<TreatmentReview/>}/><Route path="/visit" element={<VisitSheet/>}/><Route path="/about" element={<About/>}/><Route path="/help" element={<Help/>}/>
- <Route path="/glossary" element={<Glossary/>}/><Route path="/children" element={<Children/>}/><Route path="/doctors" element={<Doctors/>}/><Route path="/doctors/:id" element={<DoctorDetail/>}/><Route path="/specialists" element={<Specialists/>}/><Route path="/specialists/:id" element={<SpecialistDetail/>}/>
+ <Route path="/glossary" element={<Glossary/>}/><Route path="/children" element={<Children/>}/><Route path="/exams" element={<Exams/>}/><Route path="/exams/:id" element={<ExamDetail/>}/><Route path="/doctors" element={<Doctors/>}/><Route path="/doctors/:id" element={<DoctorDetail/>}/><Route path="/specialists" element={<Specialists/>}/><Route path="/specialists/:id" element={<SpecialistDetail/>}/>
  <Route path="/forms" element={<JournalCatalog/>}/><Route path="/forms/history" element={<JournalHistory/>}/><Route path="/forms/record/:recordId" element={<JournalSavedRecord/>}/><Route path="/forms/:formId" element={<JournalEditor/>}/>
  <Route path="/screenings" element={<Screenings/>}/><Route path="/screenings/history" element={<ScreeningHistory/>}/><Route path="/screenings/result/:resultId" element={<ScreeningSavedResult/>}/><Route path="/screenings/:id" element={<ScreeningDetail/>}/>
  <Route path="*" element={<div className="container"><h1>Страница не найдена</h1><p style={{margin:'16px 0'}}>Возможно, ссылка устарела. Ваши записи доступны в разделе «К врачу».</p><Link to="/" className="btn">На главную</Link></div>}/>

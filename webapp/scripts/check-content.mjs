@@ -81,7 +81,28 @@ for(const m of meds.filter(x=>!x.noteOnly)){
  if(r.kind==='offlabel')assert(pairs.usual[m.id]||guides.some(g=>g.medicationId===m.id&&['condition','specialist'].includes(g.relationKind)),'Pair rule needs usual use: '+m.id);
 }
 for(const r of pairs.medicationRules)for(const id of r.ids)assert(meds.some(m=>m.id===id&&!m.noteOnly),'Unknown medication in pair rule: '+id);
+// Investigations: cards, written «investigation × diagnosis» pairs and wording for the rest.
+const exams=read('investigations.json'),examGuides=read('investigation-guides.json');
+const examGroupIds=exams.groups.map(g=>g.id);
+assert.equal(new Set(exams.items.map(e=>e.id)).size,exams.items.length,'Duplicate investigation id');
+for(const e of exams.items){
+ assert(examGroupIds.includes(e.group)&&['clinical','monitoring','dubious'].includes(e.kind),'Bad investigation group/kind: '+e.id);
+ assert(e.name?.trim()&&e.summary?.trim()&&e.whenNot.length&&e.howItGoes?.trim()&&e.results?.trim(),'Incomplete investigation: '+e.id);
+ if(e.kind==='dubious')assert(e.verdict?.trim()&&!e.whenNeeded.length,'Dubious investigation needs a verdict and no indications: '+e.id);
+ else assert(/^[а-яё]/.test(e.usual||''),'Investigation needs «usual» wording in lower case: '+e.id),assert(e.whenNeeded.length,'Investigation needs indications: '+e.id);
+ assert.match(e.updatedAt,/^\d{4}-\d{2}-\d{2}$/);sources(e.sources,e.id);
+}
+const examKeys=examGuides.map(g=>g.diagnosisId+'/'+g.investigationId);assert.equal(new Set(examKeys).size,examKeys.length,'Duplicate investigation pair');
+for(const g of examGuides){
+ assert(clinical.some(d=>d.id===g.diagnosisId),'Investigation pair on unknown or non-clinical topic: '+g.diagnosisId);
+ const e=exams.items.find(x=>x.id===g.investigationId);assert(e,'Unknown investigation in pair: '+g.investigationId);
+ assert(['recommended','conditional','monitoring','not_routine','not_recommended'].includes(g.relationKind)&&g.summary?.trim(),'Bad investigation pair: '+g.diagnosisId+'/'+g.investigationId);
+ if(e.kind==='dubious')assert.equal(g.relationKind,'not_recommended','Dubious investigation cannot be recommended: '+g.investigationId);
+ sources(g.sources,g.diagnosisId+'/'+g.investigationId);
+}
+for(const d of clinical)assert(pairs.diagnoses[d.id].exams?.trim(),'Diagnosis needs a note on investigations: '+d.id);
 for(const d of leaves)for(const id of d.screeningIds||[])assert(['mchat','sdq','phq9','gad7','ygtss','crafft','snapiv','psc17','scared','vanderbilt2002'].includes(id),'Unknown screener on '+d.id);
+console.log(`Investigations OK: ${exams.items.length} cards, ${examGuides.length} written pairs, general reviews for the other ${clinical.length*exams.items.length-examGuides.length}.`);
 console.log(`Pairs OK: ${guides.length} written medication reviews, general reviews for the other ${clinical.length*meds.filter(m=>!m.noteOnly).length-guides.length} of ${clinical.length*meds.filter(m=>!m.noteOnly).length} pairs; ${support.reduce((n,s)=>n+s.providers.length+(s.notFor?.length||0),0)} written specialist pairs.`);
 console.log(`Content OK: ${leaves.length} parent routes and support plans, ${specialists.length} specialists, ${support.reduce((n,s)=>n+s.providers.length,0)} support links; ${meds.length} medication/reference cards, ${guides.length} treatment guides.`);
 

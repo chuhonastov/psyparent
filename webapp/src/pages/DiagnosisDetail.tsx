@@ -12,6 +12,7 @@ import {doctorsForTopic,clinic} from '../lib/clinic';
 import {journalTemplatesForDiagnosis} from '../lib/journalContent';
 import {screenerById} from '../lib/screeningContent';
 import {trackRecent} from '../lib/recent';
+import {examsForDiagnosis,examNote,examRelationLabels} from '../lib/investigations';
 
 // Heading of the help tab: what the plan aims at in this section of the handbook.
 const HELP_TITLES:Record<string,string>={development:'Научить нужным навыкам',anxiety:'Помочь справиться со страхом',mood:'Вернуть силы и интерес к жизни',stress:'Помочь восстановиться после пережитого',ocd_spectrum:'Ослабить власть навязчивостей',behavior:'Снизить конфликты и научить новым навыкам',eating_disorders:'Восстановить питание и здоровье',addictions:'Вернуть контроль над своей жизнью'};
@@ -34,6 +35,7 @@ export default function DiagnosisDetail() {
  {!!d.relatedTopics?.length&&<section className="card"><h2 style={{marginBottom:14}}>Выберите нужную тему</h2><div className="topics">{d.relatedTopics.map(topicId=>{const topic=diagnosisById(topicId);return topic?<Link key={topicId} className="topic" to={'/diagnoses/'+topicId}>{dxName(topic)}</Link>:null;})}</div></section>}
  <Disclosure title={d.topicKind&&d.topicKind!=='diagnosis'?'Что важно обсудить со специалистом':'Как врач обосновывает диагноз'} defaultOpen={!d.introduction}><ul>{d.simplifiedCriteria?.map((x,i)=><li key={i}>{x}</li>)}</ul><p className="small muted">Это подсказки для разговора с врачом, а не диагностика.</p></Disclosure>
  {!!d.diagnosticNotes?.length&&<Disclosure title="Что ещё важно уточнить"><ul>{d.diagnosticNotes.map((x,i)=><li key={i}>{x}</li>)}</ul></Disclosure>}
+ {examNote(id)&&<section className="card"><h2>Какие обследования нужны</h2><p style={{marginTop:10}}>{examNote(id)}</p>{examsForDiagnosis(id).map(g=><div key={g.kind} style={{marginTop:14}}><p className="pickGroupLabel">{examRelationLabels[g.kind]}</p><div className="pickChips">{g.items.map(({exam})=><Link key={exam.id} className="pickChip" to={'/review?what=exam&dx='+id+'&exam='+exam.id}>{exam.name}</Link>)}</div></div>)}<Link className="textButton" style={{display:'inline-block',marginTop:14}} to={'/review?what=exam&dx='+id}>Разобрать другое обследование</Link></section>}
  <div className="buttonRow"><button className="btn" onClick={()=>setParams({tab:'help'},{replace:true,state:location.state})}>Какая помощь бывает полезна<Icon name="arrow" size={17}/></button></div>
  </>}
  {tab==='help'&&<>
