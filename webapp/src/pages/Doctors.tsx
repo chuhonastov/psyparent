@@ -30,7 +30,7 @@ export default function Doctors(){
  </section>}
  {clinic.doctors.length?<>
   <p className="searchMeta" role="status">{list.length?count(list.length,'специалист','специалиста','специалистов'):'Никого не нашлось — измените фильтры'}</p>
-  <div className="list">{list.map(d=><DoctorCard key={d.id} d={d}/>)}</div>
+  {list.length?<div className="list">{list.map(d=><DoctorCard key={d.id} d={d}/>)}</div>:<Book full/>}
   {clinic.updatedAt&&<p className="small muted">Данные с сайта клиники от {new Date(clinic.updatedAt+'T12:00:00').toLocaleDateString('ru-RU')}. Цены, свободное время и актуальное расписание — на сайте.</p>}</>
  :<div className="emptyState"><Icon name="user" size={27}/><h3>Список врачей скоро появится</h3><p>Пока выбрать врача и записаться можно на сайте клиники.</p><Book/></div>}
  {!!clinic.branches?.length&&<section className="card"><h2>Филиалы</h2><div className="branchList">{clinic.branches.map(b=><div key={b.id}><strong>{b.city}</strong><p className="small">{b.address}</p>{b.phone&&<a className="textButton" href={'tel:'+b.phone.replace(/[^+\d]/g,'')}><Icon name="phone" size={14}/> {b.phone}</a>}</div>)}</div></section>}

@@ -1,6 +1,7 @@
 import React,{useState} from 'react';
 import {Link,useSearchParams} from 'react-router-dom';
-import {clinicalDiagnoses,diagnosisGroups,dxName,diagnosisById,medications,medicationById,treatmentGuideFor,treatmentRelationLabels} from '../lib/content';
+import {clinicalDiagnoses,dxName,diagnosisById,medications,medicationById,treatmentGuideFor,treatmentGuidesForDiagnosis,treatmentGuidesForMedication,treatmentRelationLabels} from '../lib/content';
+import DiagnosisPicker from '../components/DiagnosisPicker';
 import {matchesQuery} from '../lib/search';
 import {addVisitMedication} from '../lib/visit';
 import {useVisit} from '../lib/useVisit';
@@ -15,6 +16,9 @@ export default function TreatmentReview() {
  const options=medications.filter(m=>!m.noteOnly&&matchesQuery(q,[m.name,...(m.aliases||[]),...(m.searchTerms||[])],m.class));
  const setParam=(name:string,value:string)=>{const next=new URLSearchParams(params);value?next.set(name,value):next.delete(name);setParams(next,{replace:true});};
  const guide=m?treatmentGuideFor(dx,m.id):undefined;
+ // Quick picks for the chosen diagnosis, split so parents see at once which drugs have proven benefit.
+ const quickFor=(kinds:string[])=>d?treatmentGuidesForDiagnosis(d.id).filter(g=>kinds.includes(g.relationKind)).map(g=>medicationById(g.medicationId)).filter((x):x is NonNullable<typeof x>=>!!x&&!x.noteOnly):[];
+ const quickGroups=[{title:'С доказанной пользой',items:quickFor(['condition','specialist','cooccurring'])},{title:'Часто назначают, но польза не доказана',items:quickFor(['limited','not_recommended'])}].filter(g=>g.items.length);
  const uncertain=guide?.relationKind==='limited'||guide?.relationKind==='not_recommended';
  const safety=guide?.relationKind==='safety';
  const questions=m?Array.from(new Set([
@@ -30,11 +34,12 @@ export default function TreatmentReview() {
  return <div className="container"><PageHeader title="Разобрать назначение" subtitle="Узнайте, зачем обычно назначают это лекарство, и подготовьте вопросы врачу." backTo="/medications" backLabel="Лечение"/>
  <div className="reviewSteps"><span><span className="stepNumber">1</span>Диагноз</span><Icon name="arrow" size={13}/><span><span className="stepNumber">2</span>Препарат</span><Icon name="arrow" size={13}/><span><span className="stepNumber">3</span>Вопросы врачу</span></div>
  <div className="stack">
- <section className="card"><label className="fieldLabel" htmlFor="review-dx">Какой диагноз указан в заключении?</label><select id="review-dx" value={d?dx:''} onChange={e=>setParam('dx',e.target.value)}><option value="">Не знаю / нет в списке</option>{diagnosisGroups.map(group=>{const options=clinicalDiagnoses.filter(x=>group.children?.includes(x.id));return options.length?<optgroup key={group.id} label={group.title}>{options.map(x=><option key={x.id} value={x.id}>{dxName(x)}</option>)}</optgroup>:null;})}</select><p className="small muted" style={{marginTop:8}}>Можно продолжить без диагноза: останутся общие сведения о препарате. Обзорные памятки в этот список не включены.</p></section>
+ <section className="card"><DiagnosisPicker label="Какой диагноз указан в заключении?" value={d?dx:''} onChange={id=>setParam('dx',id)} suggested={m?treatmentGuidesForMedication(m.id).filter(g=>['condition','specialist','cooccurring'].includes(g.relationKind)).map(g=>g.diagnosisId):[]}/><p className="small muted" style={{marginTop:8}}>Можно продолжить без диагноза: останутся общие сведения о препарате.</p></section>
  <section className="card"><h2 style={{marginBottom:15}}>Какой препарат назначен?</h2>{selected?.noteOnly&&<p className="callout small" style={{marginBottom:15}}>Вы открыли общую памятку. Выберите конкретный препарат из заключения. <Link to={'/medications/'+selected.id}>Прочитать памятку</Link></p>}
  {m?<div className="reviewChoice"><div><strong>{m.name}</strong><p className="small muted">{m.class}</p></div><button className="textButton" onClick={()=>{setParam('med','');setQ('');}}>Изменить</button></div>:<><div className="searchWrap"><Icon name="search"/><input type="search" className="input" aria-label="Найти назначенный препарат" placeholder="Название с упаковки" value={q} onChange={e=>setQ(e.target.value)}/></div>
  <div className="list">{(q.trim()?options:[]).map(item=><button className="listCard" key={item.id} onClick={()=>setParam('med',item.id)}><div className="listMain"><h3>{item.name}</h3><p>{item.aliases?.slice(0,3).join(' · ')||item.class}</p></div><Icon name="plus" size={17}/></button>)}</div>
- {!q&&<p className="small muted" style={{marginTop:12}}>Введите название из заключения или с упаковки.</p>}
+ {!q&&d&&quickGroups.length>0&&<><p className="small muted pickHint">Разобраны для диагноза «{dxName(d)}»:</p>{quickGroups.map(g=><React.Fragment key={g.title}><p className="pickGroupLabel">{g.title}</p><div className="pickChips">{g.items.map(x=><button type="button" className="pickChip" key={x.id} onClick={()=>setParam('med',x.id)}>{x.name}</button>)}</div></React.Fragment>)}</>}
+ {!q&&<p className="small muted" style={{marginTop:12}}>{d&&quickGroups.length?'Или введите название из заключения или с упаковки.':'Введите название из заключения или с упаковки.'}</p>}
  {q&&!options.length&&<p className="small muted">В справочнике пока нет этого препарата. Запишите название в <Link to="/visit">вопросах врачу</Link>.</p>}</>}
  </section>
  {m&&<>

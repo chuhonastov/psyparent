@@ -325,3 +325,22 @@ p.danger{color:var(--danger)}
 .doctorCard .tag{margin-top:6px}
 .branchList{display:grid;gap:14px;margin-top:12px}
 .branchList p{margin:3px 0 4px}
+/* searchable pickers instead of long dropdowns */
+.picker .searchWrap{margin-top:8px}
+.pickHint{margin:14px 0 8px}
+.pickChips{display:flex;flex-wrap:wrap;gap:8px}
+.pickChip{min-height:42px;padding:9px 14px;border:1px solid var(--line);border-radius:30px;background:var(--card);color:var(--text);font:inherit;font-size:0.9375rem;font-weight:600;cursor:pointer}
+.pickChip:hover,.pickChip:focus-visible{border-color:var(--accent);color:var(--accent)}
+.pickChip.active,.pickChip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.pickGroupLabel{margin:12px 0 6px;font-size:0.8125rem;font-weight:700;letter-spacing:.02em;color:var(--muted)}
+.pickList{display:grid;gap:6px;margin-top:10px}
+.pickRow{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:48px;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);font:inherit;font-size:1rem;text-align:left;cursor:pointer}
+.pickRow:hover,.pickRow:focus-visible{border-color:var(--accent)}
+.pickRow svg{flex:none;color:var(--accent)}
+.pickSections{display:grid;gap:6px}
+.pickSectionHead{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:10px 14px;border:0;border-radius:14px;background:var(--soft);color:var(--text);font:inherit;font-size:1rem;font-weight:600;text-align:left;cursor:pointer}
+.pickSectionHead span:first-child{flex:1}
+.pickSectionHead svg{transition:transform .15s;color:var(--accent)}
+.pickSection.open .pickSectionHead svg{transform:rotate(90deg)}
+.pickSection.open .pickList{padding:0 0 6px 10px}
+.reviewChoice .fieldLabel{display:block;margin-bottom:2px}

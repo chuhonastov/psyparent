@@ -54,6 +54,16 @@ export type Specialist = {id:string;title:string;summary:string;domains:string[]
 export type SupportProvider = {specialistId:string;goal:string;method:string;role:'core'|'conditional'};
 export type NonpharmSupport = {diagnosisId:string;intro:string;priority?:string;providers:SupportProvider[];limitations:Limitation[];progress:string[];sources:Source[];updatedAt:string};
 export const specialists=specialistsRaw as Specialist[];
+// Parent-level filters on the specialists page; every specialist domain must belong to one of them (see tests).
+export const specialistTasks:{id:string;title:string;domains:string[]}[]=[
+ {id:'speech',title:'Речь и общение',domains:['Речь','Язык','Коммуникация','Общение']},
+ {id:'school',title:'Учёба',domains:['Обучение','Школа','Чтение и письмо','Память','Планирование']},
+ {id:'behavior',title:'Поведение',domains:['Поведение','Семья','Тики и привычки','Травля']},
+ {id:'emotions',title:'Эмоции и тревога',domains:['Эмоции','Тревога','Настроение','Травма','Навязчивости','Самоповреждения']},
+ {id:'development',title:'Развитие',domains:['Оценка развития','Развитие','Игра']},
+ {id:'daily',title:'Движение и быт',domains:['Моторика','Движение','Координация','Реабилитация','Самостоятельность','Быт','Среда']},
+ {id:'food',title:'Питание',domains:['Питание','Рост','РПП']}
+];
 export const nonpharmSupport=supportRaw as NonpharmSupport[];
 export const specialistById=(id:string)=>specialists.find(s=>s.id===id);
 export const supportForDiagnosis=(id:string)=>nonpharmSupport.find(s=>s.diagnosisId===id);

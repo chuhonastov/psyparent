@@ -150,3 +150,10 @@ test('doctor filters by city, age and online visits',async()=>{
  assert.deepEqual(filterDoctors(list,{age:5}).map((d:any)=>d.id),['a']);
  assert.deepEqual(filterDoctors(list,{online:true}).map((d:any)=>d.id),['a']);
 });
+
+test('every specialist can be found through a task chip',async()=>{
+ const {specialists,specialistTasks}=await import('../src/lib/content');
+ const covered=new Set(specialistTasks.flatMap(t=>t.domains));
+ for(const s of specialists)for(const d of s.domains)assert.ok(covered.has(d),s.id+': '+d);
+ assert.equal(new Set(specialistTasks.map(t=>t.id)).size,specialistTasks.length);
+});
