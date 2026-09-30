@@ -35,12 +35,12 @@ export const dxName = (d: Diagnosis) => d.shortTitle || d.title;
 
 export type TreatmentRelation = 'condition'|'specialist'|'cooccurring'|'limited'|'not_recommended'|'safety';
 export const treatmentRelationLabels:Record<TreatmentRelation,string>={
- condition:'Цель при этом состоянии',
- specialist:'Особые показания',
- cooccurring:'Сопутствующая проблема',
- limited:'Данных недостаточно',
- not_recommended:'Ограничения назначения',
- safety:'Переносимость и взаимодействия'
+ condition:'Помогает при этом состоянии',
+ specialist:'По особым показаниям',
+ cooccurring:'При сопутствующей проблеме',
+ limited:'Польза не доказана',
+ not_recommended:'Не рекомендуется',
+ safety:'Для побочных эффектов и безопасности'
 };
 export type TreatmentGuide = {diagnosisId:string; medicationId:string; relationKind:TreatmentRelation; summary:string; context:string; goals:string[]; questions?:string[]; sources:Source[]; updatedAt?:string};
 export const treatmentGuides=guidesRaw as TreatmentGuide[];

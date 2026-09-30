@@ -19,14 +19,15 @@ export default function TreatmentReview() {
  const safety=guide?.relationKind==='safety';
  const questions=m?Array.from(new Set([
  ...(guide?.questions||[]),
- ...(uncertain?['Какие данные и обстоятельства обосновывают «'+m.name+'» именно для возраста и трудности моего ребёнка?']:[]),
- ...(safety?['Какую сопутствующую проблему должен решить «'+m.name+'» и как проверены взаимодействия со всей схемой?']:[]),
- 'Для какой конкретной трудности назначен «'+m.name+'»'+(d?' при диагнозе «'+dxName(d)+'»':'')+'?',
- 'По каким изменениям и через какой срок будем оценивать эффект «'+m.name+'»?',
- 'Что отслеживать при приёме «'+m.name+'» и при каких изменениях связаться с врачом раньше?',
- 'Соответствует ли применение «'+m.name+'» возрасту ребёнка и инструкции? Если нет, почему выбран этот вариант?'
+ ...(uncertain?['Почему выбран «'+m.name+'», если пользы при этом состоянии не доказано? Какая помощь с доказанной пользой идёт параллельно?']:[]),
+ ...(safety?['Какую отдельную проблему решает «'+m.name+'» и как он сочетается с остальными лекарствами?']:[]),
+ 'Что именно должен изменить «'+m.name+'»'+(d?' при диагнозе «'+dxName(d)+'»':'')+'?',
+ 'Через сколько и по каким признакам мы поймём, что «'+m.name+'» помогает?',
+ 'Какие побочные эффекты бывают и с какими звонить вам сразу?',
+ 'Есть ли в инструкции наш возраст и диагноз? Если нет, почему вы всё же назначаете «'+m.name+'»?',
+ 'Как и когда мы будем заканчивать приём?'
  ])):[];
- return <div className="container"><PageHeader title="Разобрать назначение" subtitle="Поймём возможную цель и подготовим вопросы лечащему врачу." backTo="/medications" backLabel="Лечение"/>
+ return <div className="container"><PageHeader title="Разобрать назначение" subtitle="Узнайте, зачем обычно назначают это лекарство, и подготовьте вопросы врачу." backTo="/medications" backLabel="Лечение"/>
  <div className="reviewSteps"><span><span className="stepNumber">1</span>Диагноз</span><Icon name="arrow" size={13}/><span><span className="stepNumber">2</span>Препарат</span><Icon name="arrow" size={13}/><span><span className="stepNumber">3</span>Вопросы врачу</span></div>
  <div className="stack">
  <section className="card"><label className="fieldLabel" htmlFor="review-dx">Какой диагноз указан в заключении?</label><select id="review-dx" value={d?dx:''} onChange={e=>setParam('dx',e.target.value)}><option value="">Не знаю / нет в списке</option>{diagnosisGroups.map(group=>{const options=clinicalDiagnoses.filter(x=>group.children?.includes(x.id));return options.length?<optgroup key={group.id} label={group.title}>{options.map(x=><option key={x.id} value={x.id}>{dxName(x)}</option>)}</optgroup>:null;})}</select><p className="small muted" style={{marginTop:8}}>Можно продолжить без диагноза: останутся общие сведения о препарате. Обзорные памятки в этот список не включены.</p></section>
@@ -37,8 +38,8 @@ export default function TreatmentReview() {
  {q&&!options.length&&<p className="small muted">В справочнике пока нет этого препарата. Запишите название в <Link to="/visit">вопросах врачу</Link>.</p>}</>}
  </section>
  {m&&<>
- <section className={'card '+(uncertain?'':'soft')}><div className="eyebrow">{guide&&d?dxName(d)+' · разбор назначения':'Что известно из справочника'}</div><h2>{uncertain?'Обсудим обоснование':safety?'Уточним отдельную задачу':'Начнём с цели'}</h2>{guide&&<p style={{marginTop:12}}><span className={'tag '+(uncertain?'warm':'')}>{treatmentRelationLabels[guide.relationKind]}</span></p>}<p style={{marginTop:12}}>{guide?guide.summary:d?'Для этой пары «диагноз — препарат» отдельный разбор ещё не подготовлен. По отсутствию записи нельзя сделать вывод о правильности назначения. Возможно, врач учитывал сопутствующее состояние.':'Без диагноза и цели назначения можно обсудить общие сведения. Уточните у врача, какую именно трудность должен уменьшить препарат.'}</p>
- {guide&&<><p className="small">{guide.context}</p><h3 style={{marginTop:17}}>{uncertain?'Что стоит уточнить':safety?'Что проверить с врачом':'Цели и условия для обсуждения'}</h3><ul className="small">{guide.goals.map(goal=><li key={goal}>{goal}</li>)}</ul><p className="small muted">{uncertain?'Наличие разбора не означает, что препарат рекомендован. Не меняйте текущую схему самостоятельно: обсудите основания и дальнейший план.':safety?'Связь относится к отдельной задаче или безопасности сочетания и не означает лечение самого диагноза.':'Обсудите с врачом цель и срок оценки. Эти примеры не определяют, нужен ли препарат вашему ребёнку.'}</p></>}
+ <section className={'card '+(uncertain?'':'soft')}><div className="eyebrow">{guide&&d?dxName(d)+' · разбор назначения':'Что известно из справочника'}</div><h2>{uncertain?'Что известно об этом назначении':safety?'Для чего это лекарство':'Для чего это лекарство'}</h2>{guide&&<p style={{marginTop:12}}><span className={'tag '+(uncertain?'warm':'')}>{treatmentRelationLabels[guide.relationKind]}</span></p>}<p style={{marginTop:12}}>{guide?guide.summary:d?'Для этой пары «диагноз — препарат» разбора пока нет. Это не значит, что назначение неправильное: возможно, врач лечит сопутствующую проблему. Спросите его об этом.':'Без диагноза доступны только общие сведения о препарате. Спросите врача, какую трудность он должен уменьшить.'}</p>
+ {guide&&<><p className="small">{guide.context}</p><h3 style={{marginTop:17}}>{uncertain?'Что спросить у врача':safety?'Что проверить с врачом':'Чего ждать от лечения'}</h3><ul className="small">{guide.goals.map(goal=><li key={goal}>{goal}</li>)}</ul><p className="small muted">{uncertain?'Не отменяйте лекарство сами. Покажите этот разбор врачу и обсудите, что делать дальше.':safety?'Это лекарство решает отдельную задачу и не лечит сам диагноз.':'Обсудите с врачом, какие из этих целей важны для вашего ребёнка и когда оценить результат.'}</p></>}
  </section>
  {m.evidenceNote&&<div className="callout">{m.evidenceNote}</div>}
  {m.availabilityNote&&<div className="callout warn">{m.availabilityNote}</div>}
@@ -46,7 +47,7 @@ export default function TreatmentReview() {
  <section className="card"><h2 style={{marginBottom:18}}>Сохраните нужные вопросы</h2>{questions.map(question=><div className="question" key={question}><p>{question}</p><QuestionButton question={question} compact/></div>)}</section>
  <div className="buttonRow"><button className={'btn '+(visit.meds.includes(m.id)?'soft':'')} disabled={visit.meds.includes(m.id)} onClick={()=>{if(addVisitMedication(m.id))toast('Назначение добавлено в памятку');}}><Icon name={visit.meds.includes(m.id)?'check':'plus'}/>{visit.meds.includes(m.id)?'Назначение в памятке':'Записать назначение'}</button><Link to="/visit" className="btn secondary">Открыть памятку<Icon name="arrow" size={16}/></Link></div>
  {guide&&<Sources items={guide.sources} updatedAt={guide.updatedAt}/>}
- <p className="small muted">Разбор объясняет справочную информацию. Он не подбирает препарат, не проверяет дозировку и не предлагает менять лечение.</p>
+ <p className="small muted">Разбор объясняет, что известно о препарате. Он не подбирает лечение и не проверяет дозу — это делает врач.</p>
  </>}
  </div></div>;
 }
