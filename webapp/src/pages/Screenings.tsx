@@ -1,6 +1,6 @@
 import React from 'react';
 import {Link,useLocation,useSearchParams} from 'react-router-dom';
-import {screeners,screeningDomains,screeningModeLabel,matchesScreeningAge} from '../lib/screeningContent';
+import {catalogScreeners as screeners,screeningDomains,screeningModeLabel,matchesScreeningAge} from '../lib/screeningContent';
 import {useScreenings} from '../lib/useScreenings';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';

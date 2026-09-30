@@ -1,7 +1,8 @@
 import {ticItemById} from './ygtss';
 import {extraIds,validateExtra,scoreExtra} from './extraScreeningScoring';
 import {readJSON,writeJSON} from './persist';
-import {impactOptions,respondentLabels,screeners,screenerById,screeningSafety,sdqFields,scaleFields,ScreeningId,Respondent} from './screeningContent';
+import {impactOptions,respondentLabels,screeners,screenerById,screeningSafety,sdqFields,scaleFields,formFor,sectionAt,ScreeningId,Respondent} from './screeningContent';
+import {embeddedIds,scoreEmbedded} from './embeddedInstruments';
 export const SCREENING_KEY='psyparent.screenings.v1';
 const EVENT='psyparent:screenings-updated';
 export type ScreeningInput={childLabel:string;age:number;respondent:Respondent;completedDate:string;answers?:number[];impact?:number;total?:number;followUpDone?:boolean;followUpScore?:number;subscales?:Record<string,number>;notes:string;measurements?:Record<string,number>;sourceForm?:string;clinicianConfirmed?:boolean;ticInventory?:string[]};
@@ -20,7 +21,8 @@ export function validateScreening(id:string,input:ScreeningInput):string[]{
  if(typeof input.notes!=='string'||input.notes.length>3000)errors.push('Заметка должна быть не длиннее 3000 символов.');
  if(id==='ygtss'&&input.ticInventory!==undefined&&(!Array.isArray(input.ticInventory)||input.ticInventory.length>80||input.ticInventory.some(x=>typeof x!=='string'||!ticItemById(x))))errors.push('Проверьте перечень тиков.');
  if(s.mode==='embedded'){
-  if(!Array.isArray(input.answers)||input.answers.length!==s.questions!.length||!input.answers.every(x=>integer(x,0,3)))errors.push('Ответьте на все вопросы: пропуск не равен нулю.');
+  const form=formFor(s,input.respondent);
+  if(!form||!Array.isArray(input.answers)||input.answers.length!==form.questions.length||!input.answers.every((x,i)=>integer(x,0,sectionAt(form,i).options.length-1)))errors.push('Ответьте на все вопросы: пропуск не равен нулю.');
   if(input.impact!==undefined&&!integer(input.impact,0,3))errors.push('Проверьте ответ о влиянии трудностей на жизнь.');
  }else if(id==='mchat'){
   if(!integer(input.total,0,20))errors.push('Исходный балл M-CHAT-R должен быть целым числом от 0 до 20.');
@@ -42,6 +44,7 @@ export function validateScreening(id:string,input:ScreeningInput):string[]{
 export function scoreScreening(id:ScreeningId,input:ScreeningInput):ScreeningScore{
  const errors=validateScreening(id,input);if(errors.length)throw new Error(errors.join(' '));
  if(extraIds.includes(id))return scoreExtra(id,input);
+ if((embeddedIds as readonly string[]).includes(id))return scoreEmbedded(id,input);
  if(id==='snapiv'){
   const answers=input.answers!,parts=[[0,9,'Невнимательность'],[9,18,'Гиперактивность / импульсивность'],[18,26,'Оппозиционные проявления']] as const;
   return {total:answers.reduce((a,b)=>a+b,0),max:78,status:'recorded',safety:false,label:'Оценки SNAP-IV для обсуждения',next:'Сопоставьте эти наблюдения с повседневными трудностями и отдельной формой другого отвечающего. Суммы и средние не подтверждают диагноз; зарубежные пороги не применяются автоматически.',metrics:parts.flatMap(([from,to,label])=>{const a=answers.slice(from,to),sum=a.reduce((x,y)=>x+y,0);return [{label:label+' · сумма',value:sum,max:a.length*3},{label:label+' · среднее',value:Math.round(sum/a.length*100)/100,max:3},{label:label+' · ответов 2 / 3',value:a.filter(x=>x>=2).length,max:a.length}];})};
@@ -108,7 +111,7 @@ export function formatScreening(r:ScreeningResult){
  if(r.clinicianConfirmed)lines.push('Оценки выставлены со специалистом по критериям бланка. Период: последняя неделя.');
  if(r.measurements)for(const f of scaleFields(r.screenerId,r.respondent))if(r.measurements[f.id]!==undefined)lines.push(f.label+': '+r.measurements[f.id]+' / '+f.max);
  if(r.score.metrics)for(const metric of r.score.metrics)lines.push(metric.label+': '+metric.value+' / '+metric.max);
- if(r.answers)r.answers.forEach((value,i)=>lines.push(`${i+1}. ${s.questions![i]} — ${s.options![value]} (${value})`));
+ if(r.answers){const form=formFor(s,r.respondent)!;r.answers.forEach((value,i)=>{const sec=sectionAt(form,i);lines.push(`${i+1}. ${form.questions[i]} — ${sec.options[value]} (${sec.scores?sec.scores[value]:value})`);});}
  if(r.impact!==undefined)lines.push(`Влияние на повседневную жизнь (не входит в сумму): ${impactOptions[r.impact]}`);
  if(r.subscales)for(const f of sdqFields)if(r.subscales[f.id]!==undefined)lines.push(`${f.label}: ${r.subscales[f.id]} / 10`);
  if(r.score.safety)lines.push('Важно: ответ на пункт 9 PHQ-9 выше нуля. Нужна отдельная оценка безопасности; сумма баллов не заменяет её.');

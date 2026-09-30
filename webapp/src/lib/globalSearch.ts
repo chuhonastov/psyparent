@@ -24,7 +24,7 @@ function buildIndex(){
       ...diagnosisGroups.map(g=>({hit:{id:g.id,title:g.title,note:g.summary,label:'Раздел',to:'/diagnoses/group/'+g.id},names:[g.title],text:g.summary}))]},
     {id:'medications' as const,title:'Препараты и памятки',more:(s:string)=>'/medications?q='+q(s),entries:medications.map(m=>({hit:{id:m.id,title:m.name,note:m.class,label:m.noteOnly?'Памятка':undefined,to:'/medications/'+m.id},names:[m.name,...(m.aliases||[]),...(m.searchTerms||[])],text:m.class}))},
     {id:'specialists' as const,title:'Специалисты',more:(s:string)=>'/specialists?q='+q(s),entries:specialists.map(s=>({hit:{id:s.id,title:s.title,note:s.domains.join(' · '),to:'/specialists/'+s.id},names:[s.title,...s.domains],text:s.summary+' '+nonpharmSupport.filter(p=>p.providers.some(x=>x.specialistId===s.id)).map(p=>{const d=diagnosisById(p.diagnosisId);return d?dxName(d):'';}).join(' ')}))},
-    {id:'screenings' as const,title:'Тесты и шкалы',more:(s:string)=>'/screenings?q='+q(s),entries:screeners.map(s=>({hit:{id:s.id,title:s.name+' · '+s.title,note:s.ageLabel,to:'/screenings/'+s.id},names:[s.name,s.title],text:s.summary+' '+(screeningAliases[s.id]||'')}))},
+    {id:'screenings' as const,title:'Тесты и шкалы',more:(s:string)=>'/screenings?q='+q(s),entries:screeners.filter(s=>!s.hidden).map(s=>({hit:{id:s.id,title:s.name+' · '+s.title,note:s.ageLabel,to:'/screenings/'+s.id},names:[s.name,s.title],text:s.summary+' '+(screeningAliases[s.id]||'')}))},
     {id:'forms' as const,title:'Дневники и формы',more:(s:string)=>'/forms?q='+q(s),entries:journalTemplates.map(t=>({hit:{id:t.id,title:t.title,note:t.summary,to:'/forms/'+t.id},names:[t.title,t.domain],text:t.summary}))}
   ];
 }

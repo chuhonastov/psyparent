@@ -125,6 +125,7 @@
     ],
     "screeningIds": [
       "mchat",
+      "psc17",
       "sdq"
     ],
     "takeaways": [
@@ -291,8 +292,7 @@
     "updatedAt": "2026-09-30",
     "observationTitle": "Мои наблюдения",
     "screeningIds": [
-      "mchat",
-      "assq"
+      "mchat"
     ]
   },
   {
@@ -437,8 +437,9 @@
     "introductionTitle": "Дирижёр, который ещё учится",
     "screeningIds": [
       "snapiv",
+      "psc17",
       "sdq",
-      "vanderbilt"
+      "vanderbilt2002"
     ]
   },
   {
@@ -673,6 +674,7 @@
     "shortTitle": "Задержка развития и «ЗПР»",
     "screeningIds": [
       "mchat",
+      "psc17",
       "sdq"
     ],
     "takeaways": [
@@ -1263,7 +1265,8 @@
     ],
     "screeningIds": [
       "gad7",
-      "rcads25",
+      "scared",
+      "psc17",
       "sdq"
     ],
     "takeaways": [
@@ -1393,7 +1396,7 @@
     "observationTitle": "Мои наблюдения",
     "screeningIds": [
       "gad7",
-      "rcads25"
+      "scared"
     ],
     "takeaways": [
       {
@@ -1517,7 +1520,7 @@
     "evidenceNote": "Если страх тяжёлый и КПТ недостаточно, врач может добавить СИОЗС (обычно сертралин). Без поведенческой работы таблетка эффекта не даст.",
     "observationTitle": "Мои наблюдения",
     "screeningIds": [
-      "rcads25"
+      "scared"
     ],
     "takeaways": [
       {
@@ -1640,7 +1643,7 @@
     "ageGuidance": "Чаще всего начинается в подростковом возрасте. Подросткам помогают КПТ и групповые занятия, младшим детям — постепенные шаги вместе с родителями и учителем.",
     "observationTitle": "Мои наблюдения",
     "screeningIds": [
-      "rcads25"
+      "scared"
     ],
     "takeaways": [
       {
@@ -1990,7 +1993,9 @@
     "updatedAt": "2026-09-30",
     "ageGuidance": "Паническое расстройство чаще начинается у подростков. С ними работают напрямую, а родители учатся не «спасать», а поддерживать.",
     "observationTitle": "Мои наблюдения",
-    "screeningIds": [],
+    "screeningIds": [
+      "scared"
+    ],
     "takeaways": [
       {
         "title": "Это не сердце",
@@ -2255,7 +2260,7 @@
     "shortTitle": "Депрессия",
     "screeningIds": [
       "phq9",
-      "rcads25"
+      "psc17"
     ],
     "takeaways": [
       {
@@ -3762,8 +3767,9 @@
       "disinhibited_social_engagement"
     ],
     "screeningIds": [
+      "psc17",
       "sdq",
-      "vanderbilt"
+      "vanderbilt2002"
     ],
     "takeaways": [
       {
@@ -3889,6 +3895,7 @@
     "shortTitle": "Оппозиционно-вызывающее расстройство",
     "screeningIds": [
       "snapiv",
+      "psc17",
       "sdq"
     ],
     "takeaways": [
@@ -4004,6 +4011,7 @@
     ],
     "shortTitle": "Хроническая раздражительность (DMDD)",
     "screeningIds": [
+      "psc17",
       "sdq"
     ],
     "takeaways": [
@@ -4126,6 +4134,7 @@
     ],
     "shortTitle": "Расстройство поведения",
     "screeningIds": [
+      "psc17",
       "sdq"
     ],
     "takeaways": [

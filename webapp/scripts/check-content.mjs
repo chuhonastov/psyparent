@@ -64,7 +64,7 @@ for(const p of support){
  sources(p.sources,p.diagnosisId);
 }
 for(const s of specialists)assert(support.some(p=>p.providers.some(x=>x.specialistId===s.id)),'Unlinked specialist');
-for(const d of leaves)for(const id of d.screeningIds||[])assert(['mchat','sdq','phq9','gad7','assq','vanderbilt','ygtss','rcads25','crafft','snapiv'].includes(id),'Unknown screener on '+d.id);
+for(const d of leaves)for(const id of d.screeningIds||[])assert(['mchat','sdq','phq9','gad7','ygtss','crafft','snapiv','psc17','scared','vanderbilt2002'].includes(id),'Unknown screener on '+d.id);
 console.log(`Content OK: ${leaves.length} parent routes and support plans, ${specialists.length} specialists, ${support.reduce((n,s)=>n+s.providers.length,0)} support links; ${meds.length} medication/reference cards, ${guides.length} treatment guides.`);
 
 

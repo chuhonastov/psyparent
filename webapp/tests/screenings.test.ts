@@ -1,7 +1,7 @@
 import {test,beforeEach} from 'node:test';
 import assert from 'node:assert/strict';
 import {SCREENING_KEY,createScreening,formatScreening,getScreenings,includeScreening,localDate,normalizeScreenings,removeScreening,saveScreening,scoreScreening,subscribeScreenings,validateScreening,ScreeningInput} from '../src/lib/screenings';
-import {screeners,ScreeningId,Screener,scaleFields,matchesScreeningAge} from '../src/lib/screeningContent';
+import {screeners,ScreeningId,Screener,scaleFields,matchesScreeningAge,formFor,catalogScreeners} from '../src/lib/screeningContent';
 import {formatVisit} from '../src/lib/export';
 import {getVisit,addVisitQuestion,clearVisit} from '../src/lib/visit';
 import {deleteLocalData} from '../src/lib/persist';
@@ -15,7 +15,7 @@ function extraInput(id:ScreeningId,extra:Partial<ScreeningInput>={}):ScreeningIn
  return base({age:s.ageMin,respondent:s.respondents[0],answers:undefined,total:id==='ygtss'?undefined:0,measurements,sourceForm:s.translation,clinicianConfirmed:id==='ygtss'?true:undefined,...extra});
 }
 function validInput(s:Screener):ScreeningInput{
- if(s.mode==='embedded')return base({age:s.ageMin,respondent:s.respondents[0],answers:Array(s.questions!.length).fill(0)});
+ if(s.mode==='embedded')return base({age:s.ageMin,respondent:s.respondents[0],answers:Array(formFor(s,s.respondents[0])!.questions.length).fill(0)});
  if(s.id==='mchat')return mchat(2);
  if(s.id==='sdq')return base({respondent:'parent',total:0,answers:undefined});
  return extraInput(s.id);
@@ -112,7 +112,7 @@ test('delete-all clears screening history and refreshes subscribers while preser
 
 test('all ten instruments have valid topic links and correct age filters in years / months',async()=>{
  const {leaves}=await import('../src/lib/content');
- assert.equal(screeners.length,10);assert.equal(new Set(screeners.map(s=>s.id)).size,10);
+ assert.equal(screeners.length,13);assert.equal(new Set(screeners.map(s=>s.id)).size,13);assert.deepEqual(screeners.filter(s=>s.hidden).map(s=>s.id).sort(),['assq','rcads25','vanderbilt']);assert.equal(catalogScreeners.length,10);
  for(const s of screeners){for(const id of s.related)assert(leaves.some(d=>d.id===id),s.id+' points to '+id);assert.equal(validateScreening(s.id,validInput(s)).length,0);}
  const m=screeners.find(s=>s.id==='mchat')!,v=screeners.find(s=>s.id==='vanderbilt')!;
  assert(!matchesScreeningAge(m,15,'months'));assert(matchesScreeningAge(m,16,'months'));assert(matchesScreeningAge(m,30,'months'));assert(!matchesScreeningAge(m,31,'months'));
@@ -174,7 +174,7 @@ test('CRAFFT retains the CAR signal at low totals and excludes new records from 
 });
 test('new forms round-trip complete measurements and export alongside unchanged earlier instrument versions',()=>{
  for(const s of screeners){const row=createScreening(s.id,validInput(s));assert(saveScreening(row));const loaded=getScreenings().find(r=>r.id===row.id)!;assert.equal(loaded.score.total,row.score.total);assert.equal(loaded.instrumentVersion,row.instrumentVersion);assert.deepEqual(loaded.measurements,row.measurements);const text=formatScreening(loaded);assert(text.includes(s.version));if(row.sourceForm)assert(text.includes(row.sourceForm));}
- assert.equal(getScreenings().length,10);
+ assert.equal(getScreenings().length,13);
  const oldVersions=['phq9-ru-1','gad7-ru-1','mchat-rf-record-1','sdq-record-1'];for(const v of oldVersions)assert(getScreenings().some(r=>r.instrumentVersion===v));
  const y=getScreenings().find(r=>r.screenerId==='ygtss')!;assert.match(formatScreening(y),/Глобальный балл: 0 \/ 100/);assert.match(formatScreening(y),/последняя неделя/);
 });
@@ -200,4 +200,38 @@ test('YGTSS optional checklist preserves labels and legacy records while rejecti
  const record=createScreening('ygtss',extraInput('ygtss',{ticInventory:[item.id,item.id]}));assert(saveScreening(record));assert.deepEqual(getScreenings()[0].ticInventory,[item.id]);assert(formatScreening(getScreenings()[0]).includes(item.label));
  assert.equal(normalizeScreenings({version:1,results:[{...record,ticInventory:undefined}]}).length,1);
  assert.throws(()=>createScreening('ygtss',extraInput('ygtss',{ticInventory:['not-a-tic']})));
+});
+
+test('PSC-17 scores subscales and cut-offs from the published scoring',()=>{
+ const psc=(a:number[])=>scoreScreening('psc17',base({age:8,respondent:'parent',answers:a}));
+ assert.equal(psc(Array(17).fill(0)).status,'low');
+ const internal=Array(17).fill(0);for(const i of [2,6,9,11,15])internal[i-1]=1;
+ assert.equal(psc(internal).status,'discuss');assert.match(psc(internal).label,/настроение/);
+ const attention=Array(17).fill(0);for(const i of [1,3,7])attention[i-1]=2;attention[12]=1;
+ assert.equal(psc(attention).metrics![1].value,7);assert.equal(psc(attention).status,'discuss');
+ const almost=Array(17).fill(0);for(const i of [1,3,7])almost[i-1]=2;
+ assert.equal(psc(almost).status,'low');
+ const total=Array(17).fill(1);total[0]=0;total[1]=0;assert.equal(psc(total).total,15);assert.equal(psc(total).status,'discuss');
+ assert.throws(()=>psc(Array(17).fill(3)));
+ assert.throws(()=>scoreScreening('psc17',base({age:8,respondent:'self',answers:Array(17).fill(0)})));
+});
+test('SCARED uses separate child and parent forms with the five published subscales',()=>{
+ const sc=(a:number[],respondent:'self'|'parent'='self')=>scoreScreening('scared',base({age:10,respondent,answers:a}));
+ const zero=sc(Array(41).fill(0));assert.equal(zero.status,'low');assert.equal(zero.metrics!.length,5);
+ const sep=Array(41).fill(0);for(const i of [4,8,13])sep[i-1]=2;assert.equal(sc(sep).status,'discuss');assert.match(sc(sep).next,/разлуки/);
+ const school=Array(41).fill(0);for(const i of [2,11])school[i-1]=1;school[16]=1;assert.equal(sc(school).metrics![4].value,3);
+ assert.equal(sc(Array(41).fill(1),'parent').total,41);assert.match(sc(Array(41).fill(1),'parent').label,/выше порога/);
+ const s=screeners.find(x=>x.id==='scared')!;assert.notEqual(formFor(s,'self')!.questions[0],formFor(s,'parent')!.questions[0]);
+});
+test('Vanderbilt parent and teacher forms follow the 2002 scoring rules, including impairment',()=>{
+ const v=(a:number[],respondent:'parent'|'teacher'='parent')=>scoreScreening('vanderbilt2002',base({age:8,respondent,answers:a}));
+ const parent=Array(55).fill(0);for(let i=0;i<6;i++)parent[i]=2;
+ assert.equal(v(parent).status,'low');
+ parent[47]=3;assert.equal(v(parent).status,'discuss');assert.match(v(parent).label,/невнимательность/);
+ for(let i=9;i<15;i++)parent[i]=3;assert.match(v(parent).label,/сочетанный/);
+ const odd=Array(55).fill(0);for(let i=18;i<22;i++)odd[i]=2;odd[50]=4;assert.match(v(odd).label,/оппозиционное/);
+ const teacher=Array(43).fill(0);for(let i=18;i<21;i++)teacher[i]=2;teacher[40]=3;assert.match(v(teacher,'teacher').label,/оппозиционное поведение или нарушения/);
+ assert.throws(()=>v(Array(55).fill(0),'teacher'));
+ const bad=Array(55).fill(0);bad[0]=4;assert.throws(()=>v(bad));
+ const perf=Array(55).fill(0);perf[54]=4;assert.doesNotThrow(()=>v(perf));
 });
