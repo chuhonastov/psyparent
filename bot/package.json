@@ -1,5 +1,5 @@
 {
-  "name": "parentguide-bot",
+  "name": "psyparent-bot",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,7 +12,9 @@
     "telegraf": "^4.16.3"
   },
   "devDependencies": {
-    "tsx": "^4.16.2",
+    "@types/node": "^22.20.4",
+    "tsx": "^4.23.15",
     "typescript": "^5.5.4"
-  }
+  },
+  "version": "0.13.0"
 }

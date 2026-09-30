@@ -1,12 +1,14 @@
 {
-  "name": "parentguide-webapp",
+  "name": "psyparent-webapp",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.13.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:content": "node scripts/check-content.mjs",
+    "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@twa-dev/sdk": "^7.0.0",
@@ -19,6 +21,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "typescript": "^5.5.4",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "tsx": "^4.16.2"
   }
 }

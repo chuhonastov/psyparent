@@ -1,0 +1,1333 @@
+[
+  {
+    "id": "sleep",
+    "version": 1,
+    "title": "Дневник сна",
+    "summary": "Время сна, пробуждения и самочувствие днём.",
+    "domain": "Сон",
+    "cadence": "Утром · около 2 минут",
+    "fromDocument": true,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Заполняйте утром по памяти. Примерное время подходит; специально наблюдать ночью не нужно. Указывайте даты вместе со временем — так запись не путает вечер и следующее утро. Пропущенный день можно оставить без записи.",
+    "related": [
+      "sleep_disorders",
+      "adhd",
+      "asd"
+    ],
+    "sources": [
+      {
+        "label": "NICE NG87: цели лечения, наблюдение за эффектом, сном и нежелательными явлениями",
+        "url": "https://www.nice.org.uk/guidance/ng87/chapter/recommendations"
+      },
+      {
+        "label": "NICE CG170: цели помощи, коммуникация, сон и оценка поведения",
+        "url": "https://www.nice.org.uk/guidance/cg170/chapter/recommendations"
+      }
+    ],
+    "fields": [
+      {
+        "id": "bedAt",
+        "label": "Когда лёг в постель",
+        "type": "datetime-local"
+      },
+      {
+        "id": "asleepAt",
+        "label": "Когда уснул примерно",
+        "type": "datetime-local"
+      },
+      {
+        "id": "wakeAt",
+        "label": "Когда окончательно проснулся",
+        "type": "datetime-local"
+      },
+      {
+        "id": "awakenings",
+        "label": "Сколько раз просыпался ночью",
+        "type": "number",
+        "min": 0,
+        "max": 30,
+        "step": 1,
+        "trend": true
+      },
+      {
+        "id": "awakeningNotes",
+        "label": "Когда просыпался и что происходило",
+        "type": "textarea"
+      },
+      {
+        "id": "awakeMinutes",
+        "label": "Общее время бодрствования ночью, минут",
+        "type": "number",
+        "min": 0,
+        "max": 1440,
+        "step": 1,
+        "trend": true,
+        "help": "Если не знаете — оставьте пустым. Ноль означает, что пробуждений не было."
+      },
+      {
+        "id": "napMinutes",
+        "label": "Дневной сон, минут",
+        "type": "number",
+        "min": 0,
+        "max": 1440,
+        "step": 1,
+        "trend": true
+      },
+      {
+        "id": "dayImpact",
+        "label": "Как сон повлиял на дневные дела",
+        "type": "select",
+        "options": [
+          {
+            "value": "none",
+            "label": "Не мешало"
+          },
+          {
+            "value": "some",
+            "label": "Понадобилась дополнительная помощь"
+          },
+          {
+            "value": "major",
+            "label": "Заметно ограничило обычные дела"
+          },
+          {
+            "value": "unable",
+            "label": "Не удалось сделать важное"
+          },
+          {
+            "value": "unknown",
+            "label": "Не удалось оценить"
+          }
+        ]
+      },
+      {
+        "id": "notes",
+        "label": "Заметки: болезнь, нагрузка, необычный режим",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": []
+  },
+  {
+    "id": "behavior",
+    "version": 1,
+    "title": "Поведение и настроение",
+    "summary": "Заметный эпизод, его контекст и то, что помогло.",
+    "domain": "Поведение",
+    "cadence": "По заметному эпизоду · 2–3 минуты",
+    "fromDocument": true,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Пишите фактами: «бросил тетрадь, кричал около 10 минут». Причину не нужно угадывать. «Спокойный день» тоже полезная запись. Не провоцируйте эпизоды для наблюдения.",
+    "related": [
+      "adhd",
+      "asd",
+      "odd",
+      "conduct_disorder"
+    ],
+    "sources": [
+      {
+        "label": "NICE NG11: наблюдение за поведением и факторами среды",
+        "url": "https://www.nice.org.uk/guidance/ng11/chapter/recommendations"
+      },
+      {
+        "label": "NICE CG170: цели помощи, коммуникация, сон и оценка поведения",
+        "url": "https://www.nice.org.uk/guidance/cg170/chapter/recommendations"
+      }
+    ],
+    "fields": [
+      {
+        "id": "dayType",
+        "label": "Что записываем",
+        "type": "select",
+        "options": [
+          {
+            "value": "episode",
+            "label": "Заметный эпизод"
+          },
+          {
+            "value": "calm",
+            "label": "Спокойный день"
+          },
+          {
+            "value": "notObserved",
+            "label": "Не удалось наблюдать"
+          }
+        ],
+        "required": true
+      },
+      {
+        "id": "event",
+        "label": "Что произошло: видимые действия или слова",
+        "type": "textarea"
+      },
+      {
+        "id": "before",
+        "label": "Что было перед этим: просьба, перемена, боль, усталость",
+        "type": "textarea"
+      },
+      {
+        "id": "duration",
+        "label": "Сколько длилось, минут",
+        "type": "number",
+        "min": 0,
+        "max": 1440,
+        "step": 1,
+        "trend": true
+      },
+      {
+        "id": "after",
+        "label": "Что произошло сразу после: реакция окружающих и обстановка",
+        "type": "textarea"
+      },
+      {
+        "id": "helped",
+        "label": "Что помогло или не помогло",
+        "type": "textarea"
+      },
+      {
+        "id": "impact",
+        "label": "Как это повлияло на дела",
+        "type": "select",
+        "options": [
+          {
+            "value": "none",
+            "label": "Не мешало"
+          },
+          {
+            "value": "some",
+            "label": "Понадобилась дополнительная помощь"
+          },
+          {
+            "value": "major",
+            "label": "Заметно ограничило обычные дела"
+          },
+          {
+            "value": "unable",
+            "label": "Не удалось сделать важное"
+          },
+          {
+            "value": "unknown",
+            "label": "Не удалось оценить"
+          }
+        ]
+      },
+      {
+        "id": "notes",
+        "label": "Настроение со слов ребёнка и другие заметки",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": []
+  },
+  {
+    "id": "tolerability",
+    "version": 1,
+    "title": "Переносимость терапии",
+    "summary": "Что изменилось в самочувствии за неделю.",
+    "domain": "Лечение",
+    "cadence": "Обычно раз в неделю · 3 минуты",
+    "fromDocument": true,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Обычно достаточно одной записи в неделю или частоты, о которой договорились с врачом. Не нужно специально искать симптомы весь день. При выраженном или быстро нарастающем ухудшении свяжитесь с врачом раньше: ждать очередной записи не требуется. Изменение после начала терапии само по себе не доказывает побочный эффект.",
+    "related": [],
+    "sources": [
+      {
+        "label": "NICE NG87: цели лечения, наблюдение за эффектом, сном и нежелательными явлениями",
+        "url": "https://www.nice.org.uk/guidance/ng87/chapter/recommendations"
+      }
+    ],
+    "fields": [
+      {
+        "id": "regimen",
+        "label": "Что принимал или какие занятия посещал в этот период",
+        "type": "textarea",
+        "required": true,
+        "help": "Перепишите названия и дозы из назначения. Приложение не проверяет схему и не предлагает менять её."
+      },
+      {
+        "id": "changeDate",
+        "label": "Когда и что изменилось в лечении",
+        "type": "textarea"
+      },
+      {
+        "id": "appetite",
+        "label": "Аппетит и еда",
+        "type": "select",
+        "options": [
+          {
+            "value": "same",
+            "label": "Без заметных изменений"
+          },
+          {
+            "value": "better",
+            "label": "Стало легче"
+          },
+          {
+            "value": "worse",
+            "label": "Стало труднее"
+          },
+          {
+            "value": "mixed",
+            "label": "Изменения в разные стороны"
+          },
+          {
+            "value": "unknown",
+            "label": "Не удалось оценить"
+          }
+        ]
+      },
+      {
+        "id": "sleep",
+        "label": "Сон и засыпание",
+        "type": "select",
+        "options": [
+          {
+            "value": "same",
+            "label": "Без заметных изменений"
+          },
+          {
+            "value": "better",
+            "label": "Стало легче"
+          },
+          {
+            "value": "worse",
+            "label": "Стало труднее"
+          },
+          {
+            "value": "mixed",
+            "label": "Изменения в разные стороны"
+          },
+          {
+            "value": "unknown",
+            "label": "Не удалось оценить"
+          }
+        ]
+      },
+      {
+        "id": "mood",
+        "label": "Настроение и раздражительность",
+        "type": "select",
+        "options": [
+          {
+            "value": "same",
+            "label": "Без заметных изменений"
+          },
+          {
+            "value": "better",
+            "label": "Стало легче"
+          },
+          {
+            "value": "worse",
+            "label": "Стало труднее"
+          },
+          {
+            "value": "mixed",
+            "label": "Изменения в разные стороны"
+          },
+          {
+            "value": "unknown",
+            "label": "Не удалось оценить"
+          }
+        ]
+      },
+      {
+        "id": "energy",
+        "label": "Бодрость и сонливость",
+        "type": "select",
+        "options": [
+          {
+            "value": "same",
+            "label": "Без заметных изменений"
+          },
+          {
+            "value": "better",
+            "label": "Стало легче"
+          },
+          {
+            "value": "worse",
+            "label": "Стало труднее"
+          },
+          {
+            "value": "mixed",
+            "label": "Изменения в разные стороны"
+          },
+          {
+            "value": "unknown",
+            "label": "Не удалось оценить"
+          }
+        ]
+      },
+      {
+        "id": "physical",
+        "label": "Жалобы: голова, живот, движения или другое",
+        "type": "textarea"
+      },
+      {
+        "id": "timing",
+        "label": "Когда появилось и как связано по времени с приёмом или занятием",
+        "type": "textarea"
+      },
+      {
+        "id": "missed",
+        "label": "Пропуски, дополнительные препараты или изменения режима",
+        "type": "textarea"
+      },
+      {
+        "id": "other",
+        "label": "Другие изменения или «без изменений»",
+        "type": "textarea"
+      },
+      {
+        "id": "concern",
+        "label": "Насколько беспокоят изменения",
+        "type": "select",
+        "options": [
+          {
+            "value": "none",
+            "label": "Заметного ухудшения нет"
+          },
+          {
+            "value": "discuss",
+            "label": "Хочу обсудить на приёме"
+          },
+          {
+            "value": "sooner",
+            "label": "Выраженное или быстро нарастающее ухудшение"
+          }
+        ]
+      }
+    ],
+    "compareKeys": []
+  },
+  {
+    "id": "school",
+    "version": 1,
+    "title": "Наблюдения педагога",
+    "summary": "Примеры из школы или детского сада и сильные стороны.",
+    "domain": "Учёба и развитие",
+    "cadence": "Перед приёмом · 5–7 минут",
+    "fromDocument": true,
+    "respondents": [
+      "teacher"
+    ],
+    "instructions": "Опишите конкретные наблюдения, а не предполагаемый диагноз. Сведения из школы и дома могут различаться. Запись остаётся в этом браузере; семья сама выбирает, что передать врачу. Фамилия ребёнка и подпись не обязательны.",
+    "related": [
+      "adhd",
+      "specific_learning_disorder",
+      "speech_language_disorder",
+      "asd"
+    ],
+    "sources": [
+      {
+        "label": "NICE NG87: цели лечения, наблюдение за эффектом, сном и нежелательными явлениями",
+        "url": "https://www.nice.org.uk/guidance/ng87/chapter/recommendations"
+      },
+      {
+        "label": "NICE CG170: цели помощи, коммуникация, сон и оценка поведения",
+        "url": "https://www.nice.org.uk/guidance/cg170/chapter/recommendations"
+      }
+    ],
+    "fields": [
+      {
+        "id": "group",
+        "label": "Класс или группа",
+        "type": "text"
+      },
+      {
+        "id": "knownFor",
+        "label": "Как давно и в каких ситуациях знаете ребёнка",
+        "type": "text"
+      },
+      {
+        "id": "attention",
+        "label": "Внимание на занятиях: конкретные примеры",
+        "type": "textarea"
+      },
+      {
+        "id": "activity",
+        "label": "Активность, импульсивность и соблюдение правил",
+        "type": "textarea"
+      },
+      {
+        "id": "peers",
+        "label": "Отношения со сверстниками",
+        "type": "textarea"
+      },
+      {
+        "id": "learning",
+        "label": "Учебные результаты и выполнение заданий",
+        "type": "textarea"
+      },
+      {
+        "id": "strengths",
+        "label": "Что получается хорошо и помогает учиться",
+        "type": "textarea"
+      },
+      {
+        "id": "changes",
+        "label": "Какие изменения заметили за последний месяц",
+        "type": "textarea"
+      },
+      {
+        "id": "support",
+        "label": "Какая поддержка пробовалась и что помогло",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": []
+  },
+  {
+    "id": "goals",
+    "version": 1,
+    "title": "Цель помощи и её изменения",
+    "summary": "Одна важная цель, измеримый ориентир и наблюдения.",
+    "domain": "Лечение",
+    "cadence": "Исходно и при обсуждении прогресса",
+    "fromDocument": false,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Выберите одну конкретную цель, полезную ребёнку в обычной жизни. В следующей записи используйте те же цель, показатель и единицу. Сравнение показывает наблюдения, но не доказывает, что изменение вызвано именно терапией.",
+    "related": [],
+    "sources": [
+      {
+        "label": "NICE NG197: совместное определение целей и обсуждение вариантов помощи",
+        "url": "https://www.nice.org.uk/guidance/ng197/chapter/recommendations"
+      },
+      {
+        "label": "NICE NG87: цели лечения, наблюдение за эффектом, сном и нежелательными явлениями",
+        "url": "https://www.nice.org.uk/guidance/ng87/chapter/recommendations"
+      }
+    ],
+    "fields": [
+      {
+        "id": "goal",
+        "label": "Какое изменение важно ребёнку и семье",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "id": "measure",
+        "label": "Что будем наблюдать или считать",
+        "type": "text",
+        "required": true,
+        "help": "Например: время сборов, число посещённых уроков или просьб о помощи."
+      },
+      {
+        "id": "unit",
+        "label": "Единица показателя",
+        "type": "text",
+        "help": "Минуты, дни, эпизоды. При повторении используйте ту же единицу."
+      },
+      {
+        "id": "value",
+        "label": "Значение за указанный период",
+        "type": "number",
+        "min": 0,
+        "max": 100000,
+        "step": 1,
+        "trend": true
+      },
+      {
+        "id": "baseline",
+        "label": "Как было до начала помощи",
+        "type": "textarea"
+      },
+      {
+        "id": "target",
+        "label": "Какой результат обсудили со специалистом",
+        "type": "textarea"
+      },
+      {
+        "id": "childView",
+        "label": "Что об изменениях говорит сам ребёнок",
+        "type": "textarea"
+      },
+      {
+        "id": "help",
+        "label": "Что делали для этой цели и насколько это было выполнимо",
+        "type": "textarea"
+      },
+      {
+        "id": "burden",
+        "label": "Что было неудобно, трудно или нежелательно",
+        "type": "textarea"
+      },
+      {
+        "id": "next",
+        "label": "Что хочется обсудить дальше",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": [
+      "goal",
+      "measure",
+      "unit"
+    ]
+  },
+  {
+    "id": "complaints",
+    "version": 1,
+    "title": "Жалобы перед консультацией",
+    "summary": "Что беспокоит, как давно и как влияет на жизнь.",
+    "domain": "К приёму",
+    "cadence": "Перед первым или повторным приёмом",
+    "fromDocument": false,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Опишите главную трудность своими словами. Не нужно заранее выбирать диагноз. Можно пропустить неизвестное; отмечайте, что наблюдали сами, а что знаете со слов ребёнка.",
+    "related": [],
+    "sources": [
+      {
+        "label": "NICE NG197: совместное определение целей и обсуждение вариантов помощи",
+        "url": "https://www.nice.org.uk/guidance/ng197/chapter/recommendations"
+      },
+      {
+        "label": "Canadian Paediatric Society: оценка соматических и функциональных жалоб",
+        "url": "https://cps.ca/en/documents/position/somatic-symptom-and-related-disorders"
+      }
+    ],
+    "fields": [
+      {
+        "id": "main",
+        "label": "Что беспокоит больше всего",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "id": "onset",
+        "label": "Когда это началось и как менялось",
+        "type": "textarea"
+      },
+      {
+        "id": "examples",
+        "label": "Два-три конкретных примера",
+        "type": "textarea"
+      },
+      {
+        "id": "settings",
+        "label": "Где возникает: дома, в школе, с друзьями или везде",
+        "type": "textarea"
+      },
+      {
+        "id": "life",
+        "label": "Что стало труднее: учёба, сон, общение, уход за собой",
+        "type": "textarea"
+      },
+      {
+        "id": "body",
+        "label": "Боль, болезни, изменения сна и другие физические жалобы",
+        "type": "textarea"
+      },
+      {
+        "id": "tried",
+        "label": "Что уже пробовали и что получилось",
+        "type": "textarea"
+      },
+      {
+        "id": "strengths",
+        "label": "Что получается хорошо и на кого можно опереться",
+        "type": "textarea"
+      },
+      {
+        "id": "childView",
+        "label": "Как сам ребёнок объясняет трудность",
+        "type": "textarea"
+      },
+      {
+        "id": "priority",
+        "label": "Какой вопрос важно решить на этом приёме",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": []
+  },
+  {
+    "id": "anxiety",
+    "version": 1,
+    "title": "Тревога и избегание",
+    "summary": "Какая ситуация пугала и удалось ли участвовать в обычных делах.",
+    "domain": "Эмоции",
+    "cadence": "По заметной ситуации или раз в неделю",
+    "fromDocument": false,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Наблюдайте участие в жизни, а не только внешнее спокойствие. Форму можно вести вместе с ребёнком, не споря с его переживаниями. Упражнения с пугающими ситуациями выполняйте по согласованному плану.",
+    "related": [
+      "anxiety_overview",
+      "gad",
+      "separation_anxiety",
+      "social_anxiety",
+      "specific_phobia",
+      "panic_disorder",
+      "selective_mutism"
+    ],
+    "sources": [
+      {
+        "label": "Canadian Paediatric Society: детская тревога, функционирование и мониторинг помощи",
+        "url": "https://cps.ca/en/documents/position/anxiety-in-children-and-youth-management"
+      }
+    ],
+    "fields": [
+      {
+        "id": "situation",
+        "label": "Какая ситуация вызвала тревогу",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "id": "childWords",
+        "label": "Что ребёнок сказал о страхе и ощущениях",
+        "type": "textarea"
+      },
+      {
+        "id": "avoided",
+        "label": "Что избегал, откладывал или делал только с поддержкой",
+        "type": "textarea"
+      },
+      {
+        "id": "missedDays",
+        "label": "Сколько дней из периода пропустил школу или привычные дела",
+        "type": "number",
+        "min": 0,
+        "max": 366,
+        "step": 1,
+        "trend": true
+      },
+      {
+        "id": "participation",
+        "label": "Что всё же удалось сделать",
+        "type": "textarea"
+      },
+      {
+        "id": "support",
+        "label": "Какая поддержка помогла",
+        "type": "textarea"
+      },
+      {
+        "id": "impact",
+        "label": "Влияние на повседневные дела",
+        "type": "select",
+        "options": [
+          {
+            "value": "none",
+            "label": "Не мешало"
+          },
+          {
+            "value": "some",
+            "label": "Понадобилась дополнительная помощь"
+          },
+          {
+            "value": "major",
+            "label": "Заметно ограничило обычные дела"
+          },
+          {
+            "value": "unable",
+            "label": "Не удалось сделать важное"
+          },
+          {
+            "value": "unknown",
+            "label": "Не удалось оценить"
+          }
+        ]
+      },
+      {
+        "id": "notes",
+        "label": "Что ещё могло повлиять: болезнь, конфликт, перегрузка",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": []
+  },
+  {
+    "id": "mood",
+    "version": 1,
+    "title": "Настроение и повседневная жизнь",
+    "summary": "Интерес к делам, энергия, сон и поддержка.",
+    "domain": "Эмоции",
+    "cadence": "Кратко за день или неделю",
+    "fromDocument": false,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Это запись наблюдений, а не оценка риска по баллам. Отсутствие отметки не подтверждает безопасность. При опасениях за ребёнка помощь ищут сразу, независимо от дневника.",
+    "related": [
+      "depression",
+      "bipolar_disorder",
+      "mood_overview"
+    ],
+    "sources": [
+      {
+        "label": "NICE NG134: оценка депрессии и наблюдение за лечением у детей",
+        "url": "https://www.nice.org.uk/guidance/ng134/chapter/recommendations"
+      }
+    ],
+    "fields": [
+      {
+        "id": "mood",
+        "label": "Как описывает настроение сам ребёнок",
+        "type": "textarea"
+      },
+      {
+        "id": "activities",
+        "label": "Какие привычные или приятные дела получились",
+        "type": "textarea"
+      },
+      {
+        "id": "energy",
+        "label": "Как менялись энергия и утомляемость",
+        "type": "textarea"
+      },
+      {
+        "id": "sleep",
+        "label": "Как спал и было ли достаточно сна",
+        "type": "textarea"
+      },
+      {
+        "id": "participationDays",
+        "label": "Дней участия в выбранном обычном деле",
+        "type": "number",
+        "min": 0,
+        "max": 366,
+        "step": 1,
+        "trend": true,
+        "help": "Укажите само дело в заметке; сравнивайте периоды одинаковой длины."
+      },
+      {
+        "id": "contacts",
+        "label": "Общение, изоляция и доступная поддержка",
+        "type": "textarea"
+      },
+      {
+        "id": "activation",
+        "label": "Стал заметно меньше спать и одновременно необычно активен",
+        "type": "select",
+        "options": [
+          {
+            "value": "no",
+            "label": "Не наблюдали"
+          },
+          {
+            "value": "yes",
+            "label": "Да, заметное изменение"
+          },
+          {
+            "value": "unknown",
+            "label": "Не знаю"
+          }
+        ]
+      },
+      {
+        "id": "safety",
+        "label": "Есть ли сейчас опасения за безопасность",
+        "type": "select",
+        "options": [
+          {
+            "value": "noKnown",
+            "label": "Таких опасений сейчас не отмечаем"
+          },
+          {
+            "value": "yes",
+            "label": "Да: слова о смерти, самоповреждение или другая опасность"
+          },
+          {
+            "value": "unknown",
+            "label": "Не знаю / нужно обсудить"
+          }
+        ]
+      },
+      {
+        "id": "notes",
+        "label": "Что помогло и что хочется рассказать врачу",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": []
+  },
+  {
+    "id": "tics",
+    "version": 1,
+    "title": "Как тики влияют на жизнь",
+    "summary": "Дискомфорт, препятствия в делах и помощь окружающих.",
+    "domain": "Тики",
+    "cadence": "Раз в неделю или перед приёмом",
+    "fromDocument": false,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Не считайте тики непрерывно и не просите ребёнка специально показывать или подавлять их ради записи. Отмечайте влияние на жизнь. Этот дневник не заменяет клиническую YGTSS-R и не различает тики и другие движения.",
+    "related": [
+      "tics_tourette"
+    ],
+    "sources": [
+      {
+        "label": "AAN: рекомендации по тикам, значение влияния на повседневную жизнь",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6537133/"
+      }
+    ],
+    "fields": [
+      {
+        "id": "observed",
+        "label": "Какие движения или звуки заметили",
+        "type": "textarea"
+      },
+      {
+        "id": "impact",
+        "label": "Как они мешали повседневным делам",
+        "type": "select",
+        "options": [
+          {
+            "value": "none",
+            "label": "Не мешало"
+          },
+          {
+            "value": "some",
+            "label": "Понадобилась дополнительная помощь"
+          },
+          {
+            "value": "major",
+            "label": "Заметно ограничило обычные дела"
+          },
+          {
+            "value": "unable",
+            "label": "Не удалось сделать важное"
+          },
+          {
+            "value": "unknown",
+            "label": "Не удалось оценить"
+          }
+        ]
+      },
+      {
+        "id": "pain",
+        "label": "Были ли боль, травмы, трудности еды или сна",
+        "type": "textarea"
+      },
+      {
+        "id": "settings",
+        "label": "В каких ситуациях мешали больше или меньше",
+        "type": "textarea"
+      },
+      {
+        "id": "childView",
+        "label": "Что беспокоит самого ребёнка",
+        "type": "textarea"
+      },
+      {
+        "id": "school",
+        "label": "Реакция школы, сверстников и нужная поддержка",
+        "type": "textarea"
+      },
+      {
+        "id": "helped",
+        "label": "Что помогло или стало неудобным при лечении",
+        "type": "textarea"
+      },
+      {
+        "id": "notes",
+        "label": "Вопрос специалисту",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": []
+  },
+  {
+    "id": "rituals",
+    "version": 1,
+    "title": "Ритуалы и навязчивые переживания",
+    "summary": "Время, ограничения обычной жизни и участие близких.",
+    "domain": "Эмоции",
+    "cadence": "Раз в неделю или по плану специалиста",
+    "fromDocument": false,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Оценивайте приблизительно; не превращайте подсчёт в новый ритуал. Не требуйте подробно раскрывать пугающие мысли. Работа с ритуалами и участием семьи обсуждается со специалистом.",
+    "related": [
+      "ocd",
+      "hoarding"
+    ],
+    "sources": [
+      {
+        "label": "NICE CG31: оценка ОКР и влияние на жизнь",
+        "url": "https://www.nice.org.uk/guidance/cg31/chapter/1-Guidance"
+      }
+    ],
+    "fields": [
+      {
+        "id": "difficulty",
+        "label": "Какую повторяющуюся трудность обсуждаем",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "id": "minutes",
+        "label": "Примерное время за день, минут",
+        "type": "number",
+        "min": 0,
+        "max": 1440,
+        "step": 1,
+        "trend": true
+      },
+      {
+        "id": "delayed",
+        "label": "Какие дела откладывались или становились недоступны",
+        "type": "textarea"
+      },
+      {
+        "id": "family",
+        "label": "В какой помощи или подтверждениях просил участвовать близких",
+        "type": "textarea"
+      },
+      {
+        "id": "childView",
+        "label": "Как ребёнок описывает переживания",
+        "type": "textarea"
+      },
+      {
+        "id": "plan",
+        "label": "Как выполнялся согласованный со специалистом план",
+        "type": "textarea"
+      },
+      {
+        "id": "helped",
+        "label": "Что помогло и что было слишком трудно",
+        "type": "textarea"
+      },
+      {
+        "id": "notes",
+        "label": "Что уточнить на следующем приёме",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": [
+      "difficulty"
+    ]
+  },
+  {
+    "id": "eating",
+    "version": 1,
+    "title": "Питание и самочувствие",
+    "summary": "Переносимость еды, трудности приёма пищи и контекст.",
+    "domain": "Физическое самочувствие",
+    "cadence": "По заметным трудностям · 2–3 минуты",
+    "fromDocument": false,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Здесь не требуется считать калории или взвешивать ребёнка. Отмечайте наблюдаемые трудности и самочувствие. При невозможности пить, выраженной слабости, удушье или другом резком ухудшении нужна медицинская помощь, а не ожидание записи.",
+    "related": [
+      "arfid",
+      "anorexia_nervosa",
+      "bulimia_nervosa",
+      "rumination_disorder",
+      "pica"
+    ],
+    "sources": [
+      {
+        "label": "NICE NG69: пищевое поведение, физическое здоровье и наблюдение",
+        "url": "https://www.nice.org.uk/guidance/ng69/chapter/recommendations"
+      }
+    ],
+    "fields": [
+      {
+        "id": "situation",
+        "label": "Какой приём пищи или ситуация вызвали трудности",
+        "type": "textarea"
+      },
+      {
+        "id": "accepted",
+        "label": "Что было удобно есть или пить",
+        "type": "textarea"
+      },
+      {
+        "id": "difficult",
+        "label": "С чем возникли трудности: текстура, страх, боль, тошнота",
+        "type": "textarea"
+      },
+      {
+        "id": "body",
+        "label": "Физические жалобы во время или после еды",
+        "type": "textarea"
+      },
+      {
+        "id": "context",
+        "label": "Что происходило вокруг и какая поддержка была",
+        "type": "textarea"
+      },
+      {
+        "id": "impact",
+        "label": "Как повлияло на обычные дела",
+        "type": "select",
+        "options": [
+          {
+            "value": "none",
+            "label": "Не мешало"
+          },
+          {
+            "value": "some",
+            "label": "Понадобилась дополнительная помощь"
+          },
+          {
+            "value": "major",
+            "label": "Заметно ограничило обычные дела"
+          },
+          {
+            "value": "unable",
+            "label": "Не удалось сделать важное"
+          },
+          {
+            "value": "unknown",
+            "label": "Не удалось оценить"
+          }
+        ]
+      },
+      {
+        "id": "helped",
+        "label": "Что помогло без принуждения",
+        "type": "textarea"
+      },
+      {
+        "id": "notes",
+        "label": "Вопрос врачу или специалисту по питанию",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": []
+  },
+  {
+    "id": "toileting",
+    "version": 1,
+    "title": "Мочеиспускание и стул",
+    "summary": "Эпизоды, дискомфорт и обстоятельства без оценки ребёнка.",
+    "domain": "Физическое самочувствие",
+    "cadence": "По договорённости с врачом",
+    "fromDocument": false,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Ноль означает, что эпизодов не было; пустое поле — что не наблюдали. Не стыдите и не наказывайте ребёнка за эпизоды. Боль, кровь, лихорадку и резкое изменение состояния обсуждают с врачом.",
+    "related": [
+      "enuresis",
+      "encopresis"
+    ],
+    "sources": [
+      {
+        "label": "NICE CG111: записи мочеиспускания и обсуждение недержания",
+        "url": "https://www.nice.org.uk/guidance/cg111/chapter/1-Guidance"
+      },
+      {
+        "label": "NICE CG99: запор и наблюдения за дефекацией у детей",
+        "url": "https://www.nice.org.uk/guidance/cg99/chapter/1-Guidance"
+      }
+    ],
+    "fields": [
+      {
+        "id": "focus",
+        "label": "За чем наблюдаем",
+        "type": "select",
+        "options": [
+          {
+            "value": "urine",
+            "label": "Мочеиспускание"
+          },
+          {
+            "value": "stool",
+            "label": "Стул"
+          },
+          {
+            "value": "both",
+            "label": "Мочеиспускание и стул"
+          }
+        ],
+        "required": true
+      },
+      {
+        "id": "wet",
+        "label": "Эпизодов намокания белья за день / ночь",
+        "type": "number",
+        "min": 0,
+        "max": 50,
+        "step": 1,
+        "trend": true
+      },
+      {
+        "id": "soiling",
+        "label": "Эпизодов каломазания за день",
+        "type": "number",
+        "min": 0,
+        "max": 50,
+        "step": 1,
+        "trend": true
+      },
+      {
+        "id": "stools",
+        "label": "Дефекаций за день",
+        "type": "number",
+        "min": 0,
+        "max": 30,
+        "step": 1,
+        "trend": true
+      },
+      {
+        "id": "consistency",
+        "label": "Стул, если наблюдали",
+        "type": "select",
+        "options": [
+          {
+            "value": "hard",
+            "label": "Твёрдый / отдельные плотные фрагменты"
+          },
+          {
+            "value": "soft",
+            "label": "Мягкий / оформленный"
+          },
+          {
+            "value": "liquid",
+            "label": "Жидкий"
+          },
+          {
+            "value": "mixed",
+            "label": "Разный"
+          },
+          {
+            "value": "unknown",
+            "label": "Не наблюдали"
+          }
+        ]
+      },
+      {
+        "id": "pain",
+        "label": "Боль, натуживание, задерживание или срочность",
+        "type": "textarea"
+      },
+      {
+        "id": "context",
+        "label": "Ситуация, доступ к туалету, поддержка",
+        "type": "textarea"
+      },
+      {
+        "id": "notes",
+        "label": "Другие жалобы и что уточнить",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": [
+      "focus"
+    ]
+  },
+  {
+    "id": "communication",
+    "version": 1,
+    "title": "Общение и освоение навыка",
+    "summary": "Конкретный навык, ситуации использования и нужная помощь.",
+    "domain": "Учёба и развитие",
+    "cadence": "Раз в неделю или по плану занятий",
+    "fromDocument": false,
+    "respondents": [
+      "parent",
+      "self"
+    ],
+    "instructions": "Отмечайте полезные навыки и способы общения, включая жесты, картинки и устройства. Не превращайте запись в экзамен. Заметную утрату освоенных навыков обсудите с врачом.",
+    "related": [
+      "asd",
+      "speech_language_disorder",
+      "intellectual_disability",
+      "specific_learning_disorder"
+    ],
+    "sources": [
+      {
+        "label": "ASHA: оценка и помощь при нарушениях речи и языка",
+        "url": "https://www.asha.org/practice-portal/clinical-topics/spoken-language-disorders/"
+      },
+      {
+        "label": "NICE CG170: цели помощи, коммуникация, сон и оценка поведения",
+        "url": "https://www.nice.org.uk/guidance/cg170/chapter/recommendations"
+      }
+    ],
+    "fields": [
+      {
+        "id": "skill",
+        "label": "Какой один навык наблюдаем",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "id": "situation",
+        "label": "В каких естественных ситуациях он нужен",
+        "type": "textarea"
+      },
+      {
+        "id": "attempts",
+        "label": "Как ребёнок пытался общаться или выполнить действие",
+        "type": "textarea"
+      },
+      {
+        "id": "help",
+        "label": "Какая поддержка была нужна",
+        "type": "textarea"
+      },
+      {
+        "id": "independent",
+        "label": "Что получилось самостоятельно",
+        "type": "textarea"
+      },
+      {
+        "id": "generalized",
+        "label": "Получилось ли в другом месте или с другим человеком",
+        "type": "textarea"
+      },
+      {
+        "id": "childView",
+        "label": "Интерес, усталость, согласие и комфорт ребёнка",
+        "type": "textarea"
+      },
+      {
+        "id": "loss",
+        "label": "Была ли заметная утрата уже освоенного навыка",
+        "type": "select",
+        "options": [
+          {
+            "value": "no",
+            "label": "Не заметили"
+          },
+          {
+            "value": "yes",
+            "label": "Да"
+          },
+          {
+            "value": "unknown",
+            "label": "Не уверены"
+          }
+        ]
+      },
+      {
+        "id": "next",
+        "label": "Что обсудить со специалистом",
+        "type": "textarea"
+      }
+    ],
+    "compareKeys": [
+      "skill"
+    ]
+  }
+]
