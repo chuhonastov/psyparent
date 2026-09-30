@@ -1,5 +1,5 @@
 import React from 'react';
-export type IconName = 'home'|'book'|'pill'|'note'|'arrow'|'back'|'check'|'plus'|'search'|'shield'|'heart'|'leaf'|'download'|'copy'|'close'|'trash'|'external'|'clock'|'calendar'|'share'|'upload'|'print'|'phone'|'user'|'flask';
+export type IconName = 'home'|'book'|'pill'|'note'|'arrow'|'back'|'check'|'plus'|'search'|'shield'|'heart'|'leaf'|'download'|'copy'|'close'|'trash'|'external'|'clock'|'calendar'|'share'|'upload'|'print'|'phone'|'user'|'flask'|'alert';
 const paths: Record<IconName,React.ReactNode> = {
  phone:<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>,
  user:<><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
@@ -13,6 +13,7 @@ const paths: Record<IconName,React.ReactNode> = {
  plus:<path d="M12 5v14M5 12h14"/>,
  search:<><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></>,
  flask:<><path d="M9 3h6M10 3v6l-5.2 9A2 2 0 0 0 6.5 21h11a2 2 0 0 0 1.7-3L14 9V3"/><path d="M7.4 15h9.2"/></>,
+ alert:<><path d="M12 3 2.5 20h19z"/><path d="M12 10v4.5M12 17.2v.1"/></>,
  shield:<><path d="m12 3 8 3v6c0 4-4 7-8 9-4-2-8-5-8-9V6z"/><path d="m8 12 3 3 5-6"/></>,
  heart:<path d="M12 21S2 15 2 8a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 7-10 13-10 13z"/>,
  leaf:<><path d="M20 3C7 2 2 9 5 16c7 6 16 0 15-13zM3 21 15 8"/></>,

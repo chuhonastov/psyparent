@@ -101,7 +101,17 @@ for(const g of examGuides){
  sources(g.sources,g.diagnosisId+'/'+g.investigationId);
 }
 for(const d of clinical)assert(pairs.diagnoses[d.id].exams?.trim(),'Diagnosis needs a note on investigations: '+d.id);
+// Dubious non-drug methods.
+const methods=read('methods.json');
+assert.equal(new Set(methods.items.map(m=>m.id)).size,methods.items.length,'Duplicate method id');
+for(const m of methods.items){
+ assert(methods.groups.some(g=>g.id===m.group)&&['harmful','useless','limited'].includes(m.verdict),'Bad method group/verdict: '+m.id);
+ for(const k of ['name','summary','promise','evidence','risks','instead'])assert(m[k]?.trim(),'Method needs '+k+': '+m.id);
+ assert(m.offeredFor.length&&m.offeredFor.every(id=>leaves.some(d=>d.id===id)),'Method needs known topics: '+m.id);
+ assert.match(m.updatedAt,/^\d{4}-\d{2}-\d{2}$/);sources(m.sources,m.id);
+}
 for(const d of leaves)for(const id of d.screeningIds||[])assert(['mchat','sdq','phq9','gad7','ygtss','crafft','snapiv','psc17','scared','vanderbilt2002'].includes(id),'Unknown screener on '+d.id);
+console.log(`Methods OK: ${methods.items.length} dubious methods, ${methods.items.filter(m=>m.verdict==='harmful').length} dangerous.`);
 console.log(`Investigations OK: ${exams.items.length} cards, ${examGuides.length} written pairs, general reviews for the other ${clinical.length*exams.items.length-examGuides.length}.`);
 console.log(`Pairs OK: ${guides.length} written medication reviews, general reviews for the other ${clinical.length*meds.filter(m=>!m.noteOnly).length-guides.length} of ${clinical.length*meds.filter(m=>!m.noteOnly).length} pairs; ${support.reduce((n,s)=>n+s.providers.length+(s.notFor?.length||0),0)} written specialist pairs.`);
 console.log(`Content OK: ${leaves.length} parent routes and support plans, ${specialists.length} specialists, ${support.reduce((n,s)=>n+s.providers.length,0)} support links; ${meds.length} medication/reference cards, ${guides.length} treatment guides.`);
