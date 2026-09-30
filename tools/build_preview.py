@@ -20,6 +20,6 @@ if pdf.exists():
     html = html.replace('</head>', '<script>window.__PSYPARENT_CLINICAL_PDF__=' + repr(pdf_url) + ';</script></head>')
 html = html.replace(script.group(0), '<script>window.__PSYPARENT_OFFLINE__=true;</script>\n<script type="module">' + js + '</script>')
 html = html.replace(style.group(0), '<style>' + css + '</style>')
-output = root / 'PsyParent-preview.html'
+output = root / 'Kora-preview.html'
 output.write_text(html, encoding='utf-8')
 print(f'Preview: {output} ({output.stat().st_size:,} bytes)')

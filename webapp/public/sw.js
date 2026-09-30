@@ -1,6 +1,6 @@
-// PsyParent offline cache: after the first visit the reference opens without network.
+// Offline cache of Кора (storage names keep the old psyparent prefix): after the first visit the reference opens without network.
 // Pages: network first, cached copy when offline. Hashed assets: cache first. Nothing is sent anywhere.
-const CACHE='psyparent-v1';
+const CACHE='kora-v2';
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./'])).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',event=>{

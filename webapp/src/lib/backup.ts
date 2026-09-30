@@ -7,7 +7,9 @@ import meta from '../content/meta.json';
 export const BACKUP_FORMAT=1;
 const MAX_BYTES=5_000_000;
 const ownKey=(key:string)=>key.startsWith('psyparent.')||key.startsWith('parentguide.');
-export type BackupFile={app:'PsyParent';format:1;appVersion:string;createdAt:string;data:Record<string,string>};
+// Files made before the rename carry app:'PsyParent' and are still accepted.
+const APP_IDS=['Kora','PsyParent'];
+export type BackupFile={app:'Kora';format:1;appVersion:string;createdAt:string;data:Record<string,string>};
 export type BackupSummary={questions:number;meds:number;observations:number;screenings:number;journals:number;children:number;other:number};
 const appKeys=()=>Object.keys(localStorage).filter(ownKey).sort();
 export function createBackup(now=new Date()):BackupFile{
@@ -15,14 +17,14 @@ export function createBackup(now=new Date()):BackupFile{
   for(const key of appKeys()){const value=localStorage.getItem(key);if(value!==null)data[key]=value;}
   // Records from the first versions are stored in the current format so the copy does not depend on the migration code.
   if(!data[VISIT_KEY])data[VISIT_KEY]=JSON.stringify(getVisit());
-  return {app:'PsyParent',format:BACKUP_FORMAT,appVersion:meta.appVersion,createdAt:now.toISOString(),data};
+  return {app:'Kora',format:BACKUP_FORMAT,appVersion:meta.appVersion,createdAt:now.toISOString(),data};
 }
-export const backupFileName=(now=new Date())=>'PsyParent-kopiya-'+now.toISOString().slice(0,10)+'.json';
+export const backupFileName=(now=new Date())=>'Kora-kopiya-'+now.toISOString().slice(0,10)+'.json';
 export function parseBackup(text:string):{ok:true;data:Record<string,string>}|{ok:false;error:string}{
-  if(new Blob([text]).size>MAX_BYTES)return {ok:false,error:'Файл слишком большой для копии PsyParent.'};
+  if(new Blob([text]).size>MAX_BYTES)return {ok:false,error:'Файл слишком большой для резервной копии «Коры».'};
   let raw:any;
-  try{raw=JSON.parse(text);}catch{return {ok:false,error:'Это не файл копии PsyParent: не удалось прочитать JSON.'};}
-  if(!raw||typeof raw!=='object'||raw.app!=='PsyParent')return {ok:false,error:'Это не файл копии PsyParent.'};
+  try{raw=JSON.parse(text);}catch{return {ok:false,error:'Это не резервная копия «Коры»: не удалось прочитать JSON.'};}
+  if(!raw||typeof raw!=='object'||!APP_IDS.includes(raw.app))return {ok:false,error:'Это не резервная копия «Коры».'};
   if(raw.format!==BACKUP_FORMAT)return {ok:false,error:'Копия создана в другой версии формата. Обновите приложение.'};
   if(!raw.data||typeof raw.data!=='object'||Array.isArray(raw.data))return {ok:false,error:'В копии нет записей.'};
   const data:Record<string,string>={};
@@ -49,7 +51,7 @@ export function describeSummary(s:BackupSummary){
   const text=parts.filter(([,n])=>n>0).map(([label,n])=>label+': '+n).join(', ');
   return text||'основных записей нет, только отметки и настройки';
 }
-/** Replaces all PsyParent records on this device with the copy. On a storage error the previous records are put back. */
+/** Replaces all app records on this device with the copy. On a storage error the previous records are put back. */
 export function restoreBackup(data:Record<string,string>){
   const previous:Record<string,string>={};
   for(const key of appKeys()){const value=localStorage.getItem(key);if(value!==null)previous[key]=value;}

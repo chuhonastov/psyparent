@@ -92,7 +92,8 @@ test('backs up and restores all records, rejecting foreign files',()=>{
  addVisitQuestion('Как оценить эффект?');addVisitMedication('atomoxetine');setAppointment({date:'2026-10-05'});trackRecent('dx','adhd');
  localStorage.setItem('unrelated.site.key','keep');
  const backup=createBackup(new Date('2026-09-30T08:00:00Z'));
- assert.equal(backup.app,'PsyParent');
+ assert.equal(backup.app,'Kora');
+ assert.equal(parseBackup(JSON.stringify({...backup,app:'PsyParent'})).ok,true);
  assert(!('unrelated.site.key' in backup.data));
  const text=JSON.stringify(backup);
  const parsed=parseBackup(text);

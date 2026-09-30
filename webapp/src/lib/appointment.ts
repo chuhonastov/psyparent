@@ -55,7 +55,7 @@ const stamp=(d:Date)=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
 /** A calendar file with a reminder the day before. Times are local ("floating"), as written in the referral. */
 export function appointmentIcs(a:Appointment,now=new Date()){
   const day=a.date.replace(/-/g,'');
-  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//PsyParent//RU','CALSCALE:GREGORIAN','BEGIN:VEVENT',
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Kora//RU','CALSCALE:GREGORIAN','BEGIN:VEVENT',
     'UID:'+day+'-'+now.getTime().toString(36)+'@psyparent',
     'DTSTAMP:'+stamp(now)];
   if(a.time){
@@ -65,8 +65,8 @@ export function appointmentIcs(a:Appointment,now=new Date()){
     lines.push('DTSTART:'+day+'T'+a.time.replace(':','')+'00','DTEND:'+endDay+'T'+endTime);
   } else lines.push('DTSTART;VALUE=DATE:'+day,'DTEND;VALUE=DATE:'+daysLater(a.date,1));
   lines.push('SUMMARY:'+icsText('Приём'+(a.with?.trim()?': '+a.with.trim():' у врача')),
-    'DESCRIPTION:'+icsText('Возьмите памятку PsyParent: вопросы, наблюдения и назначения.'),
-    'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsText('Завтра приём. Проверьте памятку PsyParent.'),'TRIGGER:'+(a.time?'-P1D':'-PT15H'),'END:VALARM',
+    'DESCRIPTION:'+icsText('Возьмите памятку к приёму из «Коры»: вопросы, наблюдения и назначения.'),
+    'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsText('Завтра приём. Проверьте памятку в «Коре».'),'TRIGGER:'+(a.time?'-P1D':'-PT15H'),'END:VALARM',
     'END:VEVENT','END:VCALENDAR');
   return lines.map(fold).join('\r\n')+'\r\n';
 }

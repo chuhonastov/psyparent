@@ -12,6 +12,10 @@ import {doctorsForTopic,clinic} from '../lib/clinic';
 import {journalTemplatesForDiagnosis} from '../lib/journalContent';
 import {screenerById} from '../lib/screeningContent';
 import {trackRecent} from '../lib/recent';
+
+// Heading of the help tab: what the plan aims at in this section of the handbook.
+const HELP_TITLES:Record<string,string>={development:'Научить нужным навыкам',anxiety:'Помочь справиться со страхом',mood:'Вернуть силы и интерес к жизни',stress:'Помочь восстановиться после пережитого',ocd_spectrum:'Ослабить власть навязчивостей',behavior:'Снизить конфликты и научить новым навыкам',eating_disorders:'Восстановить питание и здоровье',addictions:'Вернуть контроль над своей жизнью'};
+const helpTitle=(id:string)=>HELP_TITLES[parentGroup(id)?.id||'']||'Улучшить качество жизни';
 export default function DiagnosisDetail() {
  const {id=''}=useParams(),[params,setParams]=useSearchParams(),location=useLocation(),d=diagnosisById(id);
  useEffect(()=>{if(d&&d.kind!=='group')trackRecent('dx',d.id);},[d]);
@@ -33,7 +37,7 @@ export default function DiagnosisDetail() {
  <div className="buttonRow"><button className="btn" onClick={()=>setParams({tab:'help'},{replace:true,state:location.state})}>Какая помощь бывает полезна<Icon name="arrow" size={17}/></button></div>
  </>}
  {tab==='help'&&<>
- <div className="card soft"><div className="eyebrow">План помощи</div><h2>Сделать жизнь посильнее</h2><p style={{marginTop:10}}>{d.ageGuidance||'План подбирают под трудности ребёнка. Начните с того, что мешает больше всего.'}</p></div>
+ <div className="card soft"><div className="eyebrow">План помощи</div><h2>{helpTitle(d.id)}</h2><p style={{marginTop:10}}>{d.ageGuidance||'План подбирают под трудности ребёнка. Начните с того, что мешает больше всего.'}</p></div>
  {!!d.homeHelp?.length&&<section className="card"><h2 style={{marginBottom:18}}>Что можно изменить в повседневной жизни</h2><div className="stack">{d.homeHelp.map(item=><div key={item.title}><h3>{item.title}</h3><p className="muted" style={{marginTop:5,fontSize:14}}>{item.text}</p></div>)}</div></section>}
  <NonpharmHelp diagnosisId={id}/>
  {clinic.doctors.length>0&&d.topicKind!=='guide'&&<Link to="/doctors" className="actionCard warm"><span className="actionIcon"><Icon name="user" size={23}/></span><div className="actionMain"><h3>Записаться к врачу</h3><p>{doctorsForTopic(id).length?doctorsForTopic(id).slice(0,2).map(x=>x.name.split(' ').slice(0,2).join(' ')).join(', '):'Детские психиатры и неврологи клиники '+clinic.name}</p></div><Icon name="arrow" size={18}/></Link>}

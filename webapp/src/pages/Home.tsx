@@ -15,7 +15,7 @@ export default function Home() {
  const setQuery=(value:string)=>setParams(value?{q:value}:{},{replace:true});
  const days=appointment?daysUntil(appointment.date):-1;
  return <div className="container">
- <div className="brandRow"><Link className="brand" to="/"><span className="brandMark"><Icon name="leaf" size={22}/></span>PsyParent</Link><span className="releaseBadge">Для родителей</span></div>
+ <div className="brandRow"><Link className="brand" to="/"><span className="brandMark"><Icon name="leaf" size={22}/></span>Кора</Link><span className="releaseBadge">Для родителей</span></div>
  <section className="hero"><div className="heroMark"><Icon name="leaf" size={185}/></div><div className="eyebrow">Понятно о детской психиатрии</div><h1>После приёма<br/>хочется ясности.</h1><p>Разберитесь в диагнозе и назначениях. Сохраните вопросы, которые важно обсудить с врачом.</p><div className="heroFoot"><Icon name="shield" size={16}/>С опорой на научные данные</div></section>
  {(days>=0||count>0)&&<Link to="/visit" className="actionCard warm"><span className="actionIcon"><Icon name={days>=0?'calendar':'note'} size={23}/></span><div className="actionMain">{days>=0&&appointment?<><h3>Приём {countdownLabel(days)}</h3><p>{formatAppointment(appointment)}{count?'. В памятке '+counted(count,'запись','записи','записей')+'.':''}</p></>:<><h3>В памятке {counted(count,'запись','записи','записей')}</h3><p>Можно продолжить и указать дату приёма</p></>}</div><Icon name="arrow" size={18}/></Link>}
  <div className="sectionHeading"><h2>{q.trim()?'Результаты поиска':'Найти в справочнике'}</h2></div>

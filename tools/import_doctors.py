@@ -18,7 +18,7 @@ SKIP_ROLES = re.compile(r'стаж[её]р|администратор|опера
 PAUSED = re.compile(r'приостановлен|только повторных', re.I)
 
 def get(url, binary=False):
-    req = urllib.request.Request(url, headers={'User-Agent': 'PsyParent-import/2.0'})
+    req = urllib.request.Request(url, headers={'User-Agent': 'Kora-import/2.0'})
     with urllib.request.urlopen(req, timeout=40) as r:
         data = r.read()
         return data if binary else data.decode(r.headers.get_content_charset() or 'utf-8', 'replace')

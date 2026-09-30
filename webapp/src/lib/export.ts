@@ -4,7 +4,7 @@ import type {VisitState} from './visit';
 import {getScreenings,formatScreening,ScreeningResult} from './screenings';
 import {getAppointment,formatAppointment,Appointment} from './appointment';
 export function formatVisit(v:VisitState,results:ScreeningResult[]=getScreenings().filter(r=>r.includeInVisit),journals:JournalRecord[]=getJournals().filter(r=>r.includeInVisit),appointment:Appointment|null=getAppointment()) {
-  const lines=['Памятка к приёму · PsyParent','Записи семьи и результаты скринингов для обсуждения с врачом'];
+  const lines=['Памятка к приёму · Кора','Записи семьи и результаты скринингов для обсуждения с врачом'];
   if(appointment)lines.push('Приём: '+formatAppointment(appointment));
   const snapshots=Object.values(v.checklists);
   if(snapshots.length) {
@@ -23,7 +23,7 @@ export function formatVisit(v:VisitState,results:ScreeningResult[]=getScreenings
   }
   if(results.length){lines.push('\nСКРИНИНГИ — НЕ ДИАГНОЗ');results.forEach(r=>lines.push('\n'+formatScreening(r)));}
   if(journals.length){lines.push('\nДНЕВНИКИ И ФОРМЫ — НАБЛЮДЕНИЯ СЕМЬИ');journals.slice().sort((a,b)=>a.childLabel.localeCompare(b.childLabel)||a.date.localeCompare(b.date)).forEach(r=>lines.push('\n'+formatJournal(r)));}
-  lines.push('\nСоставлено в PsyParent. Эта памятка не является назначением лечения.');
+  lines.push('\nСоставлено в приложении «Кора». Эта памятка не является назначением лечения.');
   return lines.join('\n');
 }
 export async function copyText(text:string) {
@@ -37,7 +37,7 @@ export function downloadFile(content:string,filename:string,type:string) {
   const url=URL.createObjectURL(new Blob([content],{type}));
   const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-export function downloadText(text:string,filename='PsyParent-pamyatka.txt') {
+export function downloadText(text:string,filename='Kora-pamyatka.txt') {
   downloadFile('﻿'+text,filename,'text/plain;charset=utf-8');
 }
 /** Uses the phone's share sheet when the browser has one. "unavailable" lets the caller offer another way. */
