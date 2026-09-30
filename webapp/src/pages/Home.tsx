@@ -42,7 +42,7 @@ export default function Home() {
  <div className="sectionHeading"><h2>Частые темы</h2><Link to="/diagnoses">Все темы</Link></div>
  <div className="topics"><Link className="topic" to="/diagnoses/adhd">СДВГ</Link><Link className="topic" to="/diagnoses/asd">Аутизм</Link><Link className="topic" to="/diagnoses/group/anxiety">Тревога и страхи</Link><Link className="topic" to="/diagnoses/depression">Депрессия</Link><Link className="topic" to="/diagnoses/group/stress">Стресс и травма</Link><Link className="topic" to="/diagnoses/group/eating_disorders">Питание</Link></div>
  </>}
- <div className="authorCard"><span className="authorAvatar">СК</span><div><strong>Материалы Степана Краснощекова</strong><p>Детский психиатр.</p><p>Справочник помогает подготовиться к разговору со специалистом.</p></div></div>
+ <div className="authorCard"><span className="authorAvatar">СК</span><div><strong>Материалы Степана Краснощекова</strong><p>Детский психиатр.</p><p>Справочник помогает подготовиться к приёму.</p></div></div>
  <div className="footerLinks"><Link to="/about">О проекте и ваших данных</Link><Link to="/about#reading">Размер текста</Link><Link className="urgentLink" to="/help">Когда нужна срочная помощь</Link></div>
  </div>;
 }

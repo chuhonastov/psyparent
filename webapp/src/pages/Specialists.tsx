@@ -13,7 +13,7 @@ export default function Specialists(){
  const items=specialists.filter(s=>(!validDomain||s.domains.includes(validDomain))&&matchesQuery(q,[s.title,...s.domains],s.summary+' '+s.helps.map(h=>h.situation+' '+h.method).join(' ')+' '+nonpharmSupport.filter(p=>p.providers.some(x=>x.specialistId===s.id)).map(p=>dxName(diagnosisById(p.diagnosisId)!)).join(' ')));
  const from='/specialists'+(params.toString()?'?'+params.toString():'');
  return <div className="container"><PageHeader title="Специалисты и занятия" subtitle="К кому идти, с какой задачей и как понять, что помощь подходит." backTo="/" backLabel="Главная"/>
- <div className="callout"><strong>Выбирайте задачу и метод</strong><p>Одинаковое название специальности может скрывать разную подготовку. Уточните, чему учат, как это связано с вашей трудностью и как проверят результат.</p></div>
+ <div className="callout"><strong>Выбирайте задачу и метод</strong><p>За одним названием профессии бывает очень разная подготовка. Спросите, каким методом работает специалист и как вы поймёте, что стало лучше.</p></div>
  <div className="searchWrap" style={{marginTop:20}}><Icon name="search"/><input type="search" className="input" aria-label="Поиск специалиста или задачи" placeholder="Логопед, чтение, РАС" value={q} onChange={e=>set('q',e.target.value)}/>{q&&<button className="clearSearch" aria-label="Очистить поиск" onClick={()=>set('q','')}><Icon name="close"/></button>}</div>
  <label className="fieldLabel" htmlFor="support-domain">Сфера помощи</label><select id="support-domain" value={validDomain} onChange={e=>set('domain',e.target.value)}><option value="">Все сферы</option>{domains.map(d=><option key={d}>{d}</option>)}</select>
  <p className="searchMeta" role="status">Найдено: {items.length}</p>

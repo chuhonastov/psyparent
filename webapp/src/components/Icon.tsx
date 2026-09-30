@@ -1,6 +1,8 @@
 import React from 'react';
-export type IconName = 'home'|'book'|'pill'|'note'|'arrow'|'back'|'check'|'plus'|'search'|'shield'|'heart'|'leaf'|'download'|'copy'|'close'|'trash'|'external'|'clock'|'calendar'|'share'|'upload'|'print';
+export type IconName = 'home'|'book'|'pill'|'note'|'arrow'|'back'|'check'|'plus'|'search'|'shield'|'heart'|'leaf'|'download'|'copy'|'close'|'trash'|'external'|'clock'|'calendar'|'share'|'upload'|'print'|'phone'|'user';
 const paths: Record<IconName,React.ReactNode> = {
+ phone:<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>,
+ user:<><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
  home:<><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></>,
  book:<><path d="M12 5v16M3 4c3-1 6-1 9 1 3-2 6-2 9-1v15c-3-1-6-1-9 1-3-2-6-2-9-1z"/></>,
  pill:<><rect x="2.5" y="8.25" width="19" height="7.5" rx="3.75" transform="rotate(-45 12 12)"/><path d="m9.35 9.35 5.3 5.3"/></>,
