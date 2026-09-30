@@ -1,0 +1,94 @@
+{
+  "version": "0.8.0",
+  "date": "2026-09-30",
+  "unitTests": {
+    "passed": 46,
+    "failed": 0
+  },
+  "content": {
+    "topics": 69,
+    "groups": 12,
+    "medicationCards": 170,
+    "treatmentGuides": 395,
+    "specialists": 11,
+    "nonpharmPlans": 69,
+    "nonpharmLinks": 208,
+    "instruments": 10,
+    "journals": 13,
+    "snapItems": 26,
+    "ygtssAnchors": 36,
+    "ygtssChecklistItems": 57
+  },
+  "browser": {
+    "checks": 45,
+    "errors": [],
+    "productionRegression": [
+      "Ten-card catalog filters by name, age, months, domain and procedure; return preserves filters",
+      "A saved v0.6 PHQ-9 record loads with original answers and recalculated total",
+      "ASSQ checks 0–54, shows current access limits and saves without a diagnostic cutoff",
+      "Vanderbilt checks arithmetic and impairment; changing respondent resets form-specific fields and keeps separate records",
+      "YGTSS-R downloads the unchanged supplied PDF, requires clinical confirmation and separates 15/50 tic total from 35/100 global score",
+      "RCADS-25 validates raw subscale sums and supports a child self-report without invented T-norms",
+      "CRAFFT CAR flag survives a low total; it enters the combined export only after explicit selection",
+      "History filters independently by child and instrument, handles empty intersections and survives reload",
+      "Author pages and sample revised medication / non-drug routes contain no removed attributions",
+      "All nine forms, catalog, history, visit sheet and clinical result fit a 320px dark screen",
+      "Desktop layout, keyboard navigation and sticky answered-item progress work",
+      "A failed save never reports success and the unsaved new-form result remains downloadable",
+      "No JavaScript errors in the tested production-build scenarios"
+    ],
+    "newForms": [
+      "13-form catalog, navigation highlight and search preserved on return",
+      "Sleep chronology validation and overnight arithmetic; saved record survives reload",
+      "Editing preserves identity; next entry copies metadata but not observations; missing awake time stays unknown",
+      "Filtered history compares same observer, exports missing values correctly, and bulk selects records for the visit",
+      "Only selected diary records appear in visit download; other child remains excluded",
+      "Mood and skill-loss safety messages appear before saving and remain in saved records",
+      "New goal entry carries the target and unit but leaves the next measured value empty",
+      "26 SNAP-IV answers are embedded; respondent change clears responses; 9/9/8 scores survive reload",
+      "YGTSS criteria, anchors and optional tic checklist are usable and saved with clinical scores",
+      "All 13 forms, catalogs, results routes and visit fit a 320px screen; dark theme renders",
+      "Diagnosis consultation tab links directly to relevant diaries and general complaint/goal forms",
+      "Blocked storage retains entered observations and provides a working download",
+      "Single-record deletion and delete-all remove the intended diary data"
+    ],
+    "standalone": [
+      "Local HTML opens and keyboard skip link preserves route",
+      "Hash navigation and local notes survive reload",
+      "Offline export works without remote asset requests",
+      "Updated parent wording is included in standalone build",
+      "Offline diagnosis links open the new specialist directory",
+      "Offline GAD-7 calculation and complete saved answers survive reload",
+      "Safety instructions precede a low PHQ-9 total and remain visible in history",
+      "Offline visit export includes saved screening details without external network requests",
+      "All ten instruments and persistent filters work through offline hash navigation",
+      "Embedded YGTSS-R PDF downloads byte-for-byte with the network disabled",
+      "Offline clinical values, supplied-form metadata and history survive reload",
+      "Offline catalog and sleep diary save complete observations and calculated intervals across reload",
+      "Offline editing preserves the record and next-entry flow leaves new observations blank",
+      "All SNAP-IV items and raw scoring work with networking disabled",
+      "Offline visit exports selected diaries and full SNAP-IV answers together",
+      "Full YGTSS-R anchor criteria are embedded in the offline HTML",
+      "The complete standalone flow has no remote asset or data requests",
+      "Blocked storage shows notice and preserves unsaved input",
+      "No JavaScript errors in standalone or blocked-storage cases"
+    ]
+  },
+  "visualReview": [
+    "390px: forms catalog, diary history, SNAP-IV result",
+    "320px: sleep diary, YGTSS-R controls, dark form catalog"
+  ],
+  "builds": {
+    "webapp": "passed",
+    "bot": "passed",
+    "standalone": "passed"
+  },
+  "limits": [
+    "Not deployed",
+    "Real Telegram/Android/iPhone not tested",
+    "Six external instruments remain external",
+    "Working Russian SNAP-IV and YGTSS-R are not claimed separately validated",
+    "Custom journals have no diagnostic scores",
+    "Clinical author sign-off and parent pilot pending"
+  ]
+}

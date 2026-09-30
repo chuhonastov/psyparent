@@ -1,263 +1,94 @@
-type MedDetail = {
-  dose?: string;
-  schedule?: string;
-  goal?: string;
-  monitoring?: string;
-  warnings?: string; // NEW: "Важно"
-  note?: string;     // free text
-};
-
-type VisitState = {
-  questions: string[];
-  meds: string[];
-  medDetails: Record<string, MedDetail>;
-};
-
-const KEY = 'parentguide.visit.v1';
-const LEGACY_Q = 'parentguide.visit.questions.v1';
-const LEGACY_M = 'parentguide.visit.meds.v1';
-const EVENT = 'parentguide:visit:updated';
-
-function uniq(arr: string[]) {
-  const out: string[] = [];
-  const s = new Set<string>();
-  for (const x of arr) {
-    const v = (x ?? '').toString().trim();
-    if (!v) continue;
-    if (s.has(v)) continue;
-    s.add(v);
-    out.push(v);
-  }
-  return out;
-}
-
-function safeParse(key: string): any {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
-function cleanStr(v: any): string | undefined {
-  const s = (v ?? '').toString();
-  const t = s.trim();
-  return t ? s : undefined;
-}
-
-function normalizeMedDetail(raw: any): MedDetail {
-  if (!raw || typeof raw !== 'object') return {};
-  const d: MedDetail = {};
-
-  const dose = cleanStr((raw as any).dose);
-  const schedule = cleanStr((raw as any).schedule);
-  const goal = cleanStr((raw as any).goal);
-  const monitoring = cleanStr((raw as any).monitoring);
-  const warnings = cleanStr((raw as any).warnings); // NEW
-  const note = cleanStr((raw as any).note);
-
-  if (dose) d.dose = dose;
-  if (schedule) d.schedule = schedule;
-  if (goal) d.goal = goal;
-  if (monitoring) d.monitoring = monitoring;
-  if (warnings) d.warnings = warnings;
-  if (note) d.note = note;
-
-  return d;
-}
-
-function normalizeMedDetails(raw: any): Record<string, MedDetail> {
-  if (!raw || typeof raw !== 'object') return {};
-  const out: Record<string, MedDetail> = {};
-
-  for (const [k, v] of Object.entries(raw)) {
-    const id = (k ?? '').toString().trim();
-    if (!id) continue;
-
-    if (v && typeof v === 'object' && !Array.isArray(v)) {
-      const d = normalizeMedDetail(v);
-      if (Object.keys(d).length) out[id] = d;
-      continue;
+import {diagnoses,medicationById} from './content';
+import {readJSON, writeJSON} from './persist';
+export type MedDetail = {dose?: string; schedule?: string; goal?: string; monitoring?: string; warnings?: string; note?: string};
+export type ChecklistSnapshot = {id: string; title: string; lines: string[]; updatedAt?: string; migrated?: boolean};
+export type VisitState = {version: 2; questions: string[]; meds: string[]; medDetails: Record<string, MedDetail>; checklists: Record<string, ChecklistSnapshot>};
+export const VISIT_KEY = 'psyparent.visit.v2';
+const EVENT = 'psyparent:visit-updated';
+const strings = (value: unknown): string[] => Array.isArray(value) ? Array.from(new Set(value.filter((v): v is string => typeof v === 'string').map(v => v.trim()).filter(Boolean))) : [];
+const empty = (): VisitState => ({version:2,questions:[],meds:[],medDetails:{},checklists:{}});
+function details(raw: unknown): Record<string,MedDetail> {
+  const out: Record<string,MedDetail> = {};
+  if (!raw || typeof raw !== 'object') return out;
+  for (const [id,value] of Object.entries(raw)) {
+    const item: MedDetail = {};
+    if (typeof value === 'string') item.note = value;
+    else if(value && typeof value === 'object') {
+      for(const field of ['dose','schedule','goal','monitoring','warnings','note'] as const) {
+        const v = (value as Record<string,unknown>)[field];
+        if(typeof v === 'string' && v.trim()) item[field] = v;
+      }
     }
-
-    const note = cleanStr(v);
-    if (note) out[id] = { note };
+    if(Object.keys(item).length) out[id] = item;
   }
-
   return out;
 }
-
-function normalize(raw: any): VisitState {
-  if (Array.isArray(raw)) {
-    return { questions: uniq(raw), meds: [], medDetails: {} };
+export function normalizeVisit(raw: unknown): VisitState {
+  const base = empty();
+  if(!raw || typeof raw !== 'object') return base;
+  const obj = raw as Record<string,unknown>;
+  base.questions = strings(obj.questions);
+  base.meds = strings(obj.meds);
+  base.medDetails = details(obj.medDetails);
+  for(const id of Object.keys(base.medDetails)) if(!base.meds.includes(id)) delete base.medDetails[id];
+  if(obj.checklists && typeof obj.checklists === 'object') {
+    for(const [id,c] of Object.entries(obj.checklists)) {
+      if(c && typeof c === 'object' && typeof c.title === 'string') {
+        base.checklists[id] = {id,title:c.title,lines:strings(c.lines),updatedAt:typeof c.updatedAt === 'string'?c.updatedAt:undefined,migrated:!!c.migrated};
+      }
+    }
   }
-
-  if (raw && typeof raw === 'object') {
-    const questions = Array.isArray((raw as any).questions) ? (raw as any).questions : [];
-    const meds = Array.isArray((raw as any).meds) ? (raw as any).meds : [];
-
-    const mdRaw = (raw as any).medDetails ?? (raw as any).details ?? (raw as any).medsDetails;
-
-    // older versions: notes per med
-    const legacyNotesRaw = (raw as any).notes ?? (raw as any).medNotes ?? (raw as any).medsNotes;
-
-    const medDetailsFromNew = normalizeMedDetails(mdRaw);
-    const medDetailsFromNotes = normalizeMedDetails(legacyNotesRaw);
-
-    return {
-      questions: uniq(questions),
-      meds: uniq(meds),
-      medDetails: { ...medDetailsFromNotes, ...medDetailsFromNew },
-    };
-  }
-
-  return { questions: [], meds: [], medDetails: {} };
+  return base;
 }
-
-function merge(a: VisitState, b: VisitState): VisitState {
-  return {
-    questions: uniq([...(a.questions ?? []), ...(b.questions ?? [])]),
-    meds: uniq([...(a.meds ?? []), ...(b.meds ?? [])]),
-    medDetails: { ...(a.medDetails ?? {}) },
-  };
-}
-
 export function getVisit(): VisitState {
-  const primary = normalize(safeParse(KEY));
-
-  const legacyQRaw = safeParse(LEGACY_Q);
-  const legacyMRaw = safeParse(LEGACY_M);
-
-  const legacy: VisitState = {
-    questions: Array.isArray(legacyQRaw) ? uniq(legacyQRaw) : [],
-    meds: Array.isArray(legacyMRaw) ? uniq(legacyMRaw) : [],
-    medDetails: {},
-  };
-
-  const merged = merge(primary, legacy);
-
-  const medSet = new Set(merged.meds);
-  const md: Record<string, MedDetail> = {};
-  for (const [id, d] of Object.entries(merged.medDetails ?? {})) {
-    if (!medSet.has(id)) continue;
-    if (d && typeof d === 'object' && Object.keys(d).length) md[id] = d;
+  const stored = readJSON<unknown>(VISIT_KEY,null);
+  if(stored) return normalizeVisit(stored);
+  const old = readJSON<any>('parentguide.visit.v1',null);
+  const base = normalizeVisit(old);
+  base.questions = strings([...(Array.isArray(old)?old:base.questions),...strings(readJSON('parentguide.visit.questions.v1',[])),...strings(readJSON<any>('parentguide.visitSheet.v1',{})?.items)]);
+  base.meds = strings([...base.meds,...strings(readJSON('parentguide.visit.meds.v1',[]))]);
+  base.medDetails = details(old?.medDetails ?? old?.details ?? old?.medsDetails ?? old?.notes ?? old?.medNotes);
+  const normal: string[] = [];
+  for(const text of base.questions) {
+    if(!text.startsWith('[DX] ')) {normal.push(text);continue;}
+    const lines = text.replace(/^\[DX\]\s*/, '').split('\n');
+    const title = lines[0].replace(/:\s*Полные критерии.*$/, '').trim();
+    const id = diagnoses.find(d=>d.title === title)?.id || 'legacy-' + encodeURIComponent(title);
+    const previous = base.checklists[id]?.lines || [];
+    base.checklists[id] = {id,title,lines:strings([...previous,...lines.slice(1).map(l=>l.replace(/^\d+\.\s*/,''))]),migrated:true};
   }
-
-  return { ...merged, medDetails: md };
+  base.questions = normal;
+  return base;
 }
-
-function setVisit(next: VisitState) {
-  const safe: VisitState = {
-    questions: uniq(next.questions ?? []),
-    meds: uniq(next.meds ?? []),
-    medDetails: normalizeMedDetails(next.medDetails ?? {}),
-  };
-
-  localStorage.setItem(KEY, JSON.stringify(safe));
-  localStorage.setItem(LEGACY_Q, JSON.stringify(safe.questions));
-  localStorage.setItem(LEGACY_M, JSON.stringify(safe.meds));
-
-  window.dispatchEvent(new CustomEvent(EVENT));
+function update(fn: (v:VisitState)=>VisitState) {
+  const next = normalizeVisit(fn(getVisit()));
+  if(!writeJSON(VISIT_KEY,next)) return false;
+  window.dispatchEvent(new Event(EVENT));
+  return true;
 }
-
-export function clearVisit() {
-  setVisit({ questions: [], meds: [], medDetails: {} });
-}
-
 export function addVisitQuestion(text: string) {
-  const q = (text ?? '').toString().trim();
-  if (!q) return;
-
-  const cur = getVisit();
-  if (cur.questions.includes(q)) return;
-
-  setVisit({ ...cur, questions: [...cur.questions, q] });
+  const q=text.trim();
+  if(!q) return false;
+  return update(v=>({...v,questions:strings([...v.questions,q])}));
 }
-
-export function removeVisitQuestion(text: string) {
-  const q = (text ?? '').toString().trim();
-  if (!q) return;
-
-  const cur = getVisit();
-  setVisit({ ...cur, questions: cur.questions.filter((x) => x !== q) });
+export function removeVisitQuestion(text: string) {return update(v=>({...v,questions:v.questions.filter(q=>q!==text)}));}
+export function addVisitMedication(id: string) {if(medicationById(id)?.noteOnly)return false;return update(v=>({...v,meds:strings([...v.meds,id])}));}
+export function removeVisitMedication(id: string) {
+  return update(v=>{const md={...v.medDetails};delete md[id];return {...v,meds:v.meds.filter(m=>m!==id),medDetails:md};});
 }
-
-function extractMedId(medOrId: any): string {
-  if (typeof medOrId === 'string') return medOrId.trim();
-  if (medOrId && typeof medOrId === 'object') {
-    if (typeof (medOrId as any).id === 'string') return (medOrId as any).id.trim();
-    if (typeof (medOrId as any).medId === 'string') return (medOrId as any).medId.trim();
-    if (typeof (medOrId as any).slug === 'string') return (medOrId as any).slug.trim();
-  }
-  return '';
+export function setVisitMedicationField(id:string,field:keyof MedDetail,value:string) {
+  return update(v=>({...v,meds:strings([...v.meds,id]),medDetails:{...v.medDetails,[id]:{...v.medDetails[id],[field]:value}}}));
 }
-
-export function addVisitMedication(medOrId: any) {
-  const id = extractMedId(medOrId);
-  if (!id) return;
-
-  const cur = getVisit();
-  if (cur.meds.includes(id)) return;
-
-  setVisit({ ...cur, meds: [...cur.meds, id] });
+export function upsertChecklist(id:string,title:string,lines:string[]) {
+  return update(v=>({...v,checklists:{...v.checklists,[id]:{id,title,lines,updatedAt:new Date().toISOString()}}}));
 }
-
-export function removeVisitMedication(medOrId: any) {
-  const id = extractMedId(medOrId);
-  if (!id) return;
-
-  const cur = getVisit();
-  const nextDetails = { ...(cur.medDetails ?? {}) };
-  delete nextDetails[id];
-
-  setVisit({
-    ...cur,
-    meds: cur.meds.filter((x) => x !== id),
-    medDetails: nextDetails,
-  });
+export function removeChecklist(id:string) {
+  return update(v=>{const next={...v.checklists};delete next[id];return {...v,checklists:next};});
 }
-
-export function setVisitMedicationField(medId: string, field: keyof MedDetail, value: string) {
-  const id = (medId ?? '').toString().trim();
-  if (!id) return;
-
-  const cur = getVisit();
-  const nextDetails: Record<string, MedDetail> = { ...(cur.medDetails ?? {}) };
-  const prev: MedDetail = nextDetails[id] ?? {};
-
-  const v = (value ?? '').toString();
-  const t = v.trim();
-
-  const next: MedDetail = { ...prev };
-  if (!t) delete (next as any)[field];
-  else (next as any)[field] = v;
-
-  if (Object.keys(next).length === 0) delete nextDetails[id];
-  else nextDetails[id] = next;
-
-  const meds = cur.meds.includes(id) ? cur.meds : [...cur.meds, id];
-
-  setVisit({ ...cur, meds, medDetails: nextDetails });
-}
-
-export const addVisitMed = addVisitMedication;
-export const removeVisitMed = removeVisitMedication;
-export const addVisitDrug = addVisitMedication;
-export const removeVisitDrug = removeVisitMedication;
-
-export function subscribeVisit(onChange: () => void) {
-  const handler = () => onChange();
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === KEY || e.key === LEGACY_Q || e.key === LEGACY_M) onChange();
-  };
-
-  window.addEventListener(EVENT, handler);
-  window.addEventListener('storage', onStorage);
-
-  return () => {
-    window.removeEventListener(EVENT, handler);
-    window.removeEventListener('storage', onStorage);
-  };
+export function clearVisit(){return update(()=>empty());}
+export function subscribeVisit(handler:()=>void) {
+  const storage = (e:StorageEvent)=>{if(!e.key || e.key===VISIT_KEY || e.key.startsWith('parentguide.'))handler();};
+  window.addEventListener(EVENT,handler);
+  window.addEventListener('storage',storage);
+  return ()=>{window.removeEventListener(EVENT,handler);window.removeEventListener('storage',storage);};
 }

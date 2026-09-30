@@ -1,263 +1,56 @@
-import React, { useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { cleanTitle } from '../lib/format';
+import React from 'react';
+import {Link,Navigate,useParams,useSearchParams,useLocation} from 'react-router-dom';
+import {diagnosisById,medicationById,parentGroup,dxName,topicLabel,treatmentGuideFor,treatmentGuidesForDiagnosis,treatmentRelationLabels} from '../lib/content';
 import PageHeader from '../components/PageHeader';
 import Disclosure from '../components/Disclosure';
-import Checklist, { ChecklistItem } from '../components/Checklist';
-
-import { routes } from '../app/routes';
-import { toast } from '../lib/toast';
-import { addVisitQuestion } from '../lib/visit';
-
-import diagnosesRaw from '../content/diagnoses.json';
-import medsRaw from '../content/medications.json';
-
-type Source = { label: string; url?: string };
-
-type DiagnosisContent = {
-  id: string;
-  title: string;
-  summary?: string;
-
-  simplifiedCriteria?: string[];
-  fullCriteriaChecklist?: { title?: string; items: ChecklistItem[] };
-
-  questionsToDoctor?: string[];
-
-  effectiveMeds?: string[];
-  evidenceApproaches?: string[];
-  ineffectivePharm?: string[];
-
-  redFlags?: string[];
-  sources?: Source[];
-};
-
-type DiagnosisGroup = {
-  kind: 'group';
-  id: string;
-  title: string;
-  summary?: string;
-  children: string[];
-};
-
-type DxItem = DiagnosisContent | DiagnosisGroup;
-
-const diagnoses = diagnosesRaw as unknown as DxItem[];
-const meds = medsRaw as unknown as any[];
-
-function isGroup(x: DxItem): x is DiagnosisGroup {
-  return (x as any).kind === 'group';
-}
-
+import Observations from '../components/Observations';
+import QuestionButton from '../components/QuestionButton';
+import Sources from '../components/Sources';
+import Icon from '../components/Icon';
+import NonpharmHelp from '../components/NonpharmHelp';
+import {journalTemplatesForDiagnosis} from '../lib/journalContent';
+import {screenerById} from '../lib/screeningContent';
 export default function DiagnosisDetail() {
-  const { id } = useParams();
-  const dxId = id ?? '';
-
-  const item = useMemo(() => {
-    return diagnoses.find((x: any) => (x as any).id === dxId) as DxItem | undefined;
-  }, [dxId]);
-
-const medsById = useMemo(() => {
-  const m = new Map<string, any>();
-  for (const it of meds) {
-    if ((it as any).kind === 'group') continue;
-    m.set((it as any).id, it);
-  }
-  return m;
-}, []);
-
-
-  // --- Not found
-  if (!item) {
-    return (
-      <div className="container">
-        <PageHeader
-          title="Диагноз не найден"
-          subtitle="Проверьте ссылку или выберите диагноз из списка"
-          backTo={routes.diagnoses}
-          backLabel="Диагнозы"
-        />
-      </div>
-    );
-  }
-
-  // --- GROUP VIEW
-  if (isGroup(item)) {
-    const g = item;
-
-    return (
-      <div className="container">
-        <PageHeader
-          title={g.title}
-          subtitle={g.summary}
-          backTo={routes.diagnoses}
-          backLabel="Диагнозы"
-        />
-
-        <div className="card" style={{ padding: 12 }}>
-          <div style={{ fontWeight: 900, marginBottom: 10 }}>Выберите диагноз</div>
-
-          <div className="list">
-            {g.children.map((cid) => {
-              const child = diagnoses.find(
-                (x: any) => (x as any).id === cid && (x as any).kind !== 'group'
-              ) as DiagnosisContent | undefined;
-
-              return (
-                <Link key={cid} className="item" to={routes.diagnosis(cid)}>
-                  <div className="listItem">
-                    <div className="listItemMain">
-                      <div className="listItemTitle">{child?.title ?? cid}</div>
-                      {!!child?.summary && <div className="listItemDesc">{child.summary}</div>}
-                    </div>
-                    <div className="listItemRight">›</div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-
-        <div style={{ height: 80 }} />
-      </div>
-    );
-  }
-
-  // --- NORMAL DIAGNOSIS VIEW
-  const d = item as DiagnosisContent;
-
-  return (
-    <div className="container">
-      <PageHeader
-        title={d.title}
-        subtitle={d.summary}
-        backTo={routes.diagnoses}
-        backLabel="Диагнозы"
-      />
-
-      <div style={{ display: 'grid', gap: 12 }}>
-        {!!(d.simplifiedCriteria && d.simplifiedCriteria.length) && (
-          <Disclosure title="Упрощённые критерии" defaultOpen={false} tone="neutral">
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {d.simplifiedCriteria.map((x, i) => (
-                <li key={i}>{x}</li>
-              ))}
-            </ul>
-          </Disclosure>
-        )}
-
-        {!!d.fullCriteriaChecklist?.items?.length && (
-          <Disclosure title="Полные критерии (чек-лист)" defaultOpen={false} tone="neutral">
-            <Checklist
-              storageKey={`dx:${d.id}:fullCriteria`}
-              items={d.fullCriteriaChecklist.items}
-              hint={d.fullCriteriaChecklist.title}
-              submitLabel="Отправить чек-лист в «К врачу»"
-              onSubmit={(selected) => {
-                const lines = selected.map((x, i) => `${i + 1}. ${x.text}`);
-                const text =
-                  `[DX] ${d.title}: Полные критерии\n` +
-                  (lines.length ? lines.join('\n') : '(пока нет отмеченных пунктов)');
-
-                addVisitQuestion(text);
-                toast('Чек-лист добавлен в «К врачу» → «Диагнозы (чек-листы)».', { variant: 'success' });
-              }}
-            />
-          </Disclosure>
-        )}
-
-        {!!(d.questionsToDoctor && d.questionsToDoctor.length) && (
-          <Disclosure title="Вопросы к врачу" defaultOpen={false} tone="neutral">
-            <div style={{ display: 'grid', gap: 10 }}>
-              {d.questionsToDoctor.map((q, i) => (
-                <div key={i} className="card" style={{ padding: 10 }}>
-                  <div style={{ marginBottom: 8 }}>{q}</div>
-                  <button className="btn compact" type="button" onClick={() => addVisitQuestion(q)}>
-                    Добавить в «К врачу»
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <div className="muted" style={{ marginTop: 10 }}>
-              Все добавленные вопросы будут в разделе “К врачу”.
-            </div>
-          </Disclosure>
-        )}
-
-        {!!(d.effectiveMeds && d.effectiveMeds.length) && (
-          <Disclosure title="Эффективные препараты" defaultOpen={false} tone="green">
-            <div className="list">
-              {d.effectiveMeds.map((mid) => {
-                const m = medsById.get(mid);
-                if (!m) return null;
-
-                return (
-                  <Link key={mid} className="item" to={routes.medication(mid)}>
-                    <div className="listItem">
-                      <div className="listItemMain">
-<div className="listItemTitle">{cleanTitle(m.name ?? m.title ?? mid)}</div>
-                        {!!m.class && <div className="listItemDesc">{m.class}</div>}
-                      </div>
-                      <div className="listItemRight">›</div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </Disclosure>
-        )}
-
-        {!!(d.evidenceApproaches && d.evidenceApproaches.length) && (
-          <Disclosure title="Доказательные подходы" defaultOpen={false} tone="lime">
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {d.evidenceApproaches.map((x, i) => (
-                <li key={i}>{x}</li>
-              ))}
-            </ul>
-          </Disclosure>
-        )}
-
-        {!!(d.ineffectivePharm && d.ineffectivePharm.length) && (
-          <Disclosure title="Неэффективная фармакотерапия" defaultOpen={false} tone="red">
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {d.ineffectivePharm.map((x, i) => (
-                <li key={i}>{x}</li>
-              ))}
-            </ul>
-          </Disclosure>
-        )}
-
-        {!!(d.redFlags && d.redFlags.length) && (
-          <Disclosure title="Красные флаги — когда нужно обращаться срочно" defaultOpen={false} tone="red">
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {d.redFlags.map((x, i) => (
-                <li key={i}>{x}</li>
-              ))}
-            </ul>
-          </Disclosure>
-        )}
-
-        {!!(d.sources && d.sources.length) && (
-          <Disclosure title="Источники" defaultOpen={false} tone="neutral">
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {d.sources.map((s, i) => (
-                <li key={i}>
-                  {s.url ? (
-                    <a href={s.url} target="_blank" rel="noreferrer">
-                      {s.label}
-                    </a>
-                  ) : (
-                    <span>{s.label}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </Disclosure>
-        )}
-      </div>
-
-      <div style={{ height: 80 }} />
-    </div>
-  );
+ const {id=''}=useParams(),[params,setParams]=useSearchParams(),location=useLocation(),d=diagnosisById(id);
+ if(!d)return <div className="container"><PageHeader title="Такой карточки пока нет" backTo="/diagnoses" backLabel="Все диагнозы"/><Link to="/diagnoses" className="btn">Выбрать диагноз</Link></div>;
+ if(d.kind==='group')return <Navigate to={'/diagnoses/group/'+d.id} replace/>;
+ const group=parentGroup(id),tab=['understand','help','visit'].includes(params.get('tab')||'')?params.get('tab')!:'understand';
+ const tabs=[{id:'understand',label:'Понять'},{id:'help',label:'Помощь'},{id:'visit',label:'К врачу'}];
+ const from=typeof location.state?.from==='string'&&/^\/diagnoses\?/.test(location.state.from)?location.state.from:undefined;
+ const additionalGuides=treatmentGuidesForDiagnosis(id).filter(g=>!d.effectiveMeds?.includes(g.medicationId));
+ return <div className="container" key={id}><PageHeader title={dxName(d)} subtitle={d.summary} eyebrow={topicLabel(d)+' · разберёмся вместе'} backTo={from||(group?'/diagnoses/group/'+group.id:'/diagnoses')} backLabel={from?'Результаты поиска':group?group.title:'Все темы'}/>
+ <div className="segmented" aria-label="Разделы карточки">{tabs.map(t=><button key={t.id} className={tab===t.id?'active':''} aria-pressed={tab===t.id} onClick={()=>setParams({tab:t.id},{replace:true,state:location.state})}>{t.label}</button>)}</div>
+ <div className="stack">
+ {tab==='understand'&&<>
+ {d.introduction&&<section className="card"><div className="eyebrow">Простыми словами</div><h2 style={{marginBottom:14}}>{d.introductionTitle||'Что означает диагноз'}</h2>{d.introduction.map((text,i)=><p className="introText" key={i}>{text}</p>)}</section>}
+ {d.takeaways&&<div className="summaryCards">{d.takeaways.map(item=><section key={item.title} className="card summaryCard"><h3>{item.title}</h3><p>{item.text}</p></section>)}</div>}
+ {!!d.relatedTopics?.length&&<section className="card"><h2 style={{marginBottom:14}}>Выберите нужную тему</h2><div className="topics">{d.relatedTopics.map(topicId=>{const topic=diagnosisById(topicId);return topic?<Link key={topicId} className="topic" to={'/diagnoses/'+topicId}>{dxName(topic)}</Link>:null;})}</div></section>}
+ <Disclosure title={d.topicKind&&d.topicKind!=='diagnosis'?'Что важно обсудить со специалистом':'Как врач обосновывает диагноз'} defaultOpen={!d.introduction}><ul>{d.simplifiedCriteria?.map((x,i)=><li key={i}>{x}</li>)}</ul><p className="small muted">Это ориентиры для разговора, а не полный диагностический протокол.</p></Disclosure>
+ {!!d.diagnosticNotes?.length&&<Disclosure title="Что ещё важно уточнить"><ul>{d.diagnosticNotes.map((x,i)=><li key={i}>{x}</li>)}</ul></Disclosure>}
+ <div className="buttonRow"><button className="btn" onClick={()=>setParams({tab:'help'},{replace:true,state:location.state})}>Какая помощь бывает полезна<Icon name="arrow" size={17}/></button></div>
+ </>}
+ {tab==='help'&&<>
+ <div className="card soft"><div className="eyebrow">План помощи</div><h2>Сделать жизнь посильнее</h2><p style={{marginTop:10}}>{d.ageGuidance||'План подбирают под конкретные трудности ребёнка. Обсудите со специалистом, что сейчас важнее всего для вашей семьи.'}</p></div>
+ {!!d.homeHelp?.length&&<section className="card"><h2 style={{marginBottom:18}}>Что можно изменить в повседневной жизни</h2><div className="stack">{d.homeHelp.map(item=><div key={item.title}><h3>{item.title}</h3><p className="muted" style={{marginTop:5,fontSize:14}}>{item.text}</p></div>)}</div></section>}
+ <NonpharmHelp diagnosisId={id}/>
+ <Disclosure title="Подробнее о немедикаментозных методах"><ul>{d.evidenceApproaches?.map((x,i)=><li key={i}>{x}</li>)}</ul></Disclosure>
+ <Disclosure title={id==='asd'?'Препараты для отдельных трудностей':'Когда обсуждают препараты'}>
+ <p className="small muted">{d.evidenceNote||'Каждое назначение нужно связать с конкретной целью. Подходящий препарат и его место в плане определяет врач.'}</p>
+ {d.effectiveMeds?.length?<div className="list" style={{marginTop:15}}>{d.effectiveMeds.map(mid=>{const m=medicationById(mid),g=treatmentGuideFor(id,mid);return m?<Link className="listCard" key={mid} to={'/review?dx='+id+'&med='+mid}><div className="listMain"><h3>{m.name}</h3><p>{g?treatmentRelationLabels[g.relationKind]:'Разобраться в назначении'}</p></div><Icon name="arrow" size={16}/></Link>:null;})}</div>:<p style={{marginTop:12}}>В этой памятке нет списка препаратов для лечения основного расстройства. Обсудите с врачом цель, если лекарство всё же назначено.</p>}
+ </Disclosure>
+ <Disclosure title="Какие назначения стоит уточнить"><ul>{d.ineffectivePharm?.map((x,i)=><li key={i}>{x}</li>)}</ul><p className="small muted">Не меняйте уже назначенную схему самостоятельно. Сохраните вопросы и обсудите их с лечащим врачом.</p></Disclosure>
+ {!!additionalGuides.length&&<Disclosure title={'Разборы других назначений · '+additionalGuides.length}><p className="small muted">Здесь есть сопутствующие задачи, ограниченные данные и назначения, которые стоит пересмотреть с врачом. Это не список рекомендуемых препаратов.</p><div className="list" style={{marginTop:14}}>{additionalGuides.map(g=>{const m=medicationById(g.medicationId);return m?<Link className="listCard" key={g.medicationId} to={'/review?dx='+id+'&med='+g.medicationId}><div className="listMain"><span className={'tag '+(['limited','not_recommended'].includes(g.relationKind)?'warm':'')}>{treatmentRelationLabels[g.relationKind]}</span><h3>{m.name}</h3></div><Icon name="arrow" size={16}/></Link>:null;})}</div></Disclosure>}
+ <button className="btn full" onClick={()=>setParams({tab:'visit'},{replace:true,state:location.state})}>Подготовить вопросы врачу<Icon name="arrow" size={17}/></button>
+ </>}
+ {tab==='visit'&&<>
+ <div className="callout"><strong>Соберите то, что важно именно вам</strong><p>Вопросы и наблюдения попадут в памятку. Её можно скопировать или скачать перед приёмом.</p></div>
+ {!!d.screeningIds?.length&&<section className="card"><h2>Тесты и шкалы для обсуждения</h2><p className="small muted" style={{marginTop:10}}>Проверьте возраст и того, кто должен отвечать. Результат помогает обсудить трудности; он не устанавливает диагноз.</p><div className="list" style={{marginTop:14}}>{d.screeningIds.map(sid=>{const s=screenerById(sid);return s?<Link key={sid} className="listCard" to={'/screenings/'+sid}><div className="listMain"><h3>{s.name} · {s.title}</h3><p>{s.ageLabel}</p></div><Icon name="arrow" size={16}/></Link>:null;})}</div></section>}
+ <section className="card"><h2>Дневники перед консультацией</h2><p className="small muted" style={{marginTop:10}}>Выберите одну актуальную задачу. Сохраняйте примеры изменений и трудностей; заполнять все формы не нужно.</p><div className="topics" style={{marginTop:14}}>{journalTemplatesForDiagnosis(id).map(f=><Link key={f.id} className="topic" to={'/forms/'+f.id}>{f.title}</Link>)}</div></section>
+ <section className="card"><h2 style={{marginBottom:18}}>Что спросить у врача</h2>{d.questionsToDoctor?.map(q=><div className="question" key={q}><p>{q}</p><QuestionButton question={q} compact/></div>)}</section>
+ {!!d.fullCriteriaChecklist?.items.length&&<Disclosure title={id==='adhd'?'Что мы уже знаем о диагнозе':d.observationTitle||'Мои наблюдения'}><Observations key={id} dxId={id} title={dxName(d)} items={d.fullCriteriaChecklist.items}/></Disclosure>}
+ <Link to="/visit" className="btn full"><Icon name="note"/>Открыть памятку к приёму</Link>
+ </>}
+ {!!d.redFlags?.length&&<Disclosure title="Когда обратиться за помощью быстрее" tone="red"><ul>{d.redFlags.map((x,i)=><li key={i}>{x}</li>)}</ul><Link to="/help" className="btn secondary compact">Если есть непосредственная опасность</Link></Disclosure>}
+ <Sources items={d.sources||[]} updatedAt={d.updatedAt}/>
+ </div></div>;
 }

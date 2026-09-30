@@ -1,144 +1,26 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import PageHeader from '../components/PageHeader';
-import { routes } from '../app/routes';
-import { getTgUserFirstName } from '../lib/twa';
-import meta from '../content/meta.json';
-
-function IconList() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M7 6h14v2H7V6zm0 5h14v2H7v-2zm0 5h14v2H7v-2zM3 6h2v2H3V6zm0 5h2v2H3v-2zm0 5h2v2H3v-2z"
-      />
-    </svg>
-  );
-}
-
-function IconPill() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M17.7 6.3a6 6 0 0 0-8.5 0l-2.9 2.9a6 6 0 0 0 8.5 8.5l2.9-2.9a6 6 0 0 0 0-8.5zm-1.4 7.1l-2.9 2.9a4 4 0 1 1-5.7-5.7l1.1-1.1 7.5 7.5zM9.9 8.7l.7-.7a4 4 0 0 1 5.7 5.7l-.7.7-5.7-5.7z"
-      />
-    </svg>
-  );
-}
-
-function IconChat() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="currentColor"
-        d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4v2.5c0 .4.5.6.8.3L13.6 20H20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14h-7.1l-3.9 3V18H4V6h16v12z"
-      />
-    </svg>
-  );
-}
-
+import {Link} from 'react-router-dom';
+import Icon from '../components/Icon';
+import {useVisit} from '../lib/useVisit';
+import {useJournals} from '../lib/useJournals';
+import {useScreenings} from '../lib/useScreenings';
 export default function Home() {
-  const name = getTgUserFirstName();
-
-  return (
-    <div className="container">
-      <PageHeader
-        title="PsyParent"
-        subtitle="Второе мнение по диагнозу и терапии по международным рекомендациям"
-      />
-
-      <div className="card">
-        <div className="col">
-          <div>
-            <div style={{ fontWeight: 950 }}>
-              {name ? `Привет, ${name}!` : 'Привет!'}
-            </div>
-            <div className="muted" style={{ marginTop: 6 }}>
-              Это справочник для родителей: критерии, доказательные подходы и вопросы к врачу.
-              Не заменяет очную консультацию.
-            </div>
-          </div>
-
-          {/* Плитки вместо обычных кнопок */}
-          <div style={{ display: 'grid', gap: 10 }}>
-            <Link className="item" to={routes.diagnoses}>
-              <div className="listItem">
-                <div className="listItemMain">
-                  <div className="listItemTitle" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span className="muted" style={{ display: 'inline-flex' }}><IconList /></span>
-                    Выбрать диагноз
-                  </div>
-                  <div className="listItemDesc">Критерии, красные флаги, вопросы к врачу</div>
-                </div>
-                <div className="listItemRight">›</div>
-              </div>
-            </Link>
-
-            <Link className="item" to={routes.medications}>
-              <div className="listItem">
-                <div className="listItemMain">
-                  <div className="listItemTitle" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span className="muted" style={{ display: 'inline-flex' }}><IconPill /></span>
-                    Лечение / препараты
-                  </div>
-                  <div className="listItemDesc">Когда обсуждают, что мониторят, что важно</div>
-                </div>
-                <div className="listItemRight">›</div>
-              </div>
-            </Link>
-
-            <Link className="item" to={routes.visit}>
-              <div className="listItem">
-                <div className="listItemMain">
-                  <div className="listItemTitle" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span className="muted" style={{ display: 'inline-flex' }}><IconChat /></span>
-                    К врачу
-                  </div>
-                  <div className="listItemDesc">Соберите вопросы и чек-листы — можно копировать одним нажатием</div>
-                </div>
-                <div className="listItemRight">›</div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ height: 12 }} />
-
-      <div className="card">
-        <div className="h2">Быстрый старт</div>
-        <div className="row" style={{ gap: 8 }}>
-<Link className="pill" to={routes.diagnosis('adhd')}>СДВГ</Link>
-<Link className="pill" to={routes.diagnosis('asd')}>РАС</Link>
-<Link className="pill" to={routes.diagnosis('anxiety')}>Тревога</Link>
-<Link className="pill" to={routes.diagnosis('depression')}>Депрессия</Link>
-<Link className="pill" to={routes.diagnosis('ocd')}>ОКР</Link>
-
-        </div>
-        <div className="muted" style={{ marginTop: 8 }}>
-          Это справочник. Он не заменяет очную консультацию.
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="h2">Как пользоваться</div>
-        <ol className="muted">
-          <li>Выберите диагноз (как он написан в заключении).</li>
-          <li>Посмотрите критерии и что важно уточнить у врача.</li>
-          <li>Соберите список вопросов на приём в разделе «К врачу».</li>
-        </ol>
-      </div>
-
-      <div className="card">
-        <div className="h2">О проекте</div>
-        <div className="muted">{meta.disclaimer}</div>
-        <div className="muted" style={{ marginTop: 8 }}>
-          Версия контента: <b>{meta.contentVersion}</b>
-        </div>
-      </div>
-
-      <div style={{ height: 12 }} />
-    </div>
-  );
+ const visit=useVisit(),results=useScreenings(),journals=useJournals(),count=visit.questions.length+visit.meds.length+Object.keys(visit.checklists).length+results.filter(r=>r.includeInVisit).length+journals.filter(r=>r.includeInVisit).length;
+ return <div className="container">
+ <div className="brandRow"><Link className="brand" to="/"><span className="brandMark"><Icon name="leaf" size={22}/></span>PsyParent</Link><span className="releaseBadge">Для родителей</span></div>
+ <section className="hero"><div className="heroMark"><Icon name="leaf" size={185}/></div><div className="eyebrow">Понятно о детской психиатрии</div><h1>После приёма<br/>хочется ясности.</h1><p>Разберитесь в диагнозе и назначениях. Сохраните вопросы, которые важно обсудить с врачом.</p><div className="heroFoot"><Icon name="shield" size={16}/>С опорой на научные данные</div></section>
+ <div className="sectionHeading"><h2>С чего начнём?</h2></div>
+ <div className="actionGrid">
+ <Link to="/diagnoses" className="actionCard primary"><span className="actionIcon"><Icon name="book" size={23}/></span><div className="actionMain"><h3>Разобраться в диагнозе</h3><p>Что означает заключение и какая помощь бывает полезна</p></div><Icon name="arrow" size={18}/></Link>
+ <Link to="/review" className="actionCard"><span className="actionIcon"><Icon name="pill" size={23}/></span><div className="actionMain"><h3>Разобрать назначения</h3><p>Цель препарата, наблюдение и вопросы врачу</p></div><Icon name="arrow" size={18}/></Link>
+ <Link to="/specialists" className="actionCard"><span className="actionIcon"><Icon name="heart" size={23}/></span><div className="actionMain"><h3>Выбрать специалиста и занятия</h3><p>Кто помогает с речью, эмоциями, поведением и обучением</p></div><Icon name="arrow" size={18}/></Link>
+ <Link to="/screenings" className="actionCard"><span className="actionIcon"><Icon name="check" size={23}/></span><div className="actionMain"><h3>Пройти скрининг</h3><p>Опросники по возрасту и результаты для визита к врачу</p></div><Icon name="arrow" size={18}/></Link>
+ <Link to="/forms" className="actionCard"><span className="actionIcon"><Icon name="clock" size={23}/></span><div className="actionMain"><h3>Дневники и формы</h3><p>Сон, поведение, переносимость лечения и наблюдения за изменениями</p></div><Icon name="arrow" size={18}/></Link>
+ <Link to="/visit" className="actionCard"><span className="actionIcon"><Icon name="note" size={23}/></span><div className="actionMain"><h3>Памятка к приёму</h3><p>{count?'Сохранённых записей: '+count+'. Можно продолжить.':'Соберите всё важное в одном месте'}</p></div><Icon name="arrow" size={18}/></Link>
+ </div>
+ <div className="sectionHeading"><h2>Частые темы</h2><Link to="/diagnoses">Все темы</Link></div>
+ <div className="topics"><Link className="topic" to="/diagnoses/adhd">СДВГ</Link><Link className="topic" to="/diagnoses/asd">Аутизм</Link><Link className="topic" to="/diagnoses/group/anxiety">Тревога и страхи</Link><Link className="topic" to="/diagnoses/depression">Депрессия</Link><Link className="topic" to="/diagnoses/group/stress">Стресс и травма</Link><Link className="topic" to="/diagnoses/group/eating_disorders">Питание</Link></div>
+ <div className="authorCard"><span className="authorAvatar">СК</span><div><strong>Материалы Степана Краснощекова</strong><p>Детский психиатр.</p><p>Справочник помогает подготовиться к разговору со специалистом.</p></div></div>
+ <div className="footerLinks"><Link to="/about">О проекте и ваших данных</Link><Link to="/help">Когда нужна срочная помощь</Link></div>
+ </div>;
 }

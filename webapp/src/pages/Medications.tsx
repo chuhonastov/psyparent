@@ -1,95 +1,23 @@
-import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import {Link,useSearchParams} from 'react-router-dom';
+import {medications,medicationCategories} from '../lib/content';
+import {matchesQuery} from '../lib/search';
+import Icon from '../components/Icon';
 import PageHeader from '../components/PageHeader';
-import medsRaw from '../content/medications.json';
-import { routes } from '../app/routes';
-
-type MedLeaf = { id: string; name?: string; title?: string; class?: string; summary?: string };
-type MedGroup = { kind: 'group'; id: string; title: string; summary?: string; children: string[] };
-type MedItem = MedLeaf | MedGroup;
-
-const meds = medsRaw as unknown as MedItem[];
-
-function isGroup(x: MedItem): x is MedGroup {
-  return (x as any).kind === 'group';
-}
-
 export default function Medications() {
-  const [q, setQ] = useState('');
-
-  const items = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    // По умолчанию показываем только рубрики.
-    if (!query) return meds.filter((m) => isGroup(m));
-
-    // При поиске показываем и рубрики, и препараты.
-    return meds.filter((m: any) => {
-      const title = (m.title ?? m.name ?? '').toLowerCase();
-      const cls = (m.class ?? '').toLowerCase();
-      const summary = (m.summary ?? '').toLowerCase();
-      return title.includes(query) || cls.includes(query) || summary.includes(query);
-    });
-  }, [q]);
-
-  return (
-    <div className="container">
-      <PageHeader
-        title="Лечение"
-        subtitle="Препараты: когда обсуждают, что мониторят, что важно"
-        back
-      />
-
-      <div className="card">
-        <div className="searchBar">
-          <input
-            className="input"
-            placeholder="Поиск (например: атомоксетин, стимуляторы, СИОЗС)"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-          <div className="muted" style={{ fontSize: 13 }}>
-            {q.trim()
-              ? `Найдено: ${items.length}`
-              : `Рубрик: ${meds.filter((m) => isGroup(m)).length}`}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ height: 12 }} />
-
-      {items.length === 0 ? (
-        <div className="emptyState">
-          Ничего не найдено. Попробуйте другой запрос (например: «атомоксетин», «СИОЗС»).
-        </div>
-      ) : (
-        <div className="list">
-          {items.map((m: any) => {
-            const group = isGroup(m);
-            const id = m.id;
-            const title = group ? m.title : (m.name ?? m.title ?? id);
-            const cls = group ? undefined : m.class;
-            const to = group ? routes.medicationGroup(id) : routes.medication(id);
-
-            return (
-              <Link key={id} className="item" to={to}>
-                <div className="listItem">
-                  <div className="listItemMain">
-                    <div className="listItemTitle">
-                      {title}
-                      {group && <span className="tag" style={{ marginLeft: 8 }}>рубрика</span>}
-                    </div>
-                    {!!m.summary && <div className="listItemDesc">{m.summary}</div>}
-                    {!!cls && <div className="listItemDesc">{cls}</div>}
-                  </div>
-                  <div className="listItemRight">›</div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
-      <div style={{ height: 16 }} />
-    </div>
-  );
+ const [params,setParams]=useSearchParams(),q=params.get('q')||'',category=params.get('category')||'';
+ const set=(key:string,value:string)=>{const next=new URLSearchParams(params);value?next.set(key,value):next.delete(key);setParams(next,{replace:true});};
+ const validCategory=medicationCategories.some(c=>c.id===category)?category:'';
+ const items=medications.filter(m=>(!validCategory||m.category===validCategory)&&matchesQuery(q,[m.name,...(m.aliases||[]),...(m.searchTerms||[])],m.class)).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+ const from='/medications'+(params.toString()?'?'+params.toString():'');
+ return <div className="container"><PageHeader title="Разобраться в лечении" subtitle="У каждого назначения должна быть понятная цель." backTo="/" backLabel="Главная"/>
+ <Link to="/review" className="actionCard primary"><span className="actionIcon"><Icon name="pill" size={23}/></span><div className="actionMain"><h3>Разобрать своё назначение</h3><p>Выберите диагноз и препарат, затем сохраните вопросы врачу</p></div><Icon name="arrow" size={18}/></Link>
+ <Link to="/specialists" className="actionCard" style={{marginTop:14}}><span className="actionIcon"><Icon name="heart" size={23}/></span><div className="actionMain"><h3>Специалисты и занятия</h3><p>Психотерапия, речь, обучение и бытовые навыки: цели, польза и ограничения</p></div><Icon name="arrow" size={18}/></Link>
+ <div className="callout" style={{marginTop:14}}><strong>План по вашей ситуации</strong><p>Немедикаментозная помощь и варианты лечения собраны в <Link to="/diagnoses">карточке диагноза</Link>, в разделе «Помощь».</p></div>
+ <div className="sectionHeading"><h2>Препараты и памятки</h2></div>
+ <div className="searchWrap"><Icon name="search"/><input className="input" type="search" aria-label="Поиск препарата" placeholder="Например, Велаксин или венлафаксин" value={q} onChange={e=>set('q',e.target.value)}/>{q&&<button className="clearSearch" aria-label="Очистить поиск" onClick={()=>set('q','')}><Icon name="close" size={17}/></button>}</div>
+ <label className="fieldLabel filterLabel" htmlFor="medication-category">Группа препаратов</label><select id="medication-category" value={validCategory} onChange={e=>set('category',e.target.value)}><option value="">Все группы</option>{medicationCategories.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select>
+ <p className="searchMeta" role="status">{q||validCategory?'Найдено: '+items.length:'Карточек: '+medications.length+' · по алфавиту'}</p>
+ {items.length?<div className="list">{items.map(m=><Link className="listCard" key={m.id} state={{from}} to={'/medications/'+m.id}><div className="listMain">{m.noteOnly&&<span className="tag warm">Памятка</span>}<h3>{m.name}</h3><p>{q&&m.aliases?.some(a=>matchesQuery(q,[a]))?m.aliases.join(' · '):m.class}</p></div><Icon name="arrow" size={17}/></Link>)}</div>:<div className="emptyState"><Icon name="search" size={28}/><h3>Такой карточки пока нет</h3><p>{validCategory?'Попробуйте поиск во всех группах или другое название.':'Попробуйте действующее вещество с упаковки. Отсутствие препарата в справочнике не говорит о его эффективности.'}</p>{validCategory&&<button className="btn secondary" onClick={()=>set('category','')}>Искать во всех группах</button>}<Link className="btn secondary" to="/visit">Записать вопрос врачу</Link></div>}
+ </div>;
 }
