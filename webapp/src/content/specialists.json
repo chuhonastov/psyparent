@@ -64,7 +64,9 @@
         "url": "https://www.nice.org.uk/guidance/ng87/chapter/recommendations"
       }
     ],
-    "updatedAt": "2026-09-30"
+    "updatedAt": "2026-09-30",
+    "shortTitle": "Психолог",
+    "whenNeeded": "Психолог нужен, если есть тревога, трудное поведение, конфликты в семье или нужна оценка развития."
   },
   {
     "id": "psychotherapy",
@@ -136,7 +138,9 @@
         "url": "https://www.nice.org.uk/guidance/ng225/chapter/recommendations"
       }
     ],
-    "updatedAt": "2026-09-30"
+    "updatedAt": "2026-09-30",
+    "shortTitle": "Психотерапевт",
+    "whenNeeded": "Психотерапевт нужен при тревоге, депрессии, ОКР, последствиях травмы, самоповреждениях и расстройствах пищевого поведения."
   },
   {
     "id": "speech",
@@ -211,7 +215,9 @@
         "url": "https://www.asha.org/Practice-Portal/Clinical-Topics/Selective-Mutism/"
       }
     ],
-    "updatedAt": "2026-09-30"
+    "updatedAt": "2026-09-30",
+    "shortTitle": "Логопед",
+    "whenNeeded": "Логопед нужен, если ребёнок поздно заговорил, плохо понимает речь, говорит неразборчиво, заикается или с трудом учится читать и писать."
   },
   {
     "id": "special_educator",
@@ -277,7 +283,9 @@
         "url": "https://www.asha.org/Practice-Portal/Professional-Issues/Augmentative-and-Alternative-Communication/"
       }
     ],
-    "updatedAt": "2026-09-30"
+    "updatedAt": "2026-09-30",
+    "shortTitle": "Дефектолог",
+    "whenNeeded": "Дефектолог нужен при задержке развития, умственной отсталости, аутизме и стойких трудностях обучения."
   },
   {
     "id": "neuropsychologist",
@@ -338,7 +346,9 @@
         "url": "https://cps.ca/en/documents/position/developmental-coordination-disorder"
       }
     ],
-    "updatedAt": "2026-09-30"
+    "updatedAt": "2026-09-30",
+    "shortTitle": "Нейропсихолог",
+    "whenNeeded": "Нейропсихолог нужен для обследования, если трудности в учёбе неравномерные или после болезни и травмы мозга."
   },
   {
     "id": "behavior",
@@ -408,7 +418,9 @@
         "url": "https://www.nice.org.uk/guidance/cg31/chapter/Recommendations"
       }
     ],
-    "updatedAt": "2026-09-30"
+    "updatedAt": "2026-09-30",
+    "shortTitle": "Поведенческий терапевт",
+    "whenNeeded": "Поведенческий терапевт нужен при аутизме, умственной отсталости, опасном поведении, тиках и навязчивых привычках."
   },
   {
     "id": "occupational",
@@ -459,7 +471,9 @@
         "url": "https://www.nice.org.uk/guidance/cg170/chapter/recommendations"
       }
     ],
-    "updatedAt": "2026-09-30"
+    "updatedAt": "2026-09-30",
+    "shortTitle": "Эрготерапевт",
+    "whenNeeded": "Эрготерапевт нужен, если ребёнку трудно одеваться, есть, писать или справляться с бытом."
   },
   {
     "id": "physical",
@@ -505,7 +519,9 @@
         "url": "https://cps.ca/en/documents/position/developmental-coordination-disorder"
       }
     ],
-    "updatedAt": "2026-09-30"
+    "updatedAt": "2026-09-30",
+    "shortTitle": "Физический терапевт",
+    "whenNeeded": "Физический терапевт нужен при неловкости, трудностях координации или если болезнь ограничила движение."
   },
   {
     "id": "school",
@@ -561,7 +577,9 @@
         "url": "https://www.asha.org/practice-portal/clinical-topics/written-language-disorders/"
       }
     ],
-    "updatedAt": "2026-09-30"
+    "updatedAt": "2026-09-30",
+    "shortTitle": "Школьная команда",
+    "whenNeeded": "Школа подключается, если трудности мешают учиться, есть травля или ребёнок возвращается в класс после болезни."
   },
   {
     "id": "tutor",
@@ -611,7 +629,9 @@
         "url": "https://www.nice.org.uk/guidance/ng87/chapter/recommendations"
       }
     ],
-    "updatedAt": "2026-09-30"
+    "updatedAt": "2026-09-30",
+    "shortTitle": "Тьютор",
+    "whenNeeded": "Тьютор нужен, если ребёнку нужна помощь прямо на уроке: при аутизме, умственной отсталости, выраженном СДВГ."
   },
   {
     "id": "dietitian",
@@ -665,6 +685,8 @@
         "url": "https://www.nice.org.uk/guidance/cg170/chapter/recommendations"
       }
     ],
-    "updatedAt": "2026-09-30"
+    "updatedAt": "2026-09-30",
+    "shortTitle": "Диетолог",
+    "whenNeeded": "Диетолог нужен при очень узком рационе, недостатке веса, РПП или подтверждённом дефиците."
   }
 ]

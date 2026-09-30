@@ -64,7 +64,25 @@ for(const p of support){
  sources(p.sources,p.diagnosisId);
 }
 for(const s of specialists)assert(support.some(p=>p.providers.some(x=>x.specialistId===s.id)),'Unlinked specialist');
+// Pairs: every clinical diagnosis × medication and × specialist gets a review (written or general).
+const pairs=read('pair-context.json'),clinical=leaves.filter(d=>!d.topicKind||d.topicKind==='diagnosis');
+for(const s of specialists)assert(s.shortTitle?.trim()&&s.whenNeeded?.trim(),'Specialist needs shortTitle and whenNeeded: '+s.id);
+for(const p of support){
+ const roles=p.providers.map(x=>x.role);assert.deepEqual(roles,[...roles].sort((a,b)=>(a==='core'?0:1)-(b==='core'?0:1)),'Core providers must come first: '+p.diagnosisId);
+ for(const x of p.providers)assert(x.avoid===undefined||x.avoid.trim(),'Empty avoid note: '+p.diagnosisId);
+ for(const n of p.notFor||[]){assert(specialists.some(x=>x.id===n.specialistId),'Unknown specialist in notFor');assert(['limited','not_needed'].includes(n.kind)&&n.text?.trim(),'Bad notFor: '+p.diagnosisId);assert(!p.providers.some(x=>x.specialistId===n.specialistId),'Specialist both helps and does not: '+p.diagnosisId+'/'+n.specialistId);}
+}
+for(const d of clinical){const c=pairs.diagnoses[d.id];assert(c?.prep?.startsWith('при ')&&c.helps?.trim(),'Pair wording missing for '+d.id);}
+const ruleKinds=['limited','not_recommended','offlabel','other'];
+for(const m of meds.filter(x=>!x.noteOnly)){
+ const rules=pairs.medicationRules.filter(r=>r.ids.includes(m.id));assert.equal(rules.length,1,'Medication needs exactly one pair rule: '+m.id);
+ const r=rules[0];assert(ruleKinds.includes(r.kind)&&r.text.includes('{prep}'),'Bad pair rule for '+m.id);
+ if(r.kind==='other')assert(pairs.purpose[m.id]?.trim(),'Pair rule needs purpose: '+m.id);
+ if(r.kind==='offlabel')assert(pairs.usual[m.id]||guides.some(g=>g.medicationId===m.id&&['condition','specialist'].includes(g.relationKind)),'Pair rule needs usual use: '+m.id);
+}
+for(const r of pairs.medicationRules)for(const id of r.ids)assert(meds.some(m=>m.id===id&&!m.noteOnly),'Unknown medication in pair rule: '+id);
 for(const d of leaves)for(const id of d.screeningIds||[])assert(['mchat','sdq','phq9','gad7','ygtss','crafft','snapiv','psc17','scared','vanderbilt2002'].includes(id),'Unknown screener on '+d.id);
+console.log(`Pairs OK: ${guides.length} written medication reviews, general reviews for the other ${clinical.length*meds.filter(m=>!m.noteOnly).length-guides.length} of ${clinical.length*meds.filter(m=>!m.noteOnly).length} pairs; ${support.reduce((n,s)=>n+s.providers.length+(s.notFor?.length||0),0)} written specialist pairs.`);
 console.log(`Content OK: ${leaves.length} parent routes and support plans, ${specialists.length} specialists, ${support.reduce((n,s)=>n+s.providers.length,0)} support links; ${meds.length} medication/reference cards, ${guides.length} treatment guides.`);
 
 

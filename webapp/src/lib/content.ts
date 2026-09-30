@@ -33,14 +33,16 @@ export const topicLabel = (d: Diagnosis) => d.topicKind === 'overview' ? 'Обз
 export const parentGroup = (id: string) => diagnoses.find(d => d.children?.includes(id));
 export const dxName = (d: Diagnosis) => d.shortTitle || d.title;
 
-export type TreatmentRelation = 'condition'|'specialist'|'cooccurring'|'limited'|'not_recommended'|'safety';
+export type TreatmentRelation = 'condition'|'specialist'|'cooccurring'|'limited'|'not_recommended'|'safety'|'offlabel'|'other';
 export const treatmentRelationLabels:Record<TreatmentRelation,string>={
  condition:'Помогает при этом состоянии',
  specialist:'По особым показаниям',
  cooccurring:'При сопутствующей проблеме',
  limited:'Польза не доказана',
  not_recommended:'Не рекомендуется',
- safety:'Для побочных эффектов и безопасности'
+ safety:'Для побочных эффектов и безопасности',
+ offlabel:'Не основное лечение',
+ other:'Назначают по другому поводу'
 };
 export type TreatmentGuide = {diagnosisId:string; medicationId:string; relationKind:TreatmentRelation; summary:string; context:string; goals:string[]; questions?:string[]; sources:Source[]; updatedAt?:string};
 export const treatmentGuides=guidesRaw as TreatmentGuide[];
@@ -50,9 +52,10 @@ export const treatmentGuidesForMedication=(medicationId:string)=>treatmentGuides
 
 export type Limitation = {kind:'not_indicated'|'limited'|'harmful'|'adjunct';text:string};
 export const limitationLabels:Record<Limitation['kind'],string>={not_indicated:'Не решает эту задачу',limited:'Данных недостаточно',harmful:'Может навредить',adjunct:'Нужна другая помощь вместе с этой'};
-export type Specialist = {id:string;title:string;summary:string;domains:string[];helps:{situation:string;method:string;result:string}[];limitations:Limitation[];whatToCheck:string[];questions:string[];sources:Source[];updatedAt:string};
-export type SupportProvider = {specialistId:string;goal:string;method:string;role:'core'|'conditional'};
-export type NonpharmSupport = {diagnosisId:string;intro:string;priority?:string;providers:SupportProvider[];limitations:Limitation[];progress:string[];sources:Source[];updatedAt:string};
+export type Specialist = {id:string;title:string;shortTitle:string;whenNeeded:string;summary:string;domains:string[];helps:{situation:string;method:string;result:string}[];limitations:Limitation[];whatToCheck:string[];questions:string[];sources:Source[];updatedAt:string};
+export type SupportProvider = {specialistId:string;goal:string;method:string;role:'core'|'conditional';avoid?:string};
+export type SupportNote = {specialistId:string;kind:'limited'|'not_needed';text:string};
+export type NonpharmSupport = {diagnosisId:string;intro:string;priority?:string;providers:SupportProvider[];notFor?:SupportNote[];limitations:Limitation[];progress:string[];sources:Source[];updatedAt:string};
 export const specialists=specialistsRaw as Specialist[];
 // Parent-level filters on the specialists page; every specialist domain must belong to one of them (see tests).
 export const specialistTasks:{id:string;title:string;domains:string[]}[]=[

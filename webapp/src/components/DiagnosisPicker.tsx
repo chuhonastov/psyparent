@@ -7,7 +7,7 @@ import Icon from './Icon';
 // As-you-type: every typed fragment must start some word (short fragments too, unlike the global search).
 export function pickMatch(query:string,names:string[],extra=''){const terms=normalizeQuery(query).split(/\s+/).filter(Boolean);if(!terms.length)return true;const words=normalizeQuery(names.join(' ')+' '+extra).split(/\s+/);return terms.every(t=>words.some(w=>w.startsWith(t)));}
 const FREQUENT=['adhd','asd','gad','depression','tics_tourette','ocd','enuresis','sleep_disorders','speech_language_disorder','odd'];
-export default function DiagnosisPicker({value,onChange,suggested=[],label}:{value:string;onChange:(id:string)=>void;suggested?:string[];label:string}){
+export default function DiagnosisPicker({value,onChange,suggested=[],suggestedLabel='Чаще всего это обсуждают при:',label}:{value:string;onChange:(id:string)=>void;suggested?:string[];suggestedLabel?:string;label:string}){
  const [open,setOpen]=useState(!value),[q,setQ]=useState(''),[section,setSection]=useState(''),id=useId();
  // Keep keyboard and screen-reader focus on the picker when it opens or closes (not on first render: no keyboard pop-up on page load).
  const changeRef=useRef<HTMLButtonElement>(null),inputRef=useRef<HTMLInputElement>(null),moved=useRef(false);
@@ -23,7 +23,7 @@ export default function DiagnosisPicker({value,onChange,suggested=[],label}:{val
   <label className="fieldLabel" htmlFor={id}>{label}</label>
   <div className="searchWrap"><Icon name="search"/><input id={id} ref={inputRef} type="search" className="input" autoComplete="off" placeholder="Начните вводить: СДВГ, тревога, тики…" value={q} onChange={e=>setQ(e.target.value)}/>{q&&<button type="button" className="clearSearch" aria-label="Очистить" onClick={()=>setQ('')}><Icon name="close" size={16}/></button>}</div>
   {q.trim()?<div className="pickList" role="list">{results.length?results.map(d=><button type="button" role="listitem" className="pickRow" key={d.id} onClick={()=>pick(d.id)}><span>{dxName(d)}</span><Icon name="arrow" size={15}/></button>):<p className="small muted">Ничего не нашлось. Попробуйте другое слово или выберите раздел ниже.</p>}</div>:<>
-   <p className="small muted pickHint">{suggested.length?'Чаще всего это лекарство обсуждают при:':'Частые диагнозы'}</p>
+   <p className="small muted pickHint">{suggested.length?suggestedLabel:'Частые диагнозы'}</p>
    <div className="pickChips">{quick.map(chip)}</div>
    <p className="small muted pickHint">Или откройте раздел</p>
    <div className="pickSections">{diagnosisGroups.map(g=>{const items=clinicalDiagnoses.filter(d=>g.children?.includes(d.id));if(!items.length)return null;const isOpen=section===g.id;return <div key={g.id} className={'pickSection'+(isOpen?' open':'')}>
