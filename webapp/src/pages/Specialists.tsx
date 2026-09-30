@@ -19,5 +19,5 @@ export default function Specialists(){
  <p className="searchMeta" role="status">Найдено: {items.length}</p>
  <div className="list">{items.map(s=><Link className="listCard" key={s.id} to={'/specialists/'+s.id} state={{from}}><div className="listMain"><h3>{s.title}</h3><p>{s.summary}</p><p>{s.domains.join(' · ')}</p></div><Icon name="arrow" size={17}/></Link>)}</div>
  {!items.length&&<div className="emptyState"><h3>По этому запросу ничего не найдено</h3><p>Попробуйте назвать навык: речь, обучение, эмоции или самостоятельность.</p><button className="btn secondary" onClick={()=>setParams({})}>Показать всех специалистов</button></div>}
- <Link data-tone="blue" to="/diagnoses" className="btn secondary full" style={{marginTop:20}}>Посмотреть помощь по диагнозу</Link></div>;
+ <Link to="/diagnoses" className="btn secondary full" style={{marginTop:20}}>Посмотреть помощь по диагнозу</Link></div>;
 }

@@ -24,7 +24,6 @@ import ScreeningHistory,{ScreeningSavedResult} from '../pages/ScreeningHistory';
 import {initTwa,setTelegramBack} from '../lib/twa';
 import {hasStorageError} from '../lib/persist';
 import {applySettings,subscribeSettings} from '../lib/settings';
-import {toneForPath} from '../lib/tones';
 class ErrorBoundary extends React.Component<{children:React.ReactNode},{failed:boolean}> {
  state={failed:false};
  static getDerivedStateFromError(){return {failed:true};}
@@ -42,10 +41,9 @@ function StorageNotice(){
  return failed?<div className="storageNotice" role="alert">Браузер не разрешает сохранять записи. Не закрывайте страницу до копирования нужного текста; сохранение может не работать.</div>:null;
 }
 export default function App() {
- const tone=toneForPath(useLocation().pathname);
  useEffect(()=>initTwa(),[]);
  useEffect(()=>subscribeSettings(()=>applySettings()),[]);
- return <ErrorBoundary><a className="skipLink" href="#main" onClick={event=>{event.preventDefault();const main=document.getElementById('main');main?.focus();main?.scrollIntoView();}}>К содержанию</a><StorageNotice/><NavigationEffects/><main id="main" tabIndex={-1} data-tone={tone}><Routes>
+ return <ErrorBoundary><a className="skipLink" href="#main" onClick={event=>{event.preventDefault();const main=document.getElementById('main');main?.focus();main?.scrollIntoView();}}>К содержанию</a><StorageNotice/><NavigationEffects/><main id="main" tabIndex={-1}><Routes>
  <Route path="/" element={<Home/>}/><Route path="/diagnoses" element={<Diagnoses/>}/>
  <Route path="/diagnoses/group/:id" element={<DiagnosisGroup/>}/><Route path="/diagnoses/:id" element={<DiagnosisDetail/>}/>
  <Route path="/medications" element={<Medications/>}/><Route path="/medications/group/:id" element={<MedicationGroupRedirect/>}/><Route path="/medications/:id" element={<MedicationDetail/>}/>

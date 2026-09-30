@@ -1,5 +1,5 @@
-import React from 'react';
-import {Link} from 'react-router-dom';
+import React,{useEffect} from 'react';
+import {Link,useLocation} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
 import {deleteLocalData} from '../lib/persist';
@@ -16,7 +16,7 @@ import {isTelegram} from '../lib/twa';
 function ReadingSettings(){
  const settings=useSettings();
  const theme=(t:ThemeChoice)=>t==='auto'&&isTelegram()?'Как в Telegram':themeLabels[t];
- return <section className="card" aria-labelledby="settings-title"><h2 id="settings-title">Настройки чтения</h2>
+ return <section className="card" id="reading" aria-labelledby="settings-title"><h2 id="settings-title">Настройки чтения</h2>
  <fieldset className="plainFieldset"><legend className="fieldLabel">Размер текста</legend><div className="optionRow">{(Object.keys(textSizeLabels) as TextSize[]).map(size=><label key={size} className={settings.textSize===size?'selected':''}><input type="radio" name="text-size" checked={settings.textSize===size} onChange={()=>saveSettings({textSize:size})}/>{textSizeLabels[size]}</label>)}</div></fieldset>
  <fieldset className="plainFieldset"><legend className="fieldLabel">Оформление</legend><div className="optionRow">{(Object.keys(themeLabels) as ThemeChoice[]).map(t=><label key={t} className={settings.theme===t?'selected':''}><input type="radio" name="theme" checked={settings.theme===t} onChange={()=>saveSettings({theme:t})}/>{theme(t)}</label>)}</div></fieldset>
  <p className="settingsSample">Так выглядит текст в карточках справочника. Настройки сохраняются на этом устройстве.</p></section>;
@@ -37,6 +37,9 @@ function Backup(){
  <p className="small muted" style={{marginTop:10}}>В файле все записи: вопросы, назначения, ответы тестов и дневники. Храните его как медицинский документ и не пересылайте посторонним.</p></section>;
 }
 export default function About() {
+ const {hash}=useLocation();
+ // «Размер текста» on the home screen opens this page at the reading settings.
+ useEffect(()=>{if(hash)requestAnimationFrame(()=>document.getElementById(hash.slice(1))?.scrollIntoView());},[hash]);
  return <div className="container"><PageHeader title="О PsyParent" subtitle="Понятная информация после приёма и опора для следующего разговора с врачом." backTo="/" backLabel="Главная"/><div className="stack">
  <section className="card"><div className="eyebrow">Автор проекта</div><h2>Степан Краснощеков</h2><p style={{marginTop:10}}>Детский психиатр. Справочные материалы опираются на международные клинические рекомендации, документы профессиональных обществ и исследования. Ссылки и ограничения указаны в каждой карточке.</p><p>В справочнике {leaves.length} тем в {diagnosisGroups.length} разделах: развитие, тревога, настроение, стресс, поведение, питание и другие трудности. Есть {medications.length} карточек препаратов, добавок и памяток и {treatmentGuides.length} разборов назначений. Есть 11 карточек специалистов и немедикаментозная помощь ко всем 69 темам. В разделе «Тесты» {screeners.length} инструментов. PHQ-9, GAD-7 и рабочую русскую форму SNAP-IV можно пройти здесь; для внешних форм можно сохранить результат, а YGTSS-R с перечнем тиков и критериями оценок заполняется со специалистом. Доступны {journalTemplates.length} дневников и форм наблюдений: история, редактирование, сравнение числовых записей и выбор для памятки. Обзоры и жизненные ситуации отмечены отдельно от диагнозов.</p><p className="small muted">Связи с диагнозами включают лечение, сопутствующие задачи, побочные эффекты и назначения с недостаточными доказательствами. Наличие карточки не означает рекомендацию средства.</p><a href="https://t.me/doc_kras" target="_blank" rel="noopener noreferrer" className="btn secondary compact" style={{marginTop:16}}>Канал автора<Icon name="external" size={15}/></a></section>
  <section className="card"><h2>Как пользоваться</h2><ol><li>Выберите диагноз, который указан в заключении.</li><li>Посмотрите, что стоит уточнить и какая помощь бывает полезна.</li><li>Разберите назначенный препарат и сохраните нужные вопросы.</li><li>Выберите специалистов и немедикаментозные методы в разделе «Помощь» нужного диагноза.</li><li>Выберите тест по возрасту и задаче. Уточните, кто отвечает и где открывается форма, затем сохраните полученный результат.</li><li>В разделе «Дневники и формы» можно описать сон, поведение, переносимость лечения, навыки и жалобы. Выберите нужные записи для передачи врачу.</li><li>Откройте «К врачу» и скопируйте или скачайте памятку.</li></ol><p className="small muted">{meta.disclaimer}</p></section>
@@ -45,6 +48,6 @@ export default function About() {
  <Backup/>
  <div className="callout"><strong>Если заметили неточность</strong><p>Сохраните название карточки и описание проблемы, чтобы передать автору. Не прикладывайте персональные данные ребёнка.</p></div>
  <p className="small muted">Пилотная версия {meta.appVersion}. Обновление материалов: {new Date(meta.contentVersion+'T12:00:00').toLocaleDateString('ru-RU')}. Материалы прошли редакционный пересмотр. Окончательное утверждение автором и проверка в реальном Telegram перед публичным запуском ещё предстоят.</p>
- <Link data-tone="red" className="btn secondary" to="/help">Когда нужна срочная помощь</Link>
+ <Link className="btn secondary" to="/help">Когда нужна срочная помощь</Link>
  </div></div>;
 }
