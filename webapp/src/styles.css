@@ -302,3 +302,18 @@ p.danger{color:var(--danger)}
 .doctorPhoto.large{width:96px;height:96px;font-size:1.75rem}
 .doctorHero{display:flex;gap:16px;align-items:center}
 .chipRow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+
+/* diary trends */
+.trendGridWrap{display:grid;gap:14px;margin:14px 0}
+.trendChart{margin:0;padding:14px 14px 8px;border:1px solid var(--line);border-radius:15px;background:var(--card)}
+.trendChart figcaption{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:6px}
+.trendChart svg{width:100%;height:auto;display:block}
+.trendLine{fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+.trendDot{fill:var(--accent)}
+.trendGrid{stroke:var(--line);stroke-width:1}
+.trendAxis{fill:var(--muted);font-size:10px}
+
+/* glossary */
+.glossary{display:grid;gap:12px;margin:0}
+.glossary dt h2{font-size:1.1875rem}
+.glossary dd{margin:8px 0 0}

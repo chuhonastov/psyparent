@@ -7,3 +7,4 @@ import './styles.css';
 const Router = window.location.protocol === 'file:' || window.__PSYPARENT_OFFLINE__ ? HashRouter : BrowserRouter;
 applySettings();
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><Router><App/></Router></React.StrictMode>);
+if('serviceWorker' in navigator&&window.location.protocol==='https:'&&!window.__PSYPARENT_OFFLINE__)window.addEventListener('load',()=>{navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js').catch(()=>{});});

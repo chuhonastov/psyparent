@@ -136,3 +136,8 @@ test('clinic data validates doctor ids, links and topics',async()=>{
  assert.equal(bookingFor(),clinic.bookingUrl);assert.equal(bookingFor({id:'a',name:'А Б',role:'r',profileUrl:'https://x.ru/a'}),'https://x.ru/a');
  assert.equal(initials('Анна Петровна Иванова'),'АП');
 });
+
+test('glossary and clinic entries are searchable from the home search',()=>{
+ const g=searchEverything('СИОЗС').find(x=>x.id==='glossary');assert(g&&g.hits[0].title==='СИОЗС');
+ const ppc=searchEverything('ППЦНС').find(x=>x.id==='glossary');assert(ppc);
+});
