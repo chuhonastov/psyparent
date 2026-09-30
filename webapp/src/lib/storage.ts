@@ -1,3 +1,4 @@
+import { dataChanged } from './persist';
 export type VisitSheet = {
   createdAt: string;
   items: string[];
@@ -19,4 +20,5 @@ export function loadVisitSheet(): VisitSheet {
 
 export function saveVisitSheet(sheet: VisitSheet) {
   localStorage.setItem(KEY, JSON.stringify(sheet));
+  dataChanged();
 }

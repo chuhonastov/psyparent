@@ -368,3 +368,4 @@ p.danger{color:var(--danger)}
 .childAvatar{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--soft);color:var(--accent);font-weight:700;font-size:1.25rem;flex:none}
 .supportAvoid{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--warm);color:var(--text)}
 a.pickChip{display:inline-flex;align-items:center;text-decoration:none}
+.storageReminder{margin-top:18px}
