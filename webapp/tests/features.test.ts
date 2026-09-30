@@ -130,9 +130,9 @@ test('restoring keeps previous records when storage fails',()=>{
 });
 test('clinic data validates doctor ids, links and topics',async()=>{
  const {validateClinic,clinic,bookingFor,initials}=await import('../src/lib/clinic');
- assert.deepEqual(validateClinic(clinic,['adhd']),[]);
- const bad={...clinic,doctors:[{id:'Bad id',name:'',role:'',photo:'http://x',topics:['nope']}]};
- assert.equal(validateClinic(bad as any,['adhd']).length,4);
+ assert.deepEqual(validateClinic(clinic,['sleep_disorders']),[]);
+ const bad={...clinic,doctors:[{id:'Bad id',name:'',role:'',photo:'http://x',branches:['nowhere'],topics:['nope']}]};
+ assert.equal(validateClinic(bad as any,['adhd']).length,5);
  assert.equal(bookingFor(),clinic.bookingUrl);assert.equal(bookingFor({id:'a',name:'А Б',role:'r',profileUrl:'https://x.ru/a'}),'https://x.ru/a');
  assert.equal(initials('Анна Петровна Иванова'),'АП');
 });
@@ -140,4 +140,13 @@ test('clinic data validates doctor ids, links and topics',async()=>{
 test('glossary and clinic entries are searchable from the home search',()=>{
  const g=searchEverything('СИОЗС').find(x=>x.id==='glossary');assert(g&&g.hits[0].title==='СИОЗС');
  const ppc=searchEverything('ППЦНС').find(x=>x.id==='glossary');assert(ppc);
+});
+
+test('doctor filters by city, age and online visits',async()=>{
+ const {filterDoctors,seesAge}=await import('../src/lib/clinic');
+ const list=[{id:'a',name:'А',role:'Детский психиатр',ageFrom:2,ageTo:18,online:true,branches:['vo']},{id:'b',name:'Б',role:'Психиатр',ageFrom:15,branches:['taganka']}] as any;
+ assert.equal(seesAge(list[0],1),false);assert.equal(seesAge(list[1],40),true);
+ assert.deepEqual(filterDoctors(list,{age:16}).map((d:any)=>d.id),['a','b']);
+ assert.deepEqual(filterDoctors(list,{age:5}).map((d:any)=>d.id),['a']);
+ assert.deepEqual(filterDoctors(list,{online:true}).map((d:any)=>d.id),['a']);
 });

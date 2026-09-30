@@ -8,7 +8,7 @@ import QuestionButton from '../components/QuestionButton';
 import Sources from '../components/Sources';
 import Icon from '../components/Icon';
 import NonpharmHelp from '../components/NonpharmHelp';
-import {doctorsForTopic} from '../lib/clinic';
+import {doctorsForTopic,clinic} from '../lib/clinic';
 import {journalTemplatesForDiagnosis} from '../lib/journalContent';
 import {screenerById} from '../lib/screeningContent';
 import {trackRecent} from '../lib/recent';
@@ -36,7 +36,7 @@ export default function DiagnosisDetail() {
  <div className="card soft"><div className="eyebrow">План помощи</div><h2>Сделать жизнь посильнее</h2><p style={{marginTop:10}}>{d.ageGuidance||'План подбирают под трудности ребёнка. Начните с того, что мешает больше всего.'}</p></div>
  {!!d.homeHelp?.length&&<section className="card"><h2 style={{marginBottom:18}}>Что можно изменить в повседневной жизни</h2><div className="stack">{d.homeHelp.map(item=><div key={item.title}><h3>{item.title}</h3><p className="muted" style={{marginTop:5,fontSize:14}}>{item.text}</p></div>)}</div></section>}
  <NonpharmHelp diagnosisId={id}/>
- {!!doctorsForTopic(id).length&&<Link to="/doctors" className="actionCard warm"><span className="actionIcon"><Icon name="user" size={23}/></span><div className="actionMain"><h3>Записаться к врачу</h3><p>{doctorsForTopic(id).slice(0,2).map(d=>d.name).join(', ')}{doctorsForTopic(id).length>2?' и другие':''}</p></div><Icon name="arrow" size={18}/></Link>}
+ {clinic.doctors.length>0&&d.topicKind!=='guide'&&<Link to="/doctors" className="actionCard warm"><span className="actionIcon"><Icon name="user" size={23}/></span><div className="actionMain"><h3>Записаться к врачу</h3><p>{doctorsForTopic(id).length?doctorsForTopic(id).slice(0,2).map(x=>x.name.split(' ').slice(0,2).join(' ')).join(', '):'Детские психиатры и неврологи клиники '+clinic.name}</p></div><Icon name="arrow" size={18}/></Link>}
  <Disclosure title="Подробнее о немедикаментозных методах"><ul>{d.evidenceApproaches?.map((x,i)=><li key={i}>{x}</li>)}</ul></Disclosure>
  <Disclosure title={id==='asd'?'Препараты для отдельных трудностей':'Когда обсуждают препараты'}>
  <p className="small muted">{d.evidenceNote||'У каждого лекарства должна быть понятная цель. Какое лекарство нужно ребёнку, решает врач.'}</p>

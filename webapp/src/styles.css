@@ -317,3 +317,11 @@ p.danger{color:var(--danger)}
 .glossary{display:grid;gap:12px;margin:0}
 .glossary dt h2{font-size:1.1875rem}
 .glossary dd{margin:8px 0 0}
+.doctorFilters .chip{font-size:0.875rem;min-height:40px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);border-radius:30px;background:var(--card);color:var(--text);font-weight:600}
+.doctorFilters .chip.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.doctorFilterRow{display:grid;grid-template-columns:auto 96px;align-items:center;gap:8px 12px;margin-top:14px}
+.doctorFilterRow .fieldLabel{margin:0}
+.doctorFilterRow .selectionCheck{grid-column:1/-1;margin:0}
+.doctorCard .tag{margin-top:6px}
+.branchList{display:grid;gap:14px;margin-top:12px}
+.branchList p{margin:3px 0 4px}
