@@ -4,9 +4,11 @@ import {journalTemplates} from './journalContent';
 import {matchesQuery,normalizeQuery} from './search';
 import glossaryRaw from '../content/glossary.json';
 import {clinic} from './clinic';
+import {investigations} from './investigations';
+import {methods,methodVerdictLabels} from './methods';
 const glossary=glossaryRaw as {term:string;aka:string[];text:string}[];
 export type SearchHit={id:string;title:string;note:string;label?:string;to:string};
-export type SearchGroup={id:'topics'|'medications'|'specialists'|'screenings'|'forms'|'doctors'|'glossary';title:string;hits:SearchHit[];total:number;moreTo:string};
+export type SearchGroup={id:'topics'|'medications'|'specialists'|'exams'|'methods'|'screenings'|'forms'|'doctors'|'glossary';title:string;hits:SearchHit[];total:number;moreTo:string};
 type Entry={hit:SearchHit;names:string[];text:string};
 // Aliases of the screening catalog filter (plus «тики»), so both searches find the same instruments.
 const screeningAliases:Record<string,string>={psc17:'пск эмоции поведение внимание',scared:'скаред тревога страхи',vanderbilt2002:'вандербильт сдвг внимание',snapiv:'снап внимание поведение',assq:'ассq асск аутизм',vanderbilt:'вандербильт сдвг',ygtss:'йельская туретт тики',rcads25:'ркадс тревога депрессия',crafft:'краффт алкоголь наркотики зависимость'};
@@ -27,6 +29,8 @@ function buildIndex(){
       ...diagnosisGroups.map(g=>({hit:{id:g.id,title:g.title,note:g.summary,label:'Раздел',to:'/diagnoses/group/'+g.id},names:[g.title],text:g.summary}))]},
     {id:'medications' as const,title:'Препараты и памятки',more:(s:string)=>'/medications?q='+q(s),entries:medications.map(m=>({hit:{id:m.id,title:m.name,note:m.class,label:m.noteOnly?'Памятка':undefined,to:'/medications/'+m.id},names:[m.name,...(m.aliases||[]),...(m.searchTerms||[])],text:m.class}))},
     {id:'specialists' as const,title:'Специалисты',more:(s:string)=>'/specialists?q='+q(s),entries:specialists.map(s=>({hit:{id:s.id,title:s.title,note:s.domains.join(' · '),to:'/specialists/'+s.id},names:[s.title,...s.domains],text:s.summary+' '+nonpharmSupport.filter(p=>p.providers.some(x=>x.specialistId===s.id)).map(p=>{const d=diagnosisById(p.diagnosisId);return d?dxName(d):'';}).join(' ')}))},
+    {id:'exams' as const,title:'Обследования',more:(s:string)=>'/exams?q='+q(s),entries:investigations.map(e=>({hit:{id:e.id,title:e.name,note:e.summary,label:e.kind==='dubious'?'Не рекомендуется':undefined,to:'/exams/'+e.id},names:[e.name,...e.aliases],text:e.summary}))},
+    {id:'methods' as const,title:'Что не помогает',more:(s:string)=>'/methods?q='+q(s),entries:methods.map(m=>({hit:{id:m.id,title:m.name,note:m.summary,label:methodVerdictLabels[m.verdict],to:'/methods/'+m.id},names:[m.name,...m.aliases],text:m.summary}))},
     {id:'screenings' as const,title:'Тесты и шкалы',more:(s:string)=>'/screenings?q='+q(s),entries:screeners.filter(s=>!s.hidden).map(s=>({hit:{id:s.id,title:s.name+' · '+s.title,note:s.ageLabel,to:'/screenings/'+s.id},names:[s.name,s.title],text:s.summary+' '+(screeningAliases[s.id]||'')}))},
     {id:'doctors' as const,title:'Врачи клиники',more:()=>'/doctors',entries:clinic.doctors.map(d=>({hit:{id:d.id,title:d.name,note:d.role,label:'Запись',to:'/doctors/'+d.id},names:[d.name,d.role,...(d.specialties||[])],text:d.about||''}))},
     {id:'glossary' as const,title:'Словарь',more:(s:string)=>'/glossary?q='+q(s),entries:glossary.map(g=>({hit:{id:g.term,title:g.term,note:g.text,label:'Словарь',to:'/glossary?q='+q(g.term)},names:[g.term,...g.aka],text:g.text}))},

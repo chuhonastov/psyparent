@@ -14,6 +14,8 @@ guides = load('treatment-guides.json')
 plans = load('nonpharm-support.json')
 specs = {s['id']: s for s in load('specialists.json')}
 pairs = load('pair-context.json')
+exams = load('investigations.json')
+exam_guides = load('investigation-guides.json')
 version = load('meta.json')['appVersion']
 KIND = {'condition': 'Помогает при этом состоянии', 'specialist': 'По особым показаниям', 'cooccurring': 'При сопутствующей проблеме',
         'limited': 'Польза не доказана', 'not_recommended': 'Не рекомендуется', 'safety': 'Побочные эффекты и безопасность'}
@@ -22,7 +24,7 @@ cell = lambda s: s.replace('|', '/').replace('\n', ' ')
 name = lambda d: d.get('shortTitle') or d['title']
 clinical = [d for d in dx.values() if not d.get('topicKind') or d['topicKind'] == 'diagnosis']
 drugs = [m for m in meds.values() if not m.get('noteOnly')]
-out = [f'# Связи «диагноз — препарат» и «диагноз — специалист» · {version}', '',
+out = [f'# Связи «диагноз — препарат», «диагноз — специалист» и «диагноз — обследование» · {version}', '',
        f'Файл собран скриптом `tools/build_relationships.py` из содержимого приложения. Написанных разборов препаратов: {len(guides)}. '
        f'Для остальных {len(clinical) * len(drugs) - len(guides)} из {len(clinical) * len(drugs)} пар ({len(clinical)} диагнозов × {len(drugs)} препаратов) '
        'приложение собирает общий разбор по правилам из `pair-context.json` (см. таблицу правил ниже).', '',
@@ -42,5 +44,14 @@ for p in sorted(plans, key=lambda p: name(dx[p['diagnosisId']])):
     role = lambda r: ', '.join(specs[x['specialistId']]['shortTitle'] for x in p['providers'] if x['role'] == r) or '—'
     no = ', '.join(specs[n['specialistId']]['shortTitle'] for n in p.get('notFor', [])) or '—'
     out.append(f"| {cell(name(dx[p['diagnosisId']]))} | {role('core')} | {role('conditional')} | {no} |")
+EXAM = {'recommended': 'Обычно нужно', 'monitoring': 'Для контроля лечения', 'conditional': 'По показаниям', 'not_routine': 'Обычно не нужно', 'not_recommended': 'Не рекомендуется'}
+exam_by_id = {e['id']: e for e in exams['items']}
+out += ['', '## Обследования', '',
+        f"Карточек обследований: {len(exams['items'])}, написанных пар «обследование × диагноз»: {len(exam_guides)}. "
+        'Для остальных пар приложение пишет: сомнительные обследования не рекомендуются ни при одном диагнозе (с причиной из карточки), '
+        'остальные «обычно не нужны» — с перечнем ситуаций, когда они нужны.', '',
+        '| Диагноз | Обследование | Вид | Суть |', '| --- | --- | --- | --- |']
+for g in sorted(exam_guides, key=lambda g: (name(dx[g['diagnosisId']]), list(EXAM).index(g['relationKind']), exam_by_id[g['investigationId']]['name'])):
+    out.append(f"| {cell(name(dx[g['diagnosisId']]))} | {cell(exam_by_id[g['investigationId']]['name'])} | {EXAM[g['relationKind']]} | {cell(g['summary'])} |")
 (ROOT / 'docs/RELATIONSHIPS.md').write_text('\n'.join(out) + '\n')
 print(f'{len(guides)} guides, {len(pairs["medicationRules"])} rules, {len(clinical)} diagnoses')

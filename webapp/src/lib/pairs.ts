@@ -5,7 +5,7 @@ import {clinicalDiagnoses,medicationById,specialistById,supportForDiagnosis,trea
 // Written reviews come first; for every other pair a general review is put together from
 // what the drug is usually prescribed for and what helps with the diagnosis (content/pair-context.json).
 type Rule={kind:TreatmentRelation;ids:string[];text:string;stop?:boolean};
-type PairContext={diagnoses:Record<string,{prep:string;helps:string}>;medicationRules:Rule[];usual:Record<string,string>;purpose:Record<string,string>;names:Record<string,string>;updatedAt:string};
+type PairContext={diagnoses:Record<string,{prep:string;helps:string;exams?:string}>;medicationRules:Rule[];usual:Record<string,string>;purpose:Record<string,string>;names:Record<string,string>;updatedAt:string};
 export const pairContext=pairContextRaw as PairContext;
 export const prepFor=(diagnosisId:string)=>pairContext.diagnoses[diagnosisId]?.prep||'при этом состоянии';
 const capital=(s:string)=>s.charAt(0).toUpperCase()+s.slice(1);
