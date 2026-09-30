@@ -30,6 +30,6 @@ export default function MedicationDetail() {
  <section className="card"><h2>Что важно знать</h2><ul>{m.warnings.map((x,i)=><li key={i}>{x}</li>)}</ul></section>
  <section className="card soft"><h3>Полезный вопрос на приём</h3><p style={{margin:'9px 0 13px'}}>Какая цель у этого препарата, как оценим эффект и что будем отслеживать?</p><QuestionButton question={(m.noteOnly?'По теме «':'Про препарат «')+m.name+'»: какая цель назначения, как оценим эффект и что будем отслеживать?'}/></section>
  <div className="callout">План лечения согласуйте с врачом. Это краткая памятка: она не перечисляет все противопоказания и взаимодействия. При опасных симптомах не ждите следующего планового приёма. <Link to="/help">Когда нужна срочная помощь</Link></div>
- <Sources items={m.sources} updatedAt={m.updatedAt}/><Link to="/visit" className="btn secondary full"><Icon name="note"/>Открыть памятку</Link>
+ <Sources items={m.sources} updatedAt={m.updatedAt}/><Link data-tone="yellow" to="/visit" className="btn secondary full"><Icon name="note"/>Открыть памятку</Link>
  </div></div>;
 }

@@ -45,6 +45,6 @@ export default function About() {
  <Backup/>
  <div className="callout"><strong>Если заметили неточность</strong><p>Сохраните название карточки и описание проблемы, чтобы передать автору. Не прикладывайте персональные данные ребёнка.</p></div>
  <p className="small muted">Пилотная версия {meta.appVersion}. Обновление материалов: {new Date(meta.contentVersion+'T12:00:00').toLocaleDateString('ru-RU')}. Материалы прошли редакционный пересмотр. Окончательное утверждение автором и проверка в реальном Telegram перед публичным запуском ещё предстоят.</p>
- <Link className="btn secondary" to="/help">Когда нужна срочная помощь</Link>
+ <Link data-tone="red" className="btn secondary" to="/help">Когда нужна срочная помощь</Link>
  </div></div>;
 }

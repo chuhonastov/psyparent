@@ -3,7 +3,7 @@ export type IconName = 'home'|'book'|'pill'|'note'|'arrow'|'back'|'check'|'plus'
 const paths: Record<IconName,React.ReactNode> = {
  home:<><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></>,
  book:<><path d="M12 5v16M3 4c3-1 6-1 9 1 3-2 6-2 9-1v15c-3-1-6-1-9 1-3-2-6-2-9-1z"/></>,
- pill:<><path d="m9 15 6-6M7 17l-1-1a5.7 5.7 0 0 1 0-8l2-2a5.7 5.7 0 0 1 8 0l2 2a5.7 5.7 0 0 1 0 8l-2 2a5.7 5.7 0 0 1-8 0z"/></>,
+ pill:<><rect x="2.5" y="8.25" width="19" height="7.5" rx="3.75" transform="rotate(-45 12 12)"/><path d="m9.35 9.35 5.3 5.3"/></>,
  note:<><rect x="5" y="4" width="14" height="17" rx="3"/><path d="M9 3h6v4H9zM9 12h6M9 16h4"/></>,
  arrow:<path d="M5 12h14m-6-6 6 6-6 6"/>,
  back:<path d="M19 12H5m6-6-6 6 6 6"/>,

@@ -12,7 +12,7 @@ import {diagnosisById,dxName} from '../lib/content';
 export default function ScreeningResultCard({result:r}:{result:ScreeningResult}){
  const s=screenerById(r.screenerId)!;
  const copy=async()=>{const ok=await copyText(formatScreening(r));toast(ok?'Результат скопирован':'Не удалось скопировать. Попробуйте скачать файл.',{variant:ok?'success':'error'});};
- const nextStep=<div className={'callout '+(r.score.safety?'danger':r.score.status==='priority'||r.score.status==='followup'?'warn':'')} role={r.score.safety?'alert':undefined}><strong>{r.score.safety?'Обратитесь за поддержкой сегодня':'Следующий шаг'}</strong><p>{r.score.next}</p>{r.score.safety&&<Link to="/help" className="btn danger compact" style={{marginTop:10}}>Если нужна срочная помощь</Link>}</div>;
+ const nextStep=<div className={'callout '+(r.score.safety?'danger':r.score.status==='priority'||r.score.status==='followup'?'warn':'')} role={r.score.safety?'alert':undefined}><strong>{r.score.safety?'Обратитесь за поддержкой сегодня':'Следующий шаг'}</strong><p>{r.score.next}</p>{r.score.safety&&<Link data-tone="red" to="/help" className="btn danger compact" style={{marginTop:10}}>Если нужна срочная помощь</Link>}</div>;
  return <div className="stack screeningResult" data-testid="screening-result">
  {r.score.safety&&nextStep}
  <section className="card soft"><div className="eyebrow">{s.name} · {s.mode==='clinical'?'клиническая оценка':'результат скрининга'}</div><h2>{r.score.label}</h2><p className="screeningScore">{r.score.total}<span> / {r.score.max}</span></p><p>{s.totalLabel||(s.id==='mchat'?'Исходный балл M-CHAT-R':s.id==='sdq'?'Общий балл трудностей':'Сумма ответов')}</p><p className="small muted">{r.childLabel} · {r.age} {s.ageUnit==='months'?'мес.':'лет'} · {new Date(r.completedDate+'T12:00:00').toLocaleDateString('ru-RU')}<br/>{respondentLabels[r.respondent]}</p>
@@ -34,7 +34,7 @@ export default function ScreeningResultCard({result:r}:{result:ScreeningResult})
  </Disclosure>
  <div className="buttonRow noPrint"><button className="btn secondary" onClick={copy}><Icon name="copy" size={17}/>Скопировать результат</button><button className="btn secondary" onClick={()=>downloadText(formatScreening(r),'PsyParent-'+s.name.replace(/[^a-z0-9-]/gi,'-')+'-'+r.completedDate+'.txt')}><Icon name="download" size={17}/>Скачать результат .txt</button></div>
  <Disclosure title="Границы этого опросника"><p>{s.limitations}</p><p className="small muted">{s.attribution}</p></Disclosure>
- <div className="topics">{s.related.map(id=><Link key={id} to={'/diagnoses/'+id} className="topic">{diagnosisById(id)?dxName(diagnosisById(id)!):id}</Link>)}</div>
+ <div className="topics" data-tone="blue">{s.related.map(id=><Link key={id} to={'/diagnoses/'+id} className="topic">{diagnosisById(id)?dxName(diagnosisById(id)!):id}</Link>)}</div>
  <Sources items={s.sources}/>
  </div>;
 }

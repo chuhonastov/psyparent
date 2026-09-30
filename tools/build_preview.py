@@ -14,11 +14,6 @@ if not script or not style:
 js = (dist / script.group(1).lstrip('/')).read_text(encoding='utf-8')
 css = (dist / style.group(1).lstrip('/')).read_text(encoding='utf-8')
 js = re.sub(r'</script', r'<\\/script', js, flags=re.IGNORECASE)
-# The bundled Literata font is referenced as /assets/*.woff2; embed it so the preview needs no files next to it.
-def inline_font(match):
-    font = dist / match.group(1).lstrip('/')
-    return 'url(data:font/woff2;base64,' + base64.b64encode(font.read_bytes()).decode('ascii') + ')'
-css = re.sub(r'url\((/assets/[^)]+\.woff2)\)', inline_font, css)
 pdf = root / 'webapp/public/forms/YGTSS-R-2017-RU-working.pdf'
 if pdf.exists():
     pdf_url = 'data:application/pdf;base64,' + base64.b64encode(pdf.read_bytes()).decode('ascii')
