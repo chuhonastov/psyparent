@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useEffect} from 'react';
 import {Link,Navigate,useParams,useSearchParams,useLocation} from 'react-router-dom';
 import {diagnosisById,medicationById,parentGroup,dxName,topicLabel,treatmentGuideFor,treatmentGuidesForDiagnosis,treatmentRelationLabels} from '../lib/content';
 import PageHeader from '../components/PageHeader';
@@ -10,15 +10,17 @@ import Icon from '../components/Icon';
 import NonpharmHelp from '../components/NonpharmHelp';
 import {journalTemplatesForDiagnosis} from '../lib/journalContent';
 import {screenerById} from '../lib/screeningContent';
+import {trackRecent} from '../lib/recent';
 export default function DiagnosisDetail() {
  const {id=''}=useParams(),[params,setParams]=useSearchParams(),location=useLocation(),d=diagnosisById(id);
+ useEffect(()=>{if(d&&d.kind!=='group')trackRecent('dx',d.id);},[d]);
  if(!d)return <div className="container"><PageHeader title="Такой карточки пока нет" backTo="/diagnoses" backLabel="Все диагнозы"/><Link to="/diagnoses" className="btn">Выбрать диагноз</Link></div>;
  if(d.kind==='group')return <Navigate to={'/diagnoses/group/'+d.id} replace/>;
  const group=parentGroup(id),tab=['understand','help','visit'].includes(params.get('tab')||'')?params.get('tab')!:'understand';
  const tabs=[{id:'understand',label:'Понять'},{id:'help',label:'Помощь'},{id:'visit',label:'К врачу'}];
  const from=typeof location.state?.from==='string'&&/^\/diagnoses\?/.test(location.state.from)?location.state.from:undefined;
  const additionalGuides=treatmentGuidesForDiagnosis(id).filter(g=>!d.effectiveMeds?.includes(g.medicationId));
- return <div className="container" key={id}><PageHeader title={dxName(d)} subtitle={d.summary} eyebrow={topicLabel(d)+' · разберёмся вместе'} backTo={from||(group?'/diagnoses/group/'+group.id:'/diagnoses')} backLabel={from?'Результаты поиска':group?group.title:'Все темы'}/>
+ return <div className="container" key={id}><PageHeader title={dxName(d)} subtitle={d.summary} eyebrow={topicLabel(d)+(group?' · '+group.title:'')} backTo={from||(group?'/diagnoses/group/'+group.id:'/diagnoses')} backLabel={from?'Результаты поиска':group?group.title:'Все темы'}/>
  <div className="segmented" aria-label="Разделы карточки">{tabs.map(t=><button key={t.id} className={tab===t.id?'active':''} aria-pressed={tab===t.id} onClick={()=>setParams({tab:t.id},{replace:true,state:location.state})}>{t.label}</button>)}</div>
  <div className="stack">
  {tab==='understand'&&<>

@@ -1,4 +1,4 @@
-import React,{useRef,useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import {Link,useParams,useLocation} from 'react-router-dom';
 import {screenerById,respondentLabels,impactOptions,screeningSafety,sdqFields,Screener,Respondent} from '../lib/screeningContent';
 import {createScreening,localDate,saveScreening,validateScreening,ScreeningInput,ScreeningResult} from '../lib/screenings';
@@ -12,8 +12,10 @@ import ExtraScaleFields from '../components/ExtraScaleFields';
 import {extraIds} from '../lib/extraScreeningScoring';
 import {downloadClinicalForm} from '../lib/clinicalForm';
 import ScreeningResultCard from '../components/ScreeningResultCard';
+import {trackRecent} from '../lib/recent';
 export default function ScreeningDetail(){const {id=''}=useParams(),s=screenerById(id),location=useLocation();return s?<ScreeningForm key={s.id} s={s} backTo={location.state?.from?.startsWith('/screenings?')?location.state.from:'/screenings'}/>:<div className="container"><PageHeader title="Такого опросника пока нет" backTo="/screenings" backLabel="Все скрининги"/></div>;}
 function ScreeningForm({s,backTo}:{s:Screener;backTo:string}){
+ useEffect(()=>{trackRecent('scr',s.id);},[s.id]);
  const [childLabel,setChildLabel]=useState(''),[age,setAge]=useState(''),[respondent,setRespondent]=useState<Respondent>(s.respondents[0]),[date,setDate]=useState(localDate),[notes,setNotes]=useState('');
  const [answers,setAnswers]=useState<number[]>(Array(s.questions?.length||0).fill(-1)),[impact,setImpact]=useState(''),[total,setTotal]=useState(''),[followUpDone,setFollowUpDone]=useState(''),[followUpScore,setFollowUpScore]=useState(''),[subscales,setSubscales]=useState<Record<string,string>>({});
  const [ticInventory,setTicInventory]=useState<string[]>([]);

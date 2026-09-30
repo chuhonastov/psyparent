@@ -2,8 +2,10 @@ import {getJournals,formatJournal,JournalRecord} from './journals';
 import {medicationById} from './content';
 import type {VisitState} from './visit';
 import {getScreenings,formatScreening,ScreeningResult} from './screenings';
-export function formatVisit(v:VisitState,results:ScreeningResult[]=getScreenings().filter(r=>r.includeInVisit),journals:JournalRecord[]=getJournals().filter(r=>r.includeInVisit)) {
+import {getAppointment,formatAppointment,Appointment} from './appointment';
+export function formatVisit(v:VisitState,results:ScreeningResult[]=getScreenings().filter(r=>r.includeInVisit),journals:JournalRecord[]=getJournals().filter(r=>r.includeInVisit),appointment:Appointment|null=getAppointment()) {
   const lines=['Памятка к приёму · PsyParent','Записи семьи и результаты скринингов для обсуждения с врачом'];
+  if(appointment)lines.push('Приём: '+formatAppointment(appointment));
   const snapshots=Object.values(v.checklists);
   if(snapshots.length) {
     lines.push('\nНАБЛЮДЕНИЯ');
@@ -31,7 +33,16 @@ export async function copyText(text:string) {
     try {return document.execCommand('copy');} catch {return false;} finally {area.remove();}
   }
 }
-export function downloadText(text:string,filename='PsyParent-pamyatka.txt') {
-  const url=URL.createObjectURL(new Blob(['﻿'+text],{type:'text/plain;charset=utf-8'}));
+export function downloadFile(content:string,filename:string,type:string) {
+  const url=URL.createObjectURL(new Blob([content],{type}));
   const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+export function downloadText(text:string,filename='PsyParent-pamyatka.txt') {
+  downloadFile('﻿'+text,filename,'text/plain;charset=utf-8');
+}
+/** Uses the phone's share sheet when the browser has one. "unavailable" lets the caller offer another way. */
+export async function shareText(text:string,title='Памятка к приёму'):Promise<'shared'|'cancelled'|'unavailable'> {
+  if(typeof navigator==='undefined'||typeof navigator.share!=='function') return 'unavailable';
+  try {await navigator.share({title,text});return 'shared';}
+  catch(error) {return error instanceof DOMException&&error.name==='AbortError'?'cancelled':'unavailable';}
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useEffect} from 'react';
 import {Link,useLocation,useParams} from 'react-router-dom';
 import {specialistById,nonpharmSupport,diagnosisById,dxName} from '../lib/content';
 import PageHeader from '../components/PageHeader';
@@ -7,9 +7,11 @@ import QuestionButton from '../components/QuestionButton';
 import Sources from '../components/Sources';
 import {Limitations} from '../components/NonpharmHelp';
 import Icon from '../components/Icon';
+import {trackRecent} from '../lib/recent';
 
 export default function SpecialistDetail(){
  const {id=''}=useParams(),location=useLocation(),s=specialistById(id);
+ useEffect(()=>{if(s)trackRecent('spec',s.id);},[s]);
  if(!s)return <div className="container"><PageHeader title="Такого специалиста пока нет" backTo="/specialists" backLabel="Все специалисты"/></div>;
  const related=nonpharmSupport.flatMap(p=>{const provider=p.providers.find(x=>x.specialistId===id),d=diagnosisById(p.diagnosisId);return provider&&d?[{d,provider}]:[];});
  const from=typeof location.state?.from==='string'&&/^\/specialists\?/.test(location.state.from)?location.state.from:'/specialists';

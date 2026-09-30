@@ -23,6 +23,7 @@ import ScreeningDetail from '../pages/ScreeningDetail';
 import ScreeningHistory,{ScreeningSavedResult} from '../pages/ScreeningHistory';
 import {initTwa,setTelegramBack} from '../lib/twa';
 import {hasStorageError} from '../lib/persist';
+import {applySettings,subscribeSettings} from '../lib/settings';
 class ErrorBoundary extends React.Component<{children:React.ReactNode},{failed:boolean}> {
  state={failed:false};
  static getDerivedStateFromError(){return {failed:true};}
@@ -41,6 +42,7 @@ function StorageNotice(){
 }
 export default function App() {
  useEffect(()=>initTwa(),[]);
+ useEffect(()=>subscribeSettings(()=>applySettings()),[]);
  return <ErrorBoundary><a className="skipLink" href="#main" onClick={event=>{event.preventDefault();const main=document.getElementById('main');main?.focus();main?.scrollIntoView();}}>К содержанию</a><StorageNotice/><NavigationEffects/><main id="main" tabIndex={-1}><Routes>
  <Route path="/" element={<Home/>}/><Route path="/diagnoses" element={<Diagnoses/>}/>
  <Route path="/diagnoses/group/:id" element={<DiagnosisGroup/>}/><Route path="/diagnoses/:id" element={<DiagnosisDetail/>}/>

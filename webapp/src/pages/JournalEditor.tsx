@@ -1,4 +1,4 @@
-import React,{useRef,useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import {Link,useLocation,useNavigate,useParams,useSearchParams} from 'react-router-dom';
 import {journalTemplate,JournalTemplate,JournalField} from '../lib/journalContent';
 import {createJournal,formatJournal,journalAlerts,JournalInput,JournalRecord,saveJournal,updateJournal,validateJournal} from '../lib/journals';
@@ -9,6 +9,7 @@ import {downloadText} from '../lib/export';
 import {toast} from '../lib/toast';
 import PageHeader from '../components/PageHeader';
 import Sources from '../components/Sources';
+import {trackRecent} from '../lib/recent';
 export default function JournalEditor(){
  const {formId=''}=useParams(),t=journalTemplate(formId),[params]=useSearchParams(),rows=useJournals(),location=useLocation();
  const editId=params.get('edit'),copyId=params.get('copy'),existing=rows.find(r=>r.id===editId),previous=rows.find(r=>r.id===copyId);
@@ -17,6 +18,7 @@ export default function JournalEditor(){
  return <Editor key={formId+'-'+editId+'-'+copyId} t={t} existing={existing} previous={previous} backTo={existing?'/forms/record/'+existing.id:from}/>;
 }
 function Editor({t,existing,previous,backTo}:{t:JournalTemplate;existing?:JournalRecord;previous?:JournalRecord;backTo:string}){
+ useEffect(()=>{trackRecent('form',t.id);},[t.id]);
  const nav=useNavigate(),meta=existing||previous;
  const [childLabel,setChild]=useState(meta?.childLabel||''),[age,setAge]=useState(meta?.age===undefined?'':String(meta.age)),[respondent,setRespondent]=useState<Respondent>(meta&&t.respondents.includes(meta.respondent)?meta.respondent:t.respondents[0]);
  const [observerLabel,setObserver]=useState(meta?.observerLabel||''),[date,setDate]=useState(existing?.date||localDate()),[periodStart,setStart]=useState(existing?.periodStart||''),[treatment,setTreatment]=useState(meta?.treatment||'');

@@ -1,5 +1,5 @@
 import React from 'react';
-export type IconName = 'home'|'book'|'pill'|'note'|'arrow'|'back'|'check'|'plus'|'search'|'shield'|'heart'|'leaf'|'download'|'copy'|'close'|'trash'|'external'|'clock';
+export type IconName = 'home'|'book'|'pill'|'note'|'arrow'|'back'|'check'|'plus'|'search'|'shield'|'heart'|'leaf'|'download'|'copy'|'close'|'trash'|'external'|'clock'|'calendar'|'share'|'upload'|'print';
 const paths: Record<IconName,React.ReactNode> = {
  home:<><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></>,
  book:<><path d="M12 5v16M3 4c3-1 6-1 9 1 3-2 6-2 9-1v15c-3-1-6-1-9 1-3-2-6-2-9-1z"/></>,
@@ -18,7 +18,11 @@ const paths: Record<IconName,React.ReactNode> = {
  close:<path d="m6 6 12 12M6 18 18 6"/>,
  trash:<><path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7"/></>,
  external:<><path d="M14 3h7v7m0-7-11 11M10 3H3v18h18v-7"/></>,
- clock:<><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>
+ clock:<><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>,
+ calendar:<><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4m8-4v4"/></>,
+ share:<><path d="M12 15V3m-4 4 4-4 4 4"/><path d="M8 10H5v11h14V10h-3"/></>,
+ upload:<><path d="M12 16V4m-5 5 5-5 5 5M4 16v5h16v-5"/></>,
+ print:<><path d="M7 9V3h10v6M7 17H4v-7h16v7h-3"/><path d="M7 14h10v7H7z"/></>
 };
 export default function Icon({name,size=20}:{name:IconName;size?:number}) {
  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;

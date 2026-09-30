@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useEffect} from 'react';
 import {Link,useLocation,useParams} from 'react-router-dom';
 import {medicationById,diagnosisById,dxName,treatmentGuidesForMedication,treatmentRelationLabels} from '../lib/content';
 import {useVisit} from '../lib/useVisit';
@@ -9,8 +9,10 @@ import QuestionButton from '../components/QuestionButton';
 import Sources from '../components/Sources';
 import Disclosure from '../components/Disclosure';
 import Icon from '../components/Icon';
+import {trackRecent} from '../lib/recent';
 export default function MedicationDetail() {
  const {id=''}=useParams(),location=useLocation(),m=medicationById(id),visit=useVisit();
+ useEffect(()=>{if(m)trackRecent('med',m.id);},[m]);
  const from=typeof location.state?.from==='string'&&/^\/(review|medications)(\?|$)/.test(location.state.from)?location.state.from:'/medications';
  if(!m)return <div className="container"><PageHeader title="Препарат не найден" backTo="/medications" backLabel="Справочник"/><Link className="btn" to="/medications">Открыть справочник</Link></div>;
  const added=visit.meds.includes(id);

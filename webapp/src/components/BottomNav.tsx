@@ -1,12 +1,9 @@
 import React from 'react';
 import {NavLink,useLocation} from 'react-router-dom';
 import Icon,{IconName} from './Icon';
-import {useVisit} from '../lib/useVisit';
-import {useJournals} from '../lib/useJournals';
-import {useScreenings} from '../lib/useScreenings';
+import {useVisitCount} from '../lib/useVisitCount';
 export default function BottomNav() {
- const v=useVisit(),results=useScreenings(),journals=useJournals(),path=useLocation().pathname;
- const count=v.questions.length+v.meds.length+Object.keys(v.checklists).length+results.filter(r=>r.includeInVisit).length+journals.filter(r=>r.includeInVisit).length;
+ const count=useVisitCount(),path=useLocation().pathname;
  const items:{to:string;label:string;icon:IconName;active?:boolean}[]=[
  {to:'/',label:'Главная',icon:'home'},
  {to:'/diagnoses',label:'Диагнозы',icon:'book'},
