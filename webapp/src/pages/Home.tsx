@@ -1,4 +1,4 @@
-import React,{useMemo} from 'react';
+import React,{useMemo,useState} from 'react';
 import {Link,useSearchParams} from 'react-router-dom';
 import Icon from '../components/Icon';
 import {useVisitCount} from '../lib/useVisitCount';
@@ -8,9 +8,20 @@ import {clearRecent,resolveRecent,RecentItem} from '../lib/recent';
 import {countdownLabel,daysUntil,formatAppointment} from '../lib/appointment';
 import {searchEverything} from '../lib/globalSearch';
 import {count as counted} from '../lib/plural';
+import {useScreenings} from '../lib/useScreenings';
+import {useJournals} from '../lib/useJournals';
+import {isTelegram} from '../lib/twa';
+import {backupReminderDue,isIOS,isStandalone,postponeBackupReminder} from '../lib/device';
+/** Outside Telegram the records live only in this browser: a gentle reminder to keep a copy, and the Safari caveat on iPhone. */
+function StorageReminder({hasRecords}:{hasRecords:boolean}){
+ const [hidden,setHidden]=useState(false);
+ if(hidden||isTelegram()||!backupReminderDue(hasRecords))return null;
+ const safari=isIOS()&&!isStandalone();
+ return <div className="callout warn storageReminder"><strong>{safari?'Safari может стереть записи':'Записи хранятся только в этом браузере'}</strong><p>{safari?'Если не открывать «Кору» неделю, Safari может удалить записи. Добавьте её на экран «Домой» или скачайте резервную копию.':'Скачайте резервную копию, чтобы не потерять их при очистке браузера или смене телефона.'}</p><div className="buttonRow" style={{marginTop:10,alignItems:'center'}}><Link className="btn secondary compact" to="/about#storage">Как сохранить</Link><button type="button" className="textButton" onClick={()=>{postponeBackupReminder();setHidden(true);}}>Напомнить позже</button></div></div>;
+}
 export default function Home() {
  const [params,setParams]=useSearchParams(),q=params.get('q')||'';
- const count=useVisitCount(),appointment=useAppointment(),recent=useRecent().map(resolveRecent).filter((r):r is RecentItem=>!!r).slice(0,3);
+ const count=useVisitCount(),screenings=useScreenings(),journals=useJournals(),appointment=useAppointment(),recent=useRecent().map(resolveRecent).filter((r):r is RecentItem=>!!r).slice(0,3);
  const groups=useMemo(()=>searchEverything(q),[q]),found=groups.reduce((sum,g)=>sum+g.total,0);
  const setQuery=(value:string)=>setParams(value?{q:value}:{},{replace:true});
  const days=appointment?daysUntil(appointment.date):-1;
@@ -18,6 +29,7 @@ export default function Home() {
  <div className="brandRow"><Link className="brand" to="/"><span className="brandMark"><Icon name="leaf" size={22}/></span>Кора</Link><span className="releaseBadge">Для родителей</span></div>
  <section className="hero"><div className="heroMark"><Icon name="leaf" size={185}/></div><div className="eyebrow">Понятно о детской психиатрии</div><h1>После приёма<br/>хочется ясности.</h1><p>Разберитесь в диагнозе и назначениях. Сохраните вопросы, которые важно обсудить с врачом.</p><div className="heroFoot"><Icon name="shield" size={16}/>С опорой на научные данные</div></section>
  {(days>=0||count>0)&&<Link to="/visit" className="actionCard warm"><span className="actionIcon"><Icon name={days>=0?'calendar':'note'} size={23}/></span><div className="actionMain">{days>=0&&appointment?<><h3>Приём {countdownLabel(days)}</h3><p>{formatAppointment(appointment)}{count?'. В памятке '+counted(count,'запись','записи','записей')+'.':''}</p></>:<><h3>В памятке {counted(count,'запись','записи','записей')}</h3><p>Можно продолжить и указать дату приёма</p></>}</div><Icon name="arrow" size={18}/></Link>}
+ {!q.trim()&&<StorageReminder hasRecords={count>0||screenings.length>0||journals.length>0}/>}
  <div className="sectionHeading"><h2>{q.trim()?'Результаты поиска':'Найти в справочнике'}</h2></div>
  <div className="searchWrap homeSearch" role="search"><Icon name="search"/><input className="input" type="search" enterKeyHint="search" aria-label="Поиск по справочнику" placeholder="Диагноз или препарат" value={q} onChange={e=>setQuery(e.target.value)}/>{q&&<button className="clearSearch" type="button" aria-label="Очистить поиск" onClick={()=>setQuery('')}><Icon name="close" size={17}/></button>}</div>
  {q.trim()?<>

@@ -3,6 +3,7 @@ import {normalizeScreenings,SCREENING_KEY} from './screenings';
 import {normalizeJournals,JOURNAL_KEY} from './journals';
 import {normalizeChildren,CHILDREN_KEY} from './children';
 import meta from '../content/meta.json';
+import {dataChanged} from './persist';
 // Backups move a family's records between browsers and devices. Every value is checked again by its own reader after restore.
 export const BACKUP_FORMAT=1;
 const MAX_BYTES=5_000_000;
@@ -64,5 +65,10 @@ export function restoreBackup(data:Record<string,string>){
   }
   window.dispatchEvent(new Event('psyparent:visit-updated'));
   window.dispatchEvent(new Event('psyparent:all-data-cleared'));
+  dataChanged();
   return true;
 }
+// The date of the last downloaded copy lives outside the records, so it is not copied into the backup itself.
+const BACKUP_DATE_KEY='kora.backup.v1';
+export function markBackupDone(now=new Date()){try{localStorage.setItem(BACKUP_DATE_KEY,now.toISOString());}catch{}}
+export function lastBackupAt(){try{const v=localStorage.getItem(BACKUP_DATE_KEY);const d=v?new Date(v):null;return d&&!isNaN(d.getTime())?d:null;}catch{return null;}}

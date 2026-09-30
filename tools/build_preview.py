@@ -20,6 +20,8 @@ if pdf.exists():
     html = html.replace('</head>', '<script>window.__PSYPARENT_CLINICAL_PDF__=' + repr(pdf_url) + ';</script></head>')
 html = html.replace(script.group(0), '<script>window.__PSYPARENT_OFFLINE__=true;</script>\n<script type="module">' + js + '</script>')
 html = html.replace(style.group(0), '<style>' + css + '</style>')
+# A local file cannot be installed on the home screen: the manifest would only fail to load.
+html = re.sub(r'<link rel="manifest"[^>]*>|<meta name="apple-mobile-web-app-capable"[^>]*>', '', html)
 output = root / 'Kora-preview.html'
 output.write_text(html, encoding='utf-8')
 print(f'Preview: {output} ({output.stat().st_size:,} bytes)')
