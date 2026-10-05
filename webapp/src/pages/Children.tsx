@@ -1,4 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
+import {track} from '../lib/analytics';
 import {Link} from 'react-router-dom';
 import {useChildren} from '../lib/useChildren';
 import {ageLabel,birthLabel,screeningsLink,localMonth,MAX_CHILDREN,removeChild,saveChild,validateChild,Child} from '../lib/children';
@@ -33,7 +34,7 @@ export function ChildForm({child,onDone,first}:{child?:Child;onDone:()=>void;fir
  const [label,setLabel]=useState(child?.label||''),[birth,setBirth]=useState(child?.birth||''),[errors,setErrors]=useState<string[]>([]),errorRef=useRef<HTMLDivElement>(null);
  const submit=(e:React.FormEvent)=>{e.preventDefault();const issues=validateChild({label,birth});setErrors(issues);if(issues.length){requestAnimationFrame(()=>errorRef.current?.focus());return;}
   const saved=saveChild({id:child?.id,label,birth});
-  if(saved){if(child&&child.label!==saved.label)renameChildRecords(saved.id,child.label,saved.label);migrateChildData();toast(child?'Профиль обновлён':'Профиль добавлен');onDone();}else toast('Не удалось сохранить профиль',{variant:'error'});};
+  if(saved){if(child&&child.label!==saved.label)renameChildRecords(saved.id,child.label,saved.label);if(!child)track('profile');migrateChildData();toast(child?'Профиль обновлён':'Профиль добавлен');onDone();}else toast('Не удалось сохранить профиль',{variant:'error'});};
  return <form className="card" noValidate onSubmit={submit}><h2 style={{marginBottom:16}}>{child?'Изменить профиль':first?'Добавьте ребёнка':'Новый профиль'}</h2>
   {errors.length>0&&<div className="callout danger" role="alert" tabIndex={-1} ref={errorRef} style={{marginBottom:14}}>{errors.map(x=><p key={x}>{x}</p>)}</div>}
   <div className="formField"><label className="fieldLabel" htmlFor="child-label">Как обозначить</label><input className="input" id="child-label" value={label} maxLength={30} autoComplete="off" placeholder="Например: Маша или старший" onChange={e=>setLabel(e.target.value)}/></div>

@@ -1,4 +1,5 @@
 import React,{useEffect,useMemo,useState} from 'react';
+import {track} from '../lib/analytics';
 import {Link,useLocation,useNavigate} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
@@ -27,7 +28,7 @@ export function SendForm(){
   if(!ageOk){toast(form==='school'?'Проверьте возраст':'Эта форма рассчитана на возраст '+spec.minAge+'–'+spec.maxAge+' лет',{variant:'error'});return;}
   const req:HandoffRequest={k:'q',v:1,id:newRequestId(),f:form,c:label.trim().slice(0,60),a:age===''?undefined:n,r:isTelegram()?'tg':'web',m:message.trim().slice(0,500)||undefined};
   const url=requestLink(await encodeHandoff(req));setLink(url);
-  rememberRequest({id:req.id,f:form,childLabel:req.c,to:to.trim(),sentAt:new Date().toISOString()});
+  track('teacher_sent');rememberRequest({id:req.id,f:form,childLabel:req.c,to:to.trim(),sentAt:new Date().toISOString()});
  };
  const text=()=>'Просьба заполнить форму «'+spec.title+'» о ребёнке ('+label.trim()+'). Это займёт несколько минут, регистрация не нужна: '+link;
  const share=async()=>{const t=text();if(await shareText(t,spec.title)!=='unavailable'||shareToTelegram(t))return;const ok=await copyText(t);toast(ok?'Текст со ссылкой скопирован — вставьте его в сообщение':'Не удалось отправить',{variant:ok?'info':'error'});};
@@ -49,7 +50,7 @@ export function SendForm(){
   <div className="buttonRow"><button className="btn" onClick={share}><Icon name="share" size={17}/>Отправить учителю</button><button className="btn secondary" onClick={async()=>{const ok=await copyText(link);toast(ok?'Ссылка скопирована':'Не удалось скопировать',{variant:ok?'success':'error'});}}><Icon name="copy" size={17}/>Скопировать</button></div>
   <button type="button" className="textButton" onClick={()=>setLink('')}>Создать ещё одну</button>
  </div>}
- {waiting.length>0&&<section className="card" style={{marginTop:18}}><h2>Ждём ответ</h2><ul className="plainList">{waiting.map(r=><li key={r.id}><span>{handoffTitle(r.f)} · {r.childLabel}{r.to&&' · '+r.to}<span className="small muted"> · отправлено {dayMonth(r.sentAt.slice(0,10))}</span></span><button type="button" className="iconButton" aria-label="Больше не ждать" onClick={()=>forgetRequest(r.id)}><Icon name="close" size={15}/></button></li>)}</ul><p className="small muted">Пришёл ответ ссылкой, но не открылся? <Link to="/import">Вставьте его вручную</Link>.</p></section>}
+ {waiting.length>0&&<section className="card" style={{marginTop:18}}><h2>Ждём ответ</h2><ul className="plainList">{waiting.map(r=><li key={r.id}><span>{handoffTitle(r.f)} · {r.childLabel}{r.to&&' · '+r.to}<span className="small muted"> · отправлено {dayMonth(r.sentAt.slice(0,10))}</span></span><button type="button" className="iconButton" aria-label="Больше не ждать" onClick={()=>forgetRequest(r.id)}><Icon name="close" size={15}/></button></li>)}</ul><p className="small muted">Пришёл ответ ссылкой, но по ней ничего не открылось? Скопируйте ссылку и вставьте её здесь.</p><Link className="btn secondary compact" style={{marginTop:10}} to="/import"><Icon name="copy" size={15}/>Вставить ответ учителя</Link></section>}
  </div>;
 }
 
@@ -73,7 +74,7 @@ export function TeacherForm(){
  };
  const header=<div className="teacherHead"><span className="brandMark"><Icon name="leaf" size={20}/></span><div><strong>Кора</strong><span className="small muted"> · форма для педагога</span></div></div>;
  if(result){
-  const share=async()=>{const t='Ответы на форму «'+handoffTitle(req.f)+'» ('+req.c+'): '+result;if(await shareText(t,'Ответы учителя')!=='unavailable')return;const ok=await copyText(t);toast(ok?'Скопировано — вставьте в сообщение родителю':'Не удалось скопировать',{variant:ok?'info':'error'});};
+  const share=async()=>{const t='Ответы на форму «'+handoffTitle(req.f)+'» ('+req.c+'): '+result+'\n\nЕсли по ссылке ничего не открылось, скопируйте её и вставьте в «Коре»: «Тесты» → «Вставить ответ учителя».';if(await shareText(t,'Ответы учителя')!=='unavailable')return;const ok=await copyText(t);toast(ok?'Скопировано — вставьте в сообщение родителю':'Не удалось скопировать',{variant:ok?'info':'error'});};
   return <div className="container teacherPage">{header}<h1>Спасибо!</h1><p style={{marginTop:10}}>Осталось отправить ответ родителю: нажмите кнопку и выберите мессенджер, где вы переписываетесь. Ответы хранятся только в этой ссылке — на сервер они не отправлялись.</p>
    <div className="buttonRow" style={{marginTop:16}}><button className="btn" onClick={share}><Icon name="share" size={17}/>Отправить родителю</button><button className="btn secondary" onClick={async()=>{const ok=await copyText(result);toast(ok?'Ссылка скопирована':'Не удалось скопировать',{variant:ok?'success':'error'});}}><Icon name="copy" size={17}/>Скопировать ссылку</button></div>
    <div className="linkBox" style={{marginTop:14}}><code>{result}</code></div></div>;
@@ -103,7 +104,7 @@ export function ImportAnswer(){
  const read=async(input:string)=>{const code=extractCode(input);if(!code){setError('Не нашли ответ в этом тексте. Вставьте ссылку целиком.');return;}const r=await decodeHandoff(code);if(!r||r.k!=='a'){setError('Это не ответ на форму «Коры» или ссылка скопирована не целиком.');setAnswer(null);return;}setError('');setAnswer(r);};
  useEffect(()=>{if(hash.length>1)read(hash);},[hash]);
  const rec=answer?answerToRecord(answer):null;
- const save=()=>{if(!answer||!rec)return;if(saveAnswer(rec,include)){markAnswered(answer.id);toast('Ответ учителя сохранён');navigate('kind' in rec&&rec.kind==='screening'?'/screenings/result/'+rec.result.id:'kind' in rec&&rec.kind==='journal'?'/forms/record/'+rec.record.id:'/screenings');}else toast('Не удалось сохранить',{variant:'error'});};
+ const save=()=>{if(!answer||!rec)return;if(saveAnswer(rec,include)){markAnswered(answer.id);track('teacher_saved');toast('Ответ учителя сохранён');navigate('kind' in rec&&rec.kind==='screening'?'/screenings/result/'+rec.result.id:'kind' in rec&&rec.kind==='journal'?'/forms/record/'+rec.record.id:'/screenings');}else toast('Не удалось сохранить',{variant:'error'});};
  const already=answer&&getRequests().find(r=>r.id===answer.id)?.answeredAt;
  return <div className="container"><PageHeader title="Ответ учителя" subtitle="Ответ на форму, которую вы отправили по ссылке." backTo="/screenings" backLabel="Тесты"/>
  {!answer?<div className="stack">

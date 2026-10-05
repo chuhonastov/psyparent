@@ -1,4 +1,5 @@
 import React,{useEffect,useMemo,useState} from 'react';
+import {track} from '../lib/analytics';
 import {Link} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
@@ -11,6 +12,8 @@ import {getProfile} from '../lib/profile';
 import {copyText,shareText} from '../lib/export';
 import {shareToTelegram} from '../lib/twa';
 import {toast} from '../lib/toast';
+import {useUnsaved} from '../lib/unsaved';
+import {savePdf} from '../lib/files';
 type ListKey='warning'|'coping'|'distract'|'home'|'reasons';
 const tel=(phone:string)=>'tel:'+phone.replace(/[^\d+]/g,'');
 
@@ -33,13 +36,14 @@ function ContactsEditor({label,value,onChange,max=6}:{label:string;value:Contact
 
 export default function SafetyPlan(){
  const child=useActiveChild(),events=useEvents(child?.id||''),[plan,setPlan]=useState<Plan>(()=>child?getPlan(child.id):emptyPlan()),[editing,setEditing]=useState(false);
+ useUnsaved(editing);
  useEffect(()=>{if(!child)return;setPlan(getPlan(child.id));return subscribeSafety(()=>setPlan(getPlan(child.id)));},[child?.id]);
  const meds=useMemo(()=>activeCourses(events).map(c=>c.label+(c.dose?' — '+c.dose:'')),[events]);
  if(!child)return <div className="container"><PageHeader title="План безопасности" backTo="/child" backLabel="Ребёнок"/><div className="emptyState"><h3>Сначала добавьте ребёнка</h3><Link className="btn" to="/child">Добавить ребёнка</Link></div></div>;
  const filled=planFilled(plan),title=child.label+', '+ageLabel(child);
  const text=()=>formatPlan(plan,title,meds);
  const share=async()=>{const t=text();if(await shareText(t,'План безопасности')!=='unavailable'||shareToTelegram(t))return;const ok=await copyText(t);toast(ok?'План скопирован':'Не удалось отправить',{variant:ok?'info':'error'});};
- const save=()=>{if(savePlan(child.id,plan)){toast('План сохранён');setEditing(false);window.scrollTo(0,0);}else toast('Не удалось сохранить',{variant:'error'});};
+ const save=()=>{if(savePlan(child.id,plan)){track('safety_plan');toast('План сохранён');setEditing(false);window.scrollTo(0,0);}else toast('Не удалось сохранить',{variant:'error'});};
  const setList=(k:ListKey)=>(v:string[])=>setPlan({...plan,[k]:v});
  const header=<PageHeader title="План безопасности" subtitle="Что делать, если подростку станет очень плохо: признаки, кто поможет, куда звонить и как сделать дом безопаснее." eyebrow={title} backTo="/child" backLabel="Ребёнок"/>;
  if(editing)return <div className="container">{header}
@@ -70,7 +74,7 @@ export default function SafetyPlan(){
   <Section title="Безопасность дома" items={plan.home}/>
   {meds.length>0&&<Section title="Лекарства — хранит и выдаёт взрослый" items={meds}/>}
   <Section title="Что для меня важно" items={plan.reasons}/>
-  <div className="buttonRow"><button className="btn" onClick={share}><Icon name="share" size={17}/>Отправить</button><button className="btn secondary" onClick={()=>setEditing(true)}>Изменить</button></div>
+  <div className="buttonRow"><button className="btn" onClick={share}><Icon name="share" size={17}/>Отправить</button><button className="btn secondary" onClick={()=>savePdf(text(),'Kora-plan-bezopasnosti.pdf','План безопасности')}><Icon name="download" size={17}/>PDF</button><button className="btn secondary" onClick={()=>setEditing(true)}>Изменить</button></div>
   <p className="small muted">Отправьте план подростку и второму взрослому, чтобы он был под рукой. {plan.updatedAt&&'Обновлён '+new Date(plan.updatedAt).toLocaleDateString('ru-RU')+'.'}</p>
  </div>}
  <div className="sectionHeading"><h2>Что делает семья</h2></div>

@@ -1,8 +1,10 @@
 import React,{useMemo,useState} from 'react';
+import {track} from '../lib/analytics';
 import {Link} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
 import ChildSwitcher from '../components/ChildSwitcher';
+import {useUnsaved} from '../lib/unsaved';
 import DiagnosisPicker from '../components/DiagnosisPicker';
 import {ChildForm} from './Children';
 import {useActiveChild,useRouteData} from '../lib/useRoute';
@@ -20,10 +22,13 @@ import {getPlan,planFilled} from '../lib/safety';
 import {childAge} from '../lib/children';
 import {routeForDiagnosis} from '../lib/navigator';
 import {plural} from '../lib/plural';
+import {savePdf} from '../lib/files';
+import {formatChildReport} from '../lib/childReport';
 const TRACKED_JOURNALS=['sleep','behavior','tolerability','anxiety','mood','tics','rituals','eating','toileting','communication'];
 
 function Goals({childId,goals}:{childId:string;goals:{id:string;text:string;measure:GoalMeasure}[]}){
  const [text,setText]=useState(''),[measure,setMeasure]=useState<GoalMeasure>('severity');
+ useUnsaved(!!text.trim());
  const add=(e:React.FormEvent)=>{e.preventDefault();if(addGoal(childId,text,measure)){setText('');toast('Цель добавлена');}};
  return <section className="card" id="goals"><h2>Что хотим изменить</h2><p className="small muted">{goals.length?'Короткий опрос будет спрашивать, как это меняется.':'Начните с одной главной цели своими словами — того, что сейчас важнее всего для семьи.'}</p>
   {goals.length>0&&<ul className="plainList">{goals.map(g=><li key={g.id}><span>{g.text}<span className="small muted"> · {g.measure==='count'?'сколько раз за неделю':'насколько выражено'}</span></span><button type="button" className="iconButton" aria-label={'Убрать цель «'+g.text+'»'} onClick={()=>removeGoal(childId,g.id)}><Icon name="close" size={15}/></button></li>)}</ul>}
@@ -54,6 +59,7 @@ function Tracking({data}:{data:NonNullable<ReturnType<typeof useRouteData>>}){
 
 function Doctors({childId,doctors}:{childId:string;doctors:Doctor[]}){
  const [adding,setAdding]=useState(false),[d,setD]=useState({name:'',role:'',phone:'',place:''});
+ useUnsaved(adding&&!!(d.name.trim()||d.role.trim()||d.phone.trim()||d.place.trim()));
  const save=(e:React.FormEvent)=>{e.preventDefault();if(addDoctor(childId,d)){setD({name:'',role:'',phone:'',place:''});setAdding(false);toast('Специалист добавлен');}};
  return <section className="card"><div className="cardHead"><h2>Мои специалисты</h2>{!adding&&doctors.length<MAX_DOCTORS&&<button type="button" className="textButton" onClick={()=>setAdding(true)}>Добавить</button>}</div><p className="small muted">Лечащий врач, психолог, логопед — где бы вы ни наблюдались. Их можно выбрать в памятке к приёму.</p>
   {doctors.length>0&&<ul className="plainList">{doctors.map(x=><li key={x.id}><span><strong>{x.name||'Без имени'}</strong>{(x.role||x.place)&&<span className="small muted"> · {[x.role,x.place].filter(Boolean).join(', ')}</span>}</span><span className="buttonRow" style={{flexWrap:'nowrap',gap:6}}>{x.phone&&<a className="btn secondary compact" href={'tel:'+x.phone.replace(/[^\d+]/g,'')}><Icon name="phone" size={14}/>{x.phone}</a>}<button type="button" className="iconButton" aria-label={'Удалить «'+(x.name||x.phone)+'»'} onClick={()=>removeDoctor(childId,x.id)}><Icon name="close" size={15}/></button></span></li>)}</ul>}
@@ -63,7 +69,7 @@ function Doctors({childId,doctors}:{childId:string;doctors:Doctor[]}){
 }
 
 export default function ChildRoute(){
- const child=useActiveChild(),data=useRouteData(child?.id),[addingDx,setAddingDx]=useState(false);
+ const child=useActiveChild(),data=useRouteData(child?.id),[addingDx,setAddingDx]=useState(false),[editingChild,setEditingChild]=useState(false);
  const current=useMemo(()=>data?activeCourses(data.events):[],[data]);
  if(!child||!data)return <div className="container"><PageHeader title="Мой ребёнок" subtitle="Маршрут лечения одного ребёнка: препараты, цели, опросы и приёмы — вместо разрозненных записей." backTo="/" backLabel="Сегодня"/><ChildForm first onDone={()=>{}}/><div className="privacyNote"><Icon name="shield" size={16}/><span>Нужны только условное имя и месяц рождения. Фамилия и точная дата не нужны.</span></div></div>;
  const p=data.profile,last=data.checkIns[data.checkIns.length-1],plan=checkInPlan(p,current);
@@ -71,6 +77,7 @@ export default function ChildRoute(){
  const changes=changeReport(data),days=data.appointment?daysUntil(data.appointment.date):-1;
  const dxs=p.diagnoses.map(diagnosisById).filter((d):d is NonNullable<typeof d>=>!!d);
  return <div className="container"><PageHeader title={child.label} subtitle={[ageLabel(child),...dxs.map(dxName)].join(' · ')} eyebrow="Маршрут ребёнка" backTo="/" backLabel="Сегодня"/>
+ {editingChild?<ChildForm child={child} onDone={()=>setEditingChild(false)}/>:<button type="button" className="textButton editChild" onClick={()=>setEditingChild(true)}><Icon name="edit" size={15}/>Изменить имя или дату рождения</button>}
  <ChildSwitcher active={child}/>
  <div className="stack" style={{marginTop:16}}>
  <Goals childId={child.id} goals={p.goals}/>
@@ -108,6 +115,7 @@ export default function ChildRoute(){
   <div className="buttonRow" style={{marginTop:12}}><Link className="btn compact" to="/visit/changes">Что изменилось{reportIsEmpty(changes)?'':' · '+changes.weeks+' нед.'}</Link><Link className="btn secondary compact" to="/visit">Памятка</Link></div>
  </section>
  </div>
+ <button type="button" className="btn secondary full" style={{marginTop:16}} onClick={()=>(track('report_export'),savePdf(formatChildReport(data),'Kora-o-rebenke-'+data.today+'.pdf','Всё о ребёнке'))}><Icon name="download" size={17}/>Скачать всё о ребёнке (PDF)</button>
  <div className="privacyNote"><Icon name="shield" size={16}/><span>Профиль, лента и опросы хранятся на вашем устройстве и попадают в резервную копию. <Link to="/about#storage">Где хранятся записи</Link></span></div>
  </div>;
 }

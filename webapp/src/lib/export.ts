@@ -34,10 +34,11 @@ export async function copyText(text:string) {
     try {return document.execCommand('copy');} catch {return false;} finally {area.remove();}
   }
 }
-export function downloadFile(content:string,filename:string,type:string) {
-  const url=URL.createObjectURL(new Blob([content],{type}));
-  const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+export function downloadBlob(blob:Blob,filename:string) {
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
+export function downloadFile(content:string,filename:string,type:string) {downloadBlob(new Blob([content],{type}),filename);}
 export function downloadText(text:string,filename='Kora-pamyatka.txt') {
   downloadFile('﻿'+text,filename,'text/plain;charset=utf-8');
 }

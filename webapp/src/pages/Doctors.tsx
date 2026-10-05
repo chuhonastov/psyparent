@@ -32,7 +32,7 @@ export default function Doctors(){
   <p className="searchMeta" role="status">{list.length?count(list.length,'специалист','специалиста','специалистов'):'Никого не нашлось — измените фильтры'}</p>
   {list.length?<div className="list">{list.map(d=><DoctorCard key={d.id} d={d}/>)}</div>:<Book full/>}
   {clinic.updatedAt&&<p className="small muted">Данные с сайта клиники от {new Date(clinic.updatedAt+'T12:00:00').toLocaleDateString('ru-RU')}. Цены, свободное время и актуальное расписание — на сайте.</p>}</>
- :<div className="emptyState"><Icon name="user" size={27}/><h3>Список врачей скоро появится</h3><p>Пока выбрать врача и записаться можно на сайте клиники.</p><Book/></div>}
+ :<div className="emptyState"><Icon name="user" size={27}/><h3>Список врачей не загрузился</h3><p>Выбрать врача и записаться можно на сайте клиники.</p><Book/></div>}
  {!!clinic.branches?.length&&<section className="card"><h2>Филиалы</h2><div className="branchList">{clinic.branches.map(b=><div key={b.id}><strong>{b.city}</strong><p className="small">{b.address}</p>{b.phone&&<a className="textButton" href={'tel:'+b.phone.replace(/[^+\d]/g,'')}><Icon name="phone" size={14}/> {b.phone}</a>}</div>)}</div></section>}
  <section className="card"><h2>Как подготовиться к первому приёму</h2><ul><li>Запишите, что беспокоит, с каких пор и где это заметно — дома, в саду, в школе.</li><li>Возьмите прошлые заключения, выписки и список лекарств, которые ребёнок принимает или принимал.</li><li>Если проходили тесты в приложении, добавьте результаты в <Link to="/visit">памятку</Link>.</li><li>Спросите врача: «Что вы предполагаете, что собираетесь делать и к какому сроку чего ждать?»</li></ul></section>
  </div></div>;

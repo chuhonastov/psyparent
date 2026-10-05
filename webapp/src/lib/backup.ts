@@ -31,7 +31,7 @@ export function parseBackup(text:string):{ok:true;data:Record<string,string>;fil
   let raw:any;
   try{raw=JSON.parse(text);}catch{return {ok:false,error:'Это не резервная копия «Коры»: не удалось прочитать JSON.'};}
   if(!raw||typeof raw!=='object'||!APP_IDS.includes(raw.app))return {ok:false,error:'Это не резервная копия «Коры».'};
-  if(raw.format!==BACKUP_FORMAT)return {ok:false,error:'Копия создана в другой версии формата. Обновите приложение.'};
+  if(raw.format!==BACKUP_FORMAT)return {ok:false,error:'Эта копия сделана в более новой «Коре». Закройте и снова откройте приложение, чтобы оно обновилось, и повторите.'};
   if(!raw.data||typeof raw.data!=='object'||Array.isArray(raw.data))return {ok:false,error:'В копии нет записей.'};
   const data:Record<string,string>={};
   for(const [key,value] of Object.entries(raw.data)){
