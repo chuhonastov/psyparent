@@ -9,7 +9,8 @@ const data=methodsRaw as {groups:{id:string;title:string}[];items:Method[]};
 export const methodGroups=data.groups;
 export const methods=data.items;
 export const methodById=(id:string)=>methods.find(x=>x.id===id);
-export const methodVerdictLabels:Record<MethodVerdict,string>={harmful:'Опасно',useless:'Не помогает',limited:'Не лечит, только дополнение'};
+// Three different conclusions, not one «doesn't work»: real risks; no benefit shown for this problem; at most an add-on.
+export const methodVerdictLabels:Record<MethodVerdict,string>={harmful:'Есть серьёзные риски',useless:'Пользы не показано',limited:'Только как дополнение'};
 export const verdictTag=(v:MethodVerdict)=>v==='harmful'?'danger':v==='useless'?'warm':'neutral';
 export const methodVerdictOrder:MethodVerdict[]=['harmful','useless','limited'];
 /** Methods usually offered for a topic, dangerous ones first. */

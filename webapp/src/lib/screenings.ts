@@ -1,11 +1,12 @@
 import {ticItemById} from './ygtss';
 import {extraIds,validateExtra,scoreExtra} from './extraScreeningScoring';
 import {readJSON,writeJSON} from './persist';
+import {childIdForLabel} from './children';
 import {impactOptions,respondentLabels,screeners,screenerById,screeningSafety,sdqFields,scaleFields,formFor,sectionAt,ScreeningId,Respondent} from './screeningContent';
 import {embeddedIds,scoreEmbedded} from './embeddedInstruments';
 export const SCREENING_KEY='psyparent.screenings.v1';
 const EVENT='psyparent:screenings-updated';
-export type ScreeningInput={childLabel:string;age:number;respondent:Respondent;completedDate:string;answers?:number[];impact?:number;total?:number;followUpDone?:boolean;followUpScore?:number;subscales?:Record<string,number>;notes:string;measurements?:Record<string,number>;sourceForm?:string;clinicianConfirmed?:boolean;ticInventory?:string[]};
+export type ScreeningInput={childId?:string;childLabel:string;age:number;respondent:Respondent;completedDate:string;answers?:number[];impact?:number;total?:number;followUpDone?:boolean;followUpScore?:number;subscales?:Record<string,number>;notes:string;measurements?:Record<string,number>;sourceForm?:string;clinicianConfirmed?:boolean;ticInventory?:string[]};
 export type ScreeningScore={total:number;max:number;label:string;next:string;safety:boolean;metrics?:{label:string;value:number;max:number}[];status:'low'|'discuss'|'followup'|'priority'|'recorded'};
 export type ScreeningResult=ScreeningInput&{id:string;screenerId:ScreeningId;instrumentVersion:string;translation:string;createdAt:string;includeInVisit:boolean;score:ScreeningScore};
 export function localDate(){const now=new Date();return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;}
@@ -75,6 +76,7 @@ export function normalizeScreenings(raw:unknown):ScreeningResult[]{
   if(!s||r.instrumentVersion!==s.version||validateScreening(s.id,r).length)return [];
   seen.add(r.id);
   const result:ScreeningResult={id:r.id,screenerId:s.id,instrumentVersion:s.version,translation:s.translation,createdAt:r.createdAt,includeInVisit:r.includeInVisit===true,childLabel:r.childLabel.trim(),age:r.age,respondent:r.respondent,completedDate:r.completedDate,notes:r.notes,score:scoreScreening(s.id,r)};
+  if(typeof r.childId==='string'&&r.childId)result.childId=r.childId;
   if(s.mode==='embedded'){result.answers=[...r.answers];if(r.impact!==undefined)result.impact=r.impact;}
   if(s.mode==='external')result.total=r.total;
   if(extraIds.includes(s.id)){result.measurements={...r.measurements};result.sourceForm=r.sourceForm;if(s.id==='ygtss'){result.clinicianConfirmed=r.clinicianConfirmed;if(r.ticInventory)result.ticInventory=[...new Set<string>(r.ticInventory)];}}
@@ -87,13 +89,15 @@ export const getScreenings=()=>normalizeScreenings(readJSON<unknown>(SCREENING_K
 function write(results:ScreeningResult[]){if(!writeJSON(SCREENING_KEY,{version:1,results}))return false;window.dispatchEvent(new Event(EVENT));return true;}
 export function createScreening(id:ScreeningId,input:ScreeningInput):ScreeningResult{
  const s=screenerById(id)!;
- return {...input,childLabel:input.childLabel.trim(),id:globalThis.crypto?.randomUUID?.()||'screen-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2),screenerId:id,instrumentVersion:s.version,translation:s.translation,createdAt:new Date().toISOString(),includeInVisit:id!=='crafft',score:scoreScreening(id,input)};
+ return {...input,childId:input.childId||childIdForLabel(input.childLabel),childLabel:input.childLabel.trim(),id:globalThis.crypto?.randomUUID?.()||'screen-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2),screenerId:id,instrumentVersion:s.version,translation:s.translation,createdAt:new Date().toISOString(),includeInVisit:id!=='crafft',score:scoreScreening(id,input)};
 }
 export function saveScreening(result:ScreeningResult){
  const normalized=normalizeScreenings({version:1,results:[result]});if(normalized.length!==1)return false;
  const rows=getScreenings();if(rows.some(r=>r.id===result.id))return true;
  return write([normalized[0],...rows]);
 }
+/** Rewrites stored results, e.g. to link them to a profile after a rename. */
+export function updateScreenings(map:(r:ScreeningResult)=>ScreeningResult){const rows=getScreenings(),next=rows.map(map);return JSON.stringify(next)===JSON.stringify(rows)?true:write(next);}
 export function removeScreening(id:string){return write(getScreenings().filter(r=>r.id!==id));}
 export function includeScreening(id:string,includeInVisit:boolean){return write(getScreenings().map(r=>r.id===id?{...r,includeInVisit}:r));}
 export function subscribeScreenings(handler:()=>void){

@@ -1,9 +1,13 @@
 import {diagnoses,medicationById} from './content';
 import {readJSON, writeJSON} from './persist';
+import {getActiveChild} from './profile';
 export type MedDetail = {dose?: string; schedule?: string; goal?: string; monitoring?: string; warnings?: string; note?: string};
 export type ChecklistSnapshot = {id: string; title: string; lines: string[]; updatedAt?: string; migrated?: boolean};
 export type VisitState = {version: 2; questions: string[]; meds: string[]; medDetails: Record<string, MedDetail>; checklists: Record<string, ChecklistSnapshot>};
 export const VISIT_KEY = 'psyparent.visit.v2';
+// Each child has its own memo; the plain key is used while there are no child profiles.
+export const visitKeyFor = (childId: string | null) => childId ? VISIT_KEY + ':' + childId : VISIT_KEY;
+const activeChildId = () => getActiveChild()?.id || null;
 const EVENT = 'psyparent:visit-updated';
 const strings = (value: unknown): string[] => Array.isArray(value) ? Array.from(new Set(value.filter((v): v is string => typeof v === 'string').map(v => v.trim()).filter(Boolean))) : [];
 const empty = (): VisitState => ({version:2,questions:[],meds:[],medDetails:{},checklists:{}});
@@ -40,7 +44,9 @@ export function normalizeVisit(raw: unknown): VisitState {
   }
   return base;
 }
-export function getVisit(): VisitState {
+export function getVisit(): VisitState { return getVisitFor(activeChildId()); }
+export function getVisitFor(childId: string | null): VisitState {
+  if(childId) return normalizeVisit(readJSON<unknown>(visitKeyFor(childId),null));
   const stored = readJSON<unknown>(VISIT_KEY,null);
   if(stored) return normalizeVisit(stored);
   const old = readJSON<any>('parentguide.visit.v1',null);
@@ -61,8 +67,8 @@ export function getVisit(): VisitState {
   return base;
 }
 function update(fn: (v:VisitState)=>VisitState) {
-  const next = normalizeVisit(fn(getVisit()));
-  if(!writeJSON(VISIT_KEY,next)) return false;
+  const key = visitKeyFor(activeChildId()), next = normalizeVisit(fn(getVisit()));
+  if(!writeJSON(key,next)) return false;
   window.dispatchEvent(new Event(EVENT));
   return true;
 }
@@ -87,7 +93,7 @@ export function removeChecklist(id:string) {
 }
 export function clearVisit(){return update(()=>empty());}
 export function subscribeVisit(handler:()=>void) {
-  const storage = (e:StorageEvent)=>{if(!e.key || e.key===VISIT_KEY || e.key.startsWith('parentguide.'))handler();};
+  const storage = (e:StorageEvent)=>{if(!e.key || e.key.startsWith(VISIT_KEY) || e.key.startsWith('parentguide.'))handler();};
   window.addEventListener(EVENT,handler);
   window.addEventListener('storage',storage);
   return ()=>{window.removeEventListener(EVENT,handler);window.removeEventListener('storage',storage);};

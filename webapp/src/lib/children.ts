@@ -22,6 +22,8 @@ export function normalizeChildren(raw:unknown):Child[]{
  return raw.filter((c:any)=>c&&typeof c.id==='string'&&c.id&&!seen.has(c.id)&&!validateChild(c).length&&seen.add(c.id)).slice(0,MAX_CHILDREN).map((c:any)=>({id:c.id,label:c.label.trim(),birth:c.birth}));
 }
 export const getChildren=()=>normalizeChildren(readJSON(CHILDREN_KEY,[]));
+/** The profile a record signed with this name belongs to — only when exactly one profile has that name. */
+export function childIdForLabel(label:string,children=getChildren()){const l=label.trim().toLocaleLowerCase('ru'),hits=children.filter(c=>c.label.trim().toLocaleLowerCase('ru')===l);return hits.length===1?hits[0].id:undefined;}
 const store=(rows:Child[])=>{const ok=writeJSON(CHILDREN_KEY,rows);if(ok&&typeof window!=='undefined')window.dispatchEvent(new Event(EVENT));return ok;};
 export function saveChild(input:{id?:string;label:string;birth:string}):Child|null{
  if(validateChild(input).length)return null;

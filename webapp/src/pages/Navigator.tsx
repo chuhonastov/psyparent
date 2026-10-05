@@ -37,3 +37,15 @@ export function NavigatorRoute(){
  <Sources items={navSources([...new Set(used.flatMap(t=>t.sources))])} updatedAt={navUpdatedAt}/>
  </div>;
 }
+/** One general topic (ПМПК, инвалидность…) as its own page: search results and other screens link here. */
+export function NavigatorTopic(){
+ const {id=''}=useParams(),t=navTopicById(id);
+ if(!t)return <div className="container"><PageHeader title="Раздел не найден" backTo="/navigator" backLabel="Навигатор"/></div>;
+ const routes=navRoutes.filter(r=>r.steps.some(s=>s.topics?.includes(t.id)));
+ return <div className="container"><PageHeader title={t.title} subtitle={t.text} eyebrow="Навигатор по России" backTo="/navigator" backLabel="Навигатор"/>
+ <section className="card"><ul>{t.points.map(p=><li key={p}>{p}</li>)}</ul></section>
+ {routes.length>0&&<><div className="sectionHeading"><h2>В маршрутах</h2></div><div className="pickChips">{routes.map(r=><Link key={r.id} className="pickChip" to={'/navigator/'+r.id}>{r.title}</Link>)}</div></>}
+ <div className="callout" style={{marginTop:16}}><p>Порядок и списки документов в регионах отличаются. Уточняйте на сайте своей ПМПК или бюро МСЭ.</p></div>
+ <Sources items={navSources(t.sources)} updatedAt={navUpdatedAt}/>
+ </div>;
+}

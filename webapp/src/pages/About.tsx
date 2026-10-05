@@ -7,12 +7,12 @@ import {toast} from '../lib/toast';
 import meta from '../content/meta.json';
 import {useSettings} from '../lib/useSettings';
 import {saveSettings,textSizeLabels,themeLabels,TextSize,ThemeChoice} from '../lib/settings';
-import {backupFileName,createBackup,describeSummary,lastBackupAt,markBackupDone,parseBackup,restoreBackup,summarizeBackup} from '../lib/backup';
+import {backupFileName,createBackup,createFullBackup,describeSummary,lastBackupAt,markBackupDone,parseBackup,restoreBackup,summarizeBackup} from '../lib/backup';
 import {downloadFile} from '../lib/export';
 import {isTelegram} from '../lib/twa';
 import {disableCloudSync,enableCloudSync,getSyncView,subscribeSync,syncNow} from '../lib/sync';
 import {isIOS,isStandalone} from '../lib/device';
-import {clearFiles} from '../lib/documents';
+import {clearFiles,filesSize,importFiles,sizeLabel} from '../lib/documents';
 const useSyncView=()=>useSyncExternalStore(subscribeSync,getSyncView);
 const when=(t:number)=>new Date(t).toLocaleString('ru-RU',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
 function TelegramStorage(){
@@ -55,19 +55,22 @@ function ReadingSettings(){
 function Backup(){
  const [,setDone]=useState(0);
  const download=()=>{try{downloadFile(JSON.stringify(createBackup(),null,1),backupFileName(),'application/json');markBackupDone();setDone(x=>x+1);}catch{toast('Не удалось создать копию: браузер не дал прочитать записи',{variant:'error'});}};
+ const fileBytes=filesSize();
+ const downloadFull=async()=>{try{const {backup,missing}=await createFullBackup();downloadFile(JSON.stringify(backup),backupFileName(new Date(),true),'application/json');markBackupDone();setDone(x=>x+1);if(missing)toast('Файлов нет на этом устройстве: '+missing+'. Сделайте полную копию там, где их добавляли.',{variant:'info',durationMs:5000});}catch{toast('Не удалось собрать копию с файлами',{variant:'error'});}};
  const restore=async(file:File)=>{
   let text='';
   try{text=await file.text();}catch{toast('Не удалось прочитать файл',{variant:'error'});return;}
   const parsed=parseBackup(text);
   if(!parsed.ok){toast(parsed.error,{variant:'error',durationMs:5000});return;}
-  if(!window.confirm('Заменить записи на этом устройстве копией? В копии — '+describeSummary(summarizeBackup(parsed.data))+'. Текущие записи «Коры» на этом устройстве будут заменены.'))return;
-  if(restoreBackup(parsed.data)){toast('Записи восстановлены');window.setTimeout(()=>window.location.reload(),700);}
+  const nFiles=parsed.files?Object.keys(parsed.files).length:0;
+  if(!window.confirm('Заменить записи на этом устройстве копией? В копии — '+describeSummary(summarizeBackup(parsed.data))+(nFiles?', файлов документов: '+nFiles:'')+'. Текущие записи «Коры» на этом устройстве будут заменены.'))return;
+  if(restoreBackup(parsed.data)){if(parsed.files)await importFiles(parsed.files);toast('Записи восстановлены');window.setTimeout(()=>window.location.reload(),700);}
   else toast('Не удалось восстановить: браузер не разрешил сохранение. Прежние записи оставлены.',{variant:'error',durationMs:5000});
  };
  const last=lastBackupAt();
  return <section className="card" id="backup" aria-labelledby="backup-title"><h2 id="backup-title">Резервная копия</h2><p style={{marginTop:8}}>{isTelegram()?'Файл пригодится, чтобы перенести записи из Telegram в браузер или сохранить их вне Telegram.':'Скачайте копию перед сменой телефона или очисткой браузера, а затем восстановите её на новом устройстве.'}</p>
- <div className="buttonRow" style={{marginTop:14}}><button className="btn secondary" onClick={download}><Icon name="download" size={17}/>Скачать копию</button><label className="btn secondary fileButton"><Icon name="upload" size={17}/>Восстановить из файла<input type="file" accept=".json,application/json" onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)restore(file);}}/></label></div>
- <p className="small muted" style={{marginTop:10}}>Последняя копия: {last?last.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'}):'ещё не делали'}. В файле все записи: вопросы, назначения, ответы тестов и дневники. Храните его как медицинский документ и не пересылайте посторонним.</p></section>;
+ <div className="buttonRow" style={{marginTop:14}}><button className="btn secondary" onClick={download}><Icon name="download" size={17}/>{fileBytes?'Копия записей':'Скачать копию'}</button>{fileBytes>0&&<button className="btn secondary" onClick={downloadFull}><Icon name="download" size={17}/>С файлами документов · {sizeLabel(fileBytes)}</button>}<label className="btn secondary fileButton"><Icon name="upload" size={17}/>Восстановить из файла<input type="file" accept=".json,application/json" onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)restore(file);}}/></label></div>
+ <p className="small muted" style={{marginTop:10}}>Последняя копия: {last?last.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'}):'ещё не делали'}. В файле все записи: вопросы, назначения, ответы тестов и дневники.{fileBytes>0&&' Фото и PDF документов входят только в копию «с файлами документов»; в обычной — только их список.'} Храните копию как медицинский документ и не пересылайте посторонним.</p></section>;
 }
 export default function About() {
  const {hash}=useLocation();

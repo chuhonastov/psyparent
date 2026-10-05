@@ -1,4 +1,4 @@
-import React,{useMemo,useState} from 'react';
+import React,{useEffect,useMemo,useState} from 'react';
 import {Link,useSearchParams} from 'react-router-dom';
 import Icon from '../components/Icon';
 import GlobalSearch from '../components/GlobalSearch';
@@ -9,7 +9,8 @@ import {clearRecent,resolveRecent,RecentItem} from '../lib/recent';
 import {useScreenings} from '../lib/useScreenings';
 import {useJournals} from '../lib/useJournals';
 import {useActiveChild,useRouteData} from '../lib/useRoute';
-import {todayItems} from '../lib/route';
+import {todayItems,addDays} from '../lib/route';
+import {isSnoozed,snooze} from '../lib/snooze';
 import {ageLabel} from '../lib/children';
 import {useAppointment} from '../lib/useAppointment';
 import {countdownLabel,daysUntil,formatAppointment} from '../lib/appointment';
@@ -26,18 +27,31 @@ function StorageReminder({hasRecords}:{hasRecords:boolean}){
 const WEEKDAYS=['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
 const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const todayTitle=(d=new Date())=>WEEKDAYS[d.getDay()].replace(/^./,c=>c.toUpperCase())+', '+d.getDate()+' '+MONTHS[d.getMonth()];
-/** "Today" for the chosen child: what is due now, computed from the family's own records. */
+const CHOICES:{to:string;icon:'book'|'pill'|'heart'|'note';title:string;text:string}[]=[
+ {to:'/diagnoses',icon:'book',title:'Хочу понять диагноз',text:'Что означает заключение и чем можно помочь'},
+ {to:'/review',icon:'pill',title:'Хочу разобраться в назначении',text:'Зачем назначили препарат, чего ждать, что спросить'},
+ {to:'/difficulties',icon:'heart',title:'Хочу помочь с конкретной трудностью',text:'Сон, речь, истерики, тревога, школа — первый шаг'},
+ {to:'/visit',icon:'note',title:'Готовлюсь к приёму',text:'Собрать вопросы и наблюдения для врача'},
+];
+/** "Today" for the chosen child: one main action and a few optional ones, each can be put off. */
 function Today(){
- const child=useActiveChild(),data=useRouteData(child?.id),items=useMemo(()=>data?todayItems(data):[],[data]),appointment=useAppointment(),count=useVisitCount(),days=appointment?daysUntil(appointment.date):-1;
- // Without a child profile the home screen keeps the memo strip: the reference works without a route.
- if(!child||!data)return <><section className="hero"><div className="heroMark"><Icon name="leaf" size={185}/></div><div className="eyebrow">Понятно о детской психиатрии</div><h1>После приёма<br/>хочется ясности.</h1><p>Разберитесь в диагнозе и назначениях. Ведите лечение ребёнка в одном месте — и приходите к врачу с готовой историей.</p><div className="heroFoot"><Icon name="shield" size={16}/>С опорой на научные данные</div></section>
+ const child=useActiveChild(),data=useRouteData(child?.id),[tick,setTick]=useState(0),appointment=useAppointment(),count=useVisitCount(),days=appointment?daysUntil(appointment.date):-1;
+ useEffect(()=>{const h=()=>setTick(t=>t+1);window.addEventListener('kora:snooze',h);return ()=>window.removeEventListener('kora:snooze',h);},[]);
+ const items=useMemo(()=>data?todayItems(data).filter(i=>!isSnoozed(i.id,data.today)):[],[data,tick]);
+ // Without a child profile the home screen asks what the parent came for; the profile is offered, not required.
+ if(!child||!data)return <><section className="hero"><div className="heroMark"><Icon name="leaf" size={185}/></div><div className="eyebrow">Понятно о детской психиатрии</div><h1>После приёма<br/>хочется ясности.</h1><p>Разберитесь в диагнозе и назначениях, найдите первый шаг при трудностях ребёнка и подготовьтесь к следующему приёму.</p><div className="heroFoot"><Icon name="shield" size={16}/>С опорой на научные данные</div></section>
   {(days>=0||count>0)&&<Link to="/visit" className="actionCard warm"><span className="actionIcon"><Icon name={days>=0?'calendar':'note'} size={23}/></span><div className="actionMain">{days>=0&&appointment?<><h3>Приём {countdownLabel(days)}</h3><p>{formatAppointment(appointment)}{count?'. В памятке '+counted(count,'запись','записи','записей')+'.':''}</p></>:<><h3>В памятке {counted(count,'запись','записи','записей')}</h3><p>Можно продолжить и указать дату приёма</p></>}</div><Icon name="arrow" size={18}/></Link>}
-  <Link to="/child" className="actionCard primary routeStart"><span className="actionIcon"><Icon name="user" size={23}/></span><div className="actionMain"><h3>Начать маршрут ребёнка</h3><p>Препараты и дозы, цели, короткие опросы и сводка к приёму. Нужны только имя и месяц рождения.</p></div><Icon name="arrow" size={18}/></Link></>;
+  <section aria-labelledby="start-title"><div className="sectionHeading"><h2 id="start-title">С чего начнём?</h2></div>
+  <div className="actionGrid">{CHOICES.map((c,i)=><Link key={c.to} to={c.to} className={'actionCard'+(i===0?' primary':'')}><span className="actionIcon"><Icon name={c.icon} size={23}/></span><div className="actionMain"><h3>{c.title}</h3><p>{c.text}</p></div><Icon name="arrow" size={18}/></Link>)}</div></section>
+  <Link to="/child" className="screeningHistoryLink routeStart"><span className="actionIcon"><Icon name="user"/></span><span><strong>Сохранять историю ребёнка</strong><span className="small muted">Когда захотите отмечать лечение, цели и изменения к приёму. Нужны только имя и месяц рождения.</span></span><Icon name="arrow" size={18}/></Link></>;
+ const [main,...rest]=items;
+ const later=(id:string,urgent?:boolean)=>snooze(id,addDays(data.today,urgent?3:1),data.today);
  return <section className="today" aria-labelledby="today-title">
   <div className="eyebrow">{todayTitle()}</div><h1 id="today-title">Сегодня · {child.label}, {ageLabel(child)}</h1>
   <ChildSwitcher active={child} manage={false}/>
-  {items.length?<div className="todayList">{items.map(i=><Link key={i.id} to={i.to} className={'todayItem '+i.tone}><span className="todayIcon"><Icon name={i.icon} size={21}/></span><span className="todayMain"><strong>{i.title}</strong>{i.text&&<span>{i.text}</span>}</span><Icon name="arrow" size={17}/></Link>)}</div>
+  {main?<div className={'todayMainCard '+main.tone}><Link to={main.to} className="todayMainLink"><span className="todayIcon"><Icon name={main.icon} size={22}/></span><span className="todayMain"><strong>{main.title}</strong>{main.text&&<span>{main.text}</span>}</span><Icon name="arrow" size={18}/></Link><button type="button" className="textButton todayLater" onClick={()=>later(main.id,main.tone==='danger')}>{main.tone==='danger'?'Уже связались с врачом':'Отложить на завтра'}</button></div>
   :<div className="callout todayCalm"><strong>На сегодня дел нет</strong><p>Если что-то изменилось — запишите в ленту. Перед приёмом всё соберётся в сводку для врача.</p></div>}
+  {rest.length>0&&<><p className="small muted todayMore">Ещё можно, если есть силы:</p><div className="todayList">{rest.map(i=><div key={i.id} className={'todayItem compact '+i.tone}><Link to={i.to} className="todayItemLink"><span className="todayMain"><strong>{i.title}</strong>{i.text&&<span>{i.text}</span>}</span></Link><button type="button" className="iconButton" aria-label={'Отложить: '+i.title} title="Отложить" onClick={()=>later(i.id,i.tone==='danger')}><Icon name="close" size={15}/></button></div>)}</div></>}
   <div className="quickActions"><Link to="/child/timeline?add=effect"><Icon name="plus" size={18}/>В ленту</Link><Link to="/child/check-in"><Icon name="check" size={18}/>Опрос</Link><Link to="/visit"><Icon name="note" size={18}/>Вопрос врачу</Link></div>
  </section>;
 }

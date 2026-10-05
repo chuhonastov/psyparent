@@ -4,7 +4,7 @@ import {useScreenings} from './useScreenings';
 import {useJournals} from './useJournals';
 import {useAppointment} from './useAppointment';
 import {useVisitCount} from './useVisitCount';
-import {getActiveChild,getProfile,subscribeProfiles} from './profile';
+import {getProfile,subscribeProfiles} from './profile';
 import {getEvents,subscribeTreatment} from './treatment';
 import {getCheckIns,subscribeCheckIns} from './monitoring';
 import {getDocuments,subscribeDocuments} from './documents';
@@ -16,7 +16,7 @@ function useStore<T>(read:()=>T,subscribe:(h:()=>void)=>()=>void,deps:unknown[])
  useEffect(()=>{setValue(read());return subscribe(()=>setValue(read()));},deps);
  return value;
 }
-export function useActiveChild(){const children=useChildren(),[tick,setTick]=useState(0);useEffect(()=>subscribeProfiles(()=>setTick(t=>t+1)),[]);return useMemo(()=>getActiveChild(children),[children,tick]);}
+export {useActiveChild} from './useActiveChild';
 export const useProfile=(childId:string)=>useStore(()=>getProfile(childId),subscribeProfiles,[childId]);
 export const useEvents=(childId:string)=>useStore(()=>getEvents(childId),subscribeTreatment,[childId]);
 export const useCheckIns=(childId:string)=>useStore(()=>getCheckIns(childId),subscribeCheckIns,[childId]);
