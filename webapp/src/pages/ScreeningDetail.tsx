@@ -1,5 +1,4 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {track} from '../lib/analytics';
 import {useDraft} from '../lib/drafts';
 import DraftNotice from '../components/DraftNotice';
 import {Link,useParams,useLocation} from 'react-router-dom';
@@ -49,7 +48,7 @@ function ScreeningForm({s,backTo}:{s:Screener;backTo:string}){
  return <div className="container"><PageHeader title={s.name+' · '+s.title} subtitle={s.ageLabel} backTo={backTo} backLabel="Все скрининги"/>
  {result?<div ref={resultRef} tabIndex={-1}>
  <div className={'callout '+(!saved?'warn':'')} style={{marginBottom:16}} role="status"><strong>{saved?(result.includeInVisit?'Результат сохранён в историю и памятку':'Результат сохранён только в историю'):'Результат ещё не сохранён'}</strong><p>{saved?'В разделе «К врачу» можно выбрать, какие записи передать врачу.':'Сохраните его кнопкой ниже или скачайте файл. При закрытии страницы несохранённый результат исчезнет.'}</p></div>
- {!saved&&<button className="btn full" style={{marginBottom:16}} onClick={()=>{const ok=saveScreening(result);setSaved(ok);setSaveError(!ok);if(ok){draft.clear();track('screening');}toast(ok?'Результат сохранён':'Не удалось сохранить. Скопируйте или скачайте результат.',{variant:ok?'success':'error'});}}><Icon name="plus" size={17}/>{s.id==='crafft'?'Сохранить только в историю':'Сохранить в историю и памятку'}</button>}
+ {!saved&&<button className="btn full" style={{marginBottom:16}} onClick={()=>{const ok=saveScreening(result);setSaved(ok);setSaveError(!ok);if(ok){draft.clear();}toast(ok?'Результат сохранён':'Не удалось сохранить. Скопируйте или скачайте результат.',{variant:ok?'success':'error'});}}><Icon name="plus" size={17}/>{s.id==='crafft'?'Сохранить только в историю':'Сохранить в историю и памятку'}</button>}
  {saveError&&<p className="callout danger" role="alert" style={{marginBottom:16}}>Браузер не сохранил запись. Результат остаётся на этом экране: скопируйте или скачайте его перед закрытием.</p>}
  <ScreeningResultCard result={result}/>
  <div className="buttonRow" style={{marginTop:18}}>{saved?<><Link className="btn" to="/visit">К памятке врачу</Link><Link className="btn secondary" to="/screenings/history">История результатов</Link></>:<button className="btn secondary" onClick={()=>{setResult(null);setErrors([]);window.scrollTo(0,0);}}>Исправить ответы</button>}</div>

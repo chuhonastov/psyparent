@@ -1,7 +1,9 @@
 {
-  "appVersion": "0.20.0",
+  "appVersion": "0.21.0",
   "contentVersion": "2026-10-05",
   "author": "Степан Краснощеков",
   "disclaimer": "Справочник помогает разобраться в информации и подготовиться к приёму. Решения о диагнозе и лечении принимает врач вместе с семьёй.",
-  "telegramBot": "psyparent_bot"
+  "telegramBot": "psyparent_bot",
+  "authorChannel": "doc_kras",
+  "authorChannelTitle": "Краснощеков | Детская психиатрия"
 }

@@ -13,7 +13,8 @@ export const scaleLabels=data.scale,missedLabels=data.missed,monitorItems=data.i
 export const setForMed=(medId?:string)=>monitorSets.find(s=>medId&&s.meds.includes(medId))??monitorSets.find(s=>s.id==='general')!;
 export const CHECKINS_KEY='psyparent.checkins.v1';
 const EVENT='psyparent:checkins-updated';
-export type CheckIn={id:string;childId:string;date:string;goals:Record<string,number>;items:Record<string,number>;numbers:Record<string,number>;missed?:number;note:string;createdAt:string};
+/** parent: «а как вы сами» — 0 справляюсь, 1 тяжеловато, 2 очень тяжело. Only for the parent: never in exports for the doctor. */
+export type CheckIn={id:string;childId:string;date:string;goals:Record<string,number>;items:Record<string,number>;numbers:Record<string,number>;missed?:number;parent?:number;note:string;createdAt:string};
 
 /** What the check-in asks for this child now. */
 export type CheckInPlan={goals:Profile['goals'];items:{id:string;label:string;hint?:string;urgentAt?:number}[];numbers:{id:string;label:string;unit:string;min:number;max:number;step:number}[];askMissed:boolean;urgent:string[];labs:{title:string;lines:string[]}[]};
@@ -43,6 +44,7 @@ function normalize(raw:unknown):CheckIn[]{
    goals:clean(r.goals,(_,v)=>int(v,0,999)),items:clean(r.items,(_,v)=>int(v,0,3)),
    numbers:clean(r.numbers,(k,v)=>typeof v==='number'&&Number.isFinite(v)&&(!monitorNumbers[k]||(v>=monitorNumbers[k].min&&v<=monitorNumbers[k].max))),note:typeof r.note==='string'?r.note.slice(0,1000):''};
   if(int(r.missed,0,2))c.missed=r.missed;
+  if(int(r.parent,0,2))c.parent=r.parent;
   return [c];
  }).sort((a:CheckIn,b:CheckIn)=>a.date.localeCompare(b.date)||a.createdAt.localeCompare(b.createdAt));
 }
@@ -51,7 +53,7 @@ const write=(rows:CheckIn[])=>{const ok=writeJSON(CHECKINS_KEY,{version:1,record
 export function validateCheckIn(input:Omit<CheckIn,'id'|'createdAt'>,plan:CheckInPlan,today:string){
  const errors:string[]=[];
  if(!validDate(input.date)||input.date>today)errors.push('Укажите дату не позже сегодняшней.');
- const answered=Object.keys(input.goals).length+Object.keys(input.items).length+Object.keys(input.numbers).length+(input.missed!==undefined?1:0)+(input.note.trim()?1:0);
+ const answered=Object.keys(input.goals).length+Object.keys(input.items).length+Object.keys(input.numbers).length+(input.missed!==undefined?1:0)+(input.parent!==undefined?1:0)+(input.note.trim()?1:0);
  if(!answered)errors.push('Ответьте хотя бы на один вопрос. Пропущенный вопрос не считается ответом «нет».');
  for(const n of plan.numbers){const v=input.numbers[n.id];if(v!==undefined&&(!Number.isFinite(v)||v<n.min||v>n.max))errors.push(n.label+': число от '+n.min+' до '+n.max+'.');}
  for(const g of plan.goals){const v=input.goals[g.id];if(v!==undefined&&!int(v,0,g.measure==='count'?999:3))errors.push(g.text+': проверьте ответ.');}

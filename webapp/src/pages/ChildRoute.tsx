@@ -1,5 +1,4 @@
 import React,{useMemo,useState} from 'react';
-import {track} from '../lib/analytics';
 import {Link} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
@@ -22,8 +21,10 @@ import {getPlan,planFilled} from '../lib/safety';
 import {childAge} from '../lib/children';
 import {routeForDiagnosis} from '../lib/navigator';
 import {plural} from '../lib/plural';
-import {savePdf} from '../lib/files';
-import {formatChildReport} from '../lib/childReport';
+import {saveDoc} from '../lib/files';
+import {planById,planDay} from '../lib/plans';
+import {getPassport,passportFilled} from '../lib/passport';
+import {childReportDoc} from '../lib/reports';
 const TRACKED_JOURNALS=['sleep','behavior','tolerability','anxiety','mood','tics','rituals','eating','toileting','communication'];
 
 function Goals({childId,goals}:{childId:string;goals:{id:string;text:string;measure:GoalMeasure}[]}){
@@ -108,6 +109,8 @@ export default function ChildRoute(){
   :<p className="small muted" style={{marginTop:8}}>Пока нет результатов с именем «{child.label}». Повторные тесты раз в 1–2 месяца показывают, как меняется состояние.</p>}
   <Link className="btn secondary compact" style={{marginTop:12}} to="/screenings/send"><Icon name="share" size={15}/>Форма для учителя</Link>
  </section>
+ {(()=>{const run=p.plans.filter(r=>r.status==='active')[0],plan=run?planById(run.planId):undefined,st=run?planDay(run,data.today):null;return <Link to={plan?'/plans/'+plan.id:'/plans'} className="screeningHistoryLink"><span className="actionIcon"><Icon name="check"/></span><span><strong>{plan?'План «'+plan.title+'»':'Мини-планы'}</strong><span className="small muted">{plan&&st?(st.over?'Две недели прошли — посмотрите итог':'День '+st.day+' из 14'):'Две недели на одну трудность: утро, сон, уроки, вспышки, страхи, экраны'}</span></span><Icon name="arrow" size={18}/></Link>;})()}
+ {childAge(child).years>=3&&<Link to="/child/passport" className="screeningHistoryLink"><span className="actionIcon"><Icon name="user"/></span><span><strong>Паспорт для школы</strong><span className="small muted">{passportFilled(getPassport(child.id))?'Открыть, отправить учителю или скачать PDF':'Одна страница для учителя или тренера: что помогает ребёнку'}</span></span><Icon name="arrow" size={18}/></Link>}
  <Link to="/child/documents" className="screeningHistoryLink"><span className="actionIcon"><Icon name="note"/></span><span><strong>Документы</strong><span className="small muted">{data.docs?.length?data.docs.length+' '+plural(data.docs.length,'документ','документа','документов')+' · заключения, ПМПК, обследования':'Заключения, ПМПК, ЭЭГ, анализы, выписки — фото или PDF'}</span></span><Icon name="arrow" size={18}/></Link>
  {(()=>{const routes=[...new Map(p.diagnoses.map(routeForDiagnosis).filter((r):r is NonNullable<typeof r>=>!!r).map(r=>[r.id,r] as const)).values()];return routes.length>0&&<section className="card"><h2>Маршрут в России</h2><p className="small muted">Специалисты, ПМПК, школа, инвалидность и документы — по шагам.</p><div className="pickChips" style={{marginTop:12}}>{routes.map(r=><Link key={r.id} className="pickChip" to={'/navigator/'+r.id}>{r.title}</Link>)}</div></section>;})()}
  {(()=>{const filled=planFilled(getPlan(child.id)),teen=childAge(child).years>=10;return (filled||teen)&&<Link to="/child/safety" className="screeningHistoryLink"><span className="actionIcon"><Icon name="shield"/></span><span><strong>План безопасности</strong><span className="small muted">{filled?'Признаки, кому звонить, безопасный дом — открыть или отправить':'На случай кризиса: заполните заранее, вместе с подростком'}</span></span><Icon name="arrow" size={18}/></Link>;})()}
@@ -115,7 +118,8 @@ export default function ChildRoute(){
   <div className="buttonRow" style={{marginTop:12}}><Link className="btn compact" to="/visit/changes">Что изменилось{reportIsEmpty(changes)?'':' · '+changes.weeks+' нед.'}</Link><Link className="btn secondary compact" to="/visit">Памятка</Link></div>
  </section>
  </div>
- <button type="button" className="btn secondary full" style={{marginTop:16}} onClick={()=>(track('report_export'),savePdf(formatChildReport(data),'Kora-o-rebenke-'+data.today+'.pdf','Всё о ребёнке'))}><Icon name="download" size={17}/>Скачать всё о ребёнке (PDF)</button>
+ <button type="button" className="btn secondary full" style={{marginTop:16}} onClick={()=>saveDoc(childReportDoc(data),'Kora-o-rebenke-'+data.today+'.pdf')}><Icon name="download" size={17}/>Скачать всё о ребёнке (PDF)</button>
+ <Link to="/parent" className="textButton" style={{display:'inline-block',marginTop:14}}>А как вы сами? Поддержка для родителя</Link>
  <div className="privacyNote"><Icon name="shield" size={16}/><span>Профиль, лента и опросы хранятся на вашем устройстве и попадают в резервную копию. <Link to="/about#storage">Где хранятся записи</Link></span></div>
  </div>;
 }

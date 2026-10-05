@@ -1,5 +1,4 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {track} from '../lib/analytics';
 import {Link} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
@@ -18,7 +17,7 @@ function DocForm({childId,onDone}:{childId:string;onDone:()=>void}){
  useUnsaved(!!(title.trim()||note.trim()||file));
  const submit=async(e:React.FormEvent)=>{e.preventDefault();const issues=validateDocument({kind,date,title,note},today,file);setErrors(issues);if(issues.length)return;
   setBusy(true);const doc=await addDocument({childId,kind,date,title,note},file);setBusy(false);
-  if(doc){track('doc');toast('Документ добавлен');onDone();}else toast('Не удалось сохранить: браузер не дал места для файла',{variant:'error',durationMs:5000});};
+  if(doc){toast('Документ добавлен');onDone();}else toast('Не удалось сохранить: браузер не дал места для файла',{variant:'error',durationMs:5000});};
  return <form className="card" noValidate onSubmit={submit}><h2 style={{marginBottom:12}}>Новый документ</h2>
   {errors.length>0&&<div className="callout danger" role="alert" style={{marginBottom:12}}>{errors.map(x=><p key={x}>{x}</p>)}</div>}
   <fieldset className="plainFieldset"><legend className="fieldLabel">Что это</legend><div className="pickChips">{KINDS.map(k=><button type="button" key={k} className="pickChip" aria-pressed={kind===k} onClick={()=>setKind(k)}>{docKindLabels[k]}</button>)}</div></fieldset>

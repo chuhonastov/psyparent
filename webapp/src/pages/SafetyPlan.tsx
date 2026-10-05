@@ -1,9 +1,9 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {track} from '../lib/analytics';
 import {Link} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
 import ChildSwitcher from '../components/ChildSwitcher';
+import {ContactsEditor,ListEditor} from '../components/ListEditor';
 import {useActiveChild,useEvents} from '../lib/useRoute';
 import {activeCourses} from '../lib/treatment';
 import {CRISIS,emptyPlan,familyActions,formatPlan,getPlan,planFilled,savePlan,subscribeSafety,suggestions,Contact,SafetyPlan as Plan} from '../lib/safety';
@@ -17,23 +17,6 @@ import {savePdf} from '../lib/files';
 type ListKey='warning'|'coping'|'distract'|'home'|'reasons';
 const tel=(phone:string)=>'tel:'+phone.replace(/[^\d+]/g,'');
 
-function ListEditor({label,hint,value,onChange,suggest=[],placeholder}:{label:string;hint?:string;value:string[];onChange:(v:string[])=>void;suggest?:string[];placeholder:string}){
- const [text,setText]=useState('');
- const add=(v:string)=>{const t=v.trim();if(t&&!value.includes(t))onChange([...value,t]);setText('');};
- return <fieldset className="plainFieldset safetyField"><legend className="fieldLabel">{label}</legend>{hint&&<p className="small muted">{hint}</p>}
-  {value.length>0&&<ul className="plainList">{value.map(v=><li key={v}><span>{v}</span><button type="button" className="iconButton" aria-label={'Убрать «'+v+'»'} onClick={()=>onChange(value.filter(x=>x!==v))}><Icon name="close" size={15}/></button></li>)}</ul>}
-  {suggest.filter(s=>!value.includes(s)).length>0&&<div className="pickChips" style={{marginTop:10}}>{suggest.filter(s=>!value.includes(s)).map(s=><button type="button" key={s} className="pickChip" onClick={()=>add(s)}>+ {s}</button>)}</div>}
-  <div className="inlineAdd"><input className="input" aria-label={label} maxLength={200} placeholder={placeholder} value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();add(text);}}}/><button type="button" className="btn secondary compact" disabled={!text.trim()} onClick={()=>add(text)}>Добавить</button></div>
- </fieldset>;
-}
-function ContactsEditor({label,value,onChange,max=6}:{label:string;value:Contact[];onChange:(v:Contact[])=>void;max?:number}){
- const set=(i:number,patch:Partial<Contact>)=>onChange(value.map((c,j)=>j===i?{...c,...patch}:c));
- return <fieldset className="plainFieldset safetyField"><legend className="fieldLabel">{label}</legend>
-  {value.map((c,i)=><div className="contactRow" key={i}><input className="input" aria-label="Имя" placeholder="Кто это" maxLength={80} value={c.name} onChange={e=>set(i,{name:e.target.value})}/><input className="input" aria-label="Телефон" placeholder="Телефон" inputMode="tel" maxLength={40} value={c.phone} onChange={e=>set(i,{phone:e.target.value})}/><button type="button" className="iconButton" aria-label="Убрать контакт" onClick={()=>onChange(value.filter((_,j)=>j!==i))}><Icon name="close" size={15}/></button></div>)}
-  {value.length<max&&<button type="button" className="textButton" onClick={()=>onChange([...value,{name:'',phone:''}])}>+ Добавить контакт</button>}
- </fieldset>;
-}
-
 export default function SafetyPlan(){
  const child=useActiveChild(),events=useEvents(child?.id||''),[plan,setPlan]=useState<Plan>(()=>child?getPlan(child.id):emptyPlan()),[editing,setEditing]=useState(false);
  useUnsaved(editing);
@@ -43,7 +26,7 @@ export default function SafetyPlan(){
  const filled=planFilled(plan),title=child.label+', '+ageLabel(child);
  const text=()=>formatPlan(plan,title,meds);
  const share=async()=>{const t=text();if(await shareText(t,'План безопасности')!=='unavailable'||shareToTelegram(t))return;const ok=await copyText(t);toast(ok?'План скопирован':'Не удалось отправить',{variant:ok?'info':'error'});};
- const save=()=>{if(savePlan(child.id,plan)){track('safety_plan');toast('План сохранён');setEditing(false);window.scrollTo(0,0);}else toast('Не удалось сохранить',{variant:'error'});};
+ const save=()=>{if(savePlan(child.id,plan)){toast('План сохранён');setEditing(false);window.scrollTo(0,0);}else toast('Не удалось сохранить',{variant:'error'});};
  const setList=(k:ListKey)=>(v:string[])=>setPlan({...plan,[k]:v});
  const header=<PageHeader title="План безопасности" subtitle="Что делать, если подростку станет очень плохо: признаки, кто поможет, куда звонить и как сделать дом безопаснее." eyebrow={title} backTo="/child" backLabel="Ребёнок"/>;
  if(editing)return <div className="container">{header}
