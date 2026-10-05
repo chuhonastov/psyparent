@@ -10,7 +10,7 @@ export default function Medications() {
  const validCategory=medicationCategories.some(c=>c.id===category)?category:'';
  const items=medications.filter(m=>(!validCategory||m.category===validCategory)&&matchesQuery(q,[m.name,...(m.aliases||[]),...(m.searchTerms||[])],m.class)).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
  const from='/medications'+(params.toString()?'?'+params.toString():'');
- return <div className="container"><PageHeader title="Разобраться в лечении" subtitle="У каждого назначения должна быть понятная цель." backTo="/" backLabel="Главная"/>
+ return <div className="container"><PageHeader title="Разобраться в лечении" subtitle="У каждого назначения должна быть понятная цель." backTo="/library" backLabel="Справочник"/>
  <Link to="/review" className="actionCard primary"><span className="actionIcon"><Icon name="pill" size={23}/></span><div className="actionMain"><h3>Разобрать своё назначение</h3><p>Выберите диагноз и препарат, затем сохраните вопросы врачу</p></div><Icon name="arrow" size={18}/></Link>
  <Link to="/specialists" className="actionCard" style={{marginTop:14}}><span className="actionIcon"><Icon name="heart" size={23}/></span><div className="actionMain"><h3>Специалисты и занятия</h3><p>Психотерапия, речь, обучение и бытовые навыки: цели, польза и ограничения</p></div><Icon name="arrow" size={18}/></Link>
  <div className="callout" style={{marginTop:14}}><strong>План по вашей ситуации</strong><p>Немедикаментозная помощь и варианты лечения собраны в <Link to="/diagnoses">карточке диагноза</Link>, в разделе «Помощь».</p></div>

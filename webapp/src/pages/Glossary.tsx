@@ -10,7 +10,7 @@ export function searchGlossary(q:string){const n=norm(q.trim());return n?glossar
 export default function Glossary(){
  const [params,setParams]=useSearchParams(),q=params.get('q')||'';
  const shown=useMemo(()=>searchGlossary(q).slice().sort((a,b)=>a.term.localeCompare(b.term,'ru')),[q]);
- return <div className="container"><PageHeader title="Словарь" subtitle="Слова из заключений и этого справочника — простыми словами." backTo="/about" backLabel="О проекте"/>
+ return <div className="container"><PageHeader title="Словарь" subtitle="Слова из заключений и этого справочника — простыми словами." backTo="/library" backLabel="Справочник"/>
  <div className="searchWrap"><Icon name="search"/><input type="search" className="input" aria-label="Найти слово" placeholder="Например, СИОЗС или ПМПК" value={q} onChange={e=>setParams(e.target.value?{q:e.target.value}:{},{replace:true})}/></div>
  <p className="searchMeta" role="status">{shown.length?'Слов: '+shown.length:'Такого слова пока нет'}</p>
  <dl className="glossary">{shown.map(g=><div className="card" key={g.term} id={g.term}><dt><h2>{g.term}</h2>{!!g.aka.length&&<p className="small muted">{g.aka.join(' · ')}</p>}</dt><dd><p>{g.text}</p></dd></div>)}</dl>

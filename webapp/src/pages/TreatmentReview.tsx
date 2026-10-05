@@ -50,7 +50,7 @@ export default function TreatmentReview() {
  'Как и когда мы будем заканчивать приём?'
  ])):[];
  const chosen=mode==='spec'?!!s:mode==='exam'?!!e:!!m,step=chosen?3:d?2:1,about=mode==='spec'?'о специалисте':mode==='exam'?'об обследовании':'о препарате';
- return <div className="container"><PageHeader title="Разобрать назначение" subtitle="Лекарство, специалист или обследование: зачем это нужно при диагнозе и что спросить." backTo="/medications" backLabel="Лечение"/>
+ return <div className="container"><PageHeader title="Разобрать назначение" subtitle="Лекарство, специалист или обследование: зачем это нужно при диагнозе и что спросить." backTo="/library" backLabel="Справочник"/>
  <Steps labels={['Диагноз',mode==='spec'?'Специалист':mode==='exam'?'Обследование':'Препарат','Вопросы']} current={step}/>
  <div className="stack">
  <section className="card"><DiagnosisPicker label="Какой диагноз указан в заключении?" value={d?dx:''} onChange={id=>setParam('dx',id)} suggested={suggestedDx} suggestedLabel={mode==='spec'?'Чаще всего этот специалист помогает при:':mode==='exam'?'Чаще всего это обследование нужно при:':'Чаще всего это лекарство обсуждают при:'}/><p className="small muted" style={{marginTop:8}}>Можно продолжить без диагноза: останутся общие сведения {about}.</p></section>

@@ -3,9 +3,10 @@ import {medicationById} from './content';
 import type {VisitState} from './visit';
 import {getScreenings,formatScreening,ScreeningResult} from './screenings';
 import {getAppointment,formatAppointment,Appointment} from './appointment';
-export function formatVisit(v:VisitState,results:ScreeningResult[]=getScreenings().filter(r=>r.includeInVisit),journals:JournalRecord[]=getJournals().filter(r=>r.includeInVisit),appointment:Appointment|null=getAppointment()) {
+export function formatVisit(v:VisitState,results:ScreeningResult[]=getScreenings().filter(r=>r.includeInVisit),journals:JournalRecord[]=getJournals().filter(r=>r.includeInVisit),appointment:Appointment|null=getAppointment(),changes?:string) {
   const lines=['Памятка к приёму · Кора','Записи семьи и результаты скринингов для обсуждения с врачом'];
   if(appointment)lines.push('Приём: '+formatAppointment(appointment));
+  if(changes)lines.push('\n'+changes);
   const snapshots=Object.values(v.checklists);
   if(snapshots.length) {
     lines.push('\nНАБЛЮДЕНИЯ');

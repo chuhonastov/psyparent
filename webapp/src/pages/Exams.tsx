@@ -13,7 +13,7 @@ export default function Exams(){
  const set=(key:string,value:string)=>{const next=new URLSearchParams(params);value?next.set(key,value):next.delete(key);setParams(next,{replace:true});};
  const shown=investigations.filter(e=>(!group||e.group===group)&&matchesQuery(q,[e.name,...e.aliases],e.summary));
  const from=location.pathname+location.search;
- return <div className="container"><PageHeader title="Обследования" subtitle="Какие анализы и исследования действительно нужны ребёнку, а какие — нет." backTo="/" backLabel="Главная"/>
+ return <div className="container"><PageHeader title="Обследования" subtitle="Какие анализы и исследования действительно нужны ребёнку, а какие — нет." backTo="/library" backLabel="Справочник"/>
  <div className="callout"><strong>Обследуют прицельно</strong><p>Диагноз в детской психиатрии ставят в беседе и наблюдении. Обследования нужны при особых признаках, перед лекарствами и для контроля лечения. «Полное обследование на всё» чаще находит безобидные отклонения, которые потом зря лечат.</p></div>
  <Link to="/review?what=exam" className="actionCard" style={{marginTop:16}}><span className="actionIcon"><Icon name="flask" size={23}/></span><div className="actionMain"><h3>Разобрать обследование при диагнозе</h3><p>Нужно ли оно, при каких признаках и что спросить врача</p></div><Icon name="arrow" size={18}/></Link>
  <div className="searchWrap" style={{marginTop:20}}><Icon name="search"/><input type="search" className="input" aria-label="Найти обследование" placeholder="ЭЭГ, МРТ, анализ волос…" value={q} onChange={e=>set('q',e.target.value)}/>{q&&<button className="clearSearch" aria-label="Очистить поиск" onClick={()=>set('q','')}><Icon name="close"/></button>}</div>

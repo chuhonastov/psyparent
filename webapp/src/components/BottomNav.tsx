@@ -2,12 +2,14 @@ import React from 'react';
 import {NavLink,useLocation} from 'react-router-dom';
 import Icon,{IconName} from './Icon';
 import {useVisitCount} from '../lib/useVisitCount';
+// Five main sections: today's route, the child, the reference, tests and diaries, the visit.
+const LIBRARY=['/library','/diagnoses','/medications','/review','/exams','/specialists','/methods','/glossary','/doctors'];
 export default function BottomNav() {
  const count=useVisitCount(),path=useLocation().pathname;
  const items:{to:string;label:string;icon:IconName;active?:boolean}[]=[
- {to:'/',label:'Главная',icon:'home'},
- {to:'/diagnoses',label:'Диагнозы',icon:'book'},
- {to:'/medications',label:'Помощь',icon:'heart',active:path.startsWith('/review')||path.startsWith('/specialists')},
+ {to:'/',label:'Сегодня',icon:'home'},
+ {to:'/child',label:'Ребёнок',icon:'user',active:path.startsWith('/children')},
+ {to:'/library',label:'Справочник',icon:'book',active:LIBRARY.some(p=>path.startsWith(p))},
  {to:'/screenings',label:'Тесты',icon:'check',active:path.startsWith('/forms')},
  {to:'/visit',label:'К врачу',icon:'note'}];
  return <nav className="bottomNav" aria-label="Основная навигация"><div className="bottomNavInner">

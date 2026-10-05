@@ -10,7 +10,7 @@ const situations:{title:string;text:string;todo:string}[]=[
  {title:'Отравление или опасное вещество',text:'Не разбудить, спутанность, рвота во сне, редкое странное дыхание, судороги, выпито много таблеток.',todo:'Звоните 103 или 112 сразу, даже если ребёнок выглядит нормально: некоторые лекарства действуют с задержкой. Положите на бок, не оставляйте одного, приготовьте упаковки.'}
 ];
 export default function Help() {
- return <div className="container"><PageHeader title="Когда нельзя ждать" subtitle="Эти минуты почти наверняка вам не понадобятся — как огнетушитель в углу. Но если беда постучит, вот что делать." backTo="/" backLabel="Главная"/><div className="stack">
+ return <div className="container"><PageHeader title="Когда нельзя ждать" subtitle="Эти минуты почти наверняка вам не понадобятся — как огнетушитель в углу. Но если беда постучит, вот что делать." backTo="/" backLabel="Сегодня"/><div className="stack">
  <div className="card soft"><h2>Куда звонить</h2>
   <div className="buttonRow" style={{marginTop:12}}><a href="tel:112" className="btn"><Icon name="phone"/>Позвонить 112</a><a href="tel:103" className="btn secondary">Скорая 103</a></div>
   <p style={{marginTop:14}}><a href="tel:88002000122"><strong>8-800-2000-122</strong></a> — детский телефон доверия. Бесплатно и круглосуточно, для детей и родителей. Там можно поговорить в трудную минуту, в том числе о мыслях о смерти и о насилии дома.</p>

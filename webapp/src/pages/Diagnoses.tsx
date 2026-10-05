@@ -13,7 +13,7 @@ export default function Diagnoses() {
  const showTopics=!!q.trim()||!!selected;
  const items=leaves.filter(d=>(!selected||selected.children?.includes(d.id))&&matchesQuery(q,[d.title,d.shortTitle||'',...(d.aliases||[])],d.summary));
  const from='/diagnoses'+(params.toString()?'?'+params.toString():'');
- return <div className="container"><PageHeader title="Разобраться в диагнозе" subtitle="Найдите название из заключения или выберите тему." backTo="/" backLabel="Главная"/>
+ return <div className="container"><PageHeader title="Разобраться в диагнозе" subtitle="Найдите название из заключения или выберите тему." backTo="/library" backLabel="Справочник"/>
  <div className="searchWrap"><Icon name="search"/><input className="input" type="search" aria-label="Поиск диагноза" placeholder="Депрессия, ПТСР или F42" value={q} onChange={e=>set('q',e.target.value)}/>{q&&<button className="clearSearch" aria-label="Очистить поиск" onClick={()=>set('q','')}><Icon name="close" size={17}/></button>}</div>
  <label className="fieldLabel filterLabel" htmlFor="diagnosis-category">Раздел справочника</label><select id="diagnosis-category" value={selected?.id||''} onChange={e=>set('group',e.target.value)}><option value="">Все разделы</option>{diagnosisGroups.map(g=><option key={g.id} value={g.id}>{g.title}</option>)}</select>
  <p className="searchMeta" role="status">{showTopics?'Найдено тем: '+items.length:'Тем: '+leaves.length+' · разделов: '+diagnosisGroups.length}</p>

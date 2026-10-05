@@ -14,7 +14,7 @@ export default function Methods(){
  const set=(key:string,value:string)=>{const next=new URLSearchParams(params);value?next.set(key,value):next.delete(key);setParams(next,{replace:true});};
  const shown=methods.filter(x=>(!group||x.group===group)&&matchesQuery(q,[x.name,...x.aliases],x.summary+' '+x.promise));
  const from=location.pathname+location.search;
- return <div className="container"><PageHeader title="Что не помогает" subtitle="Методы, которые предлагают детям с особенностями, но которые не лечат, — даже если их назначил врач." backTo="/specialists" backLabel="Специалисты"/>
+ return <div className="container"><PageHeader title="Что не помогает" subtitle="Методы, которые предлагают детям с особенностями, но которые не лечат, — даже если их назначил врач." backTo="/library" backLabel="Справочник"/>
  <div className="callout"><strong>Почему кажется, что помогает</strong><p>Ребёнок и сам развивается, а на любых занятиях есть регулярность, внимание взрослого и надежда. Если вам «помог» курс чего-то сомнительного, вы не глупы — вас поймали на надежде. Главный вред таких методов — украденное время, когда настоящая помощь не начинается.</p></div>
  <section className="card" style={{marginTop:16}}><h2>Признаки, что вам продают надежду, а не помощь</h2><ul>{methodRedFlags.map(x=><li key={x}>{x}</li>)}</ul></section>
  <div className="searchWrap" style={{marginTop:20}}><Icon name="search"/><input type="search" className="input" aria-label="Найти метод" placeholder="Остеопат, дельфины, микротоки…" value={q} onChange={e=>set('q',e.target.value)}/>{q&&<button className="clearSearch" aria-label="Очистить поиск" onClick={()=>set('q','')}><Icon name="close"/></button>}</div>
