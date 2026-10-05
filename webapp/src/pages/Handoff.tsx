@@ -94,6 +94,7 @@ export function TeacherForm(){
   {form&&<div className="formField"><label className="fieldLabel" htmlFor="t-note">Комментарий (необязательно)</label><textarea id="t-note" maxLength={1000} value={note} onChange={e=>setNote(e.target.value)}/></div>}
   <button className="btn full" style={{marginTop:16}}>Готово — получить ссылку для родителя</button>
   </form>
+  <p className="small muted" style={{marginTop:16}}><Link to="/privacy">Политика конфиденциальности</Link></p>
  </div>;
 }
 

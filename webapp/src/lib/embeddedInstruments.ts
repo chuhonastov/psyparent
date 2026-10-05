@@ -2,7 +2,7 @@ import type {Screener,ScreenerForm} from './screeningContent';
 import type {ScreeningInput,ScreeningScore} from './screenings';
 
 // PSC-17, SCARED and NICHQ Vanderbilt (2002): free instruments with Russian working translations.
-const WORKING='Рабочий перевод для приложения «Кора». Официально валидированной русской версии в этом виде нет: результат — повод для разговора с врачом, а не диагноз.';
+const WORKING='Рабочий перевод для приложения «Кора». Официально валидированного русского перевода в этом виде нет: результат — повод для разговора с врачом, а не диагноз.';
 
 const psc17Questions=[
  'Непоседлив, не может усидеть на месте',

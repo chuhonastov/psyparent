@@ -5,7 +5,7 @@ type Req={method?:string;url?:string;headers:Record<string,string|string[]|undef
 type Res={status(code:number):Res;setHeader(name:string,value:string):void;json(body:unknown):void;send(body:string):void;end():void};
 type Message={chat?:{id?:number;type?:string};text?:string};
 
-const START='«Кора» помогает разобраться в диагнозе и назначениях, а затем собрать вопросы врачу.\n\nЗаписи сохраняются внутри приложения. Не отправляйте сюда медицинские документы и персональные данные ребёнка.';
+const START='«Кора» помогает разобраться в диагнозе и назначениях, а затем собрать вопросы врачу.\n\nЗаписи сохраняются внутри приложения. Не отправляйте сюда медицинские документы и персональные данные ребёнка.\n\nПолитика конфиденциальности: https://psyparent.vercel.app/privacy';
 const HELP='Нажмите кнопку «Открыть „Кору“». В приложении есть диагнозы, разбор лекарств, обследований и специалистов, тесты, дневники и памятка к приёму. Бот не проводит консультации.';
 const OTHER='Откройте приложение кнопкой ниже. Этот бот не читает и не хранит сообщения.';
 export function replyText(text:string|undefined){

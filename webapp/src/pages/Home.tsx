@@ -69,6 +69,6 @@ export default function Home() {
  </GlobalSearch>
  <Link to="/doctors" className="actionCard warm doctorsCta"><span className="actionIcon"><Icon name="user" size={23}/></span><div className="actionMain"><h3>Записаться к врачу</h3><p>Детские психиатры и психологи клиники. Запись на сайте клиники</p></div><Icon name="arrow" size={18}/></Link>
  <div className="authorCard"><span className="authorAvatar">СК</span><div><strong>Материалы Степана Краснощекова</strong><p>Детский психиатр.</p><p>Справочник помогает подготовиться к приёму.</p></div></div>
- <div className="footerLinks"><Link to="/about">О проекте и ваших данных</Link><Link to="/parent">Поддержка для вас</Link><Link to="/feedback">Написать автору</Link><Link to="/children">Мои дети</Link><Link to="/glossary">Словарь</Link><Link to="/about#reading">Размер текста</Link><Link className="urgentLink" to="/help">Когда нужна срочная помощь</Link></div>
+ <div className="footerLinks"><Link to="/about">О проекте и ваших данных</Link><Link to="/parent">Поддержка для вас</Link><Link to="/feedback">Написать автору</Link><Link to="/privacy">Конфиденциальность</Link><Link to="/children">Мои дети</Link><Link to="/glossary">Словарь</Link><Link to="/about#reading">Размер текста</Link><Link className="urgentLink" to="/help">Когда нужна срочная помощь</Link></div>
  </div>;
 }
