@@ -99,7 +99,7 @@ test('backs up and restores all records, rejecting foreign files',()=>{
  const parsed=parseBackup(text);
  assert(parsed.ok);
  if(!parsed.ok)return;
- assert.deepEqual(summarizeBackup(parsed.data),{questions:1,meds:1,observations:0,screenings:0,journals:0,children:0,other:2});
+ assert.deepEqual(summarizeBackup(parsed.data),{questions:1,meds:1,observations:0,screenings:0,journals:0,children:0,events:0,checkIns:0,other:2});
  assert.equal(describeSummary(summarizeBackup(parsed.data)),'вопросов: 1, назначений: 1');
  deleteLocalData();
  assert.equal(getAppointment(),null);assert.deepEqual(getRecent(),[]);assert.equal(localStorage.getItem('unrelated.site.key'),'keep');

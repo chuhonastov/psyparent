@@ -135,3 +135,18 @@ assert(https(clinic.site)&&clinic.site&&https(clinic.bookingUrl)&&clinic.booking
 assert.equal(new Set(clinic.doctors.map(d=>d.id)).size,clinic.doctors.length,'Duplicate doctor IDs');
 for(const d of clinic.doctors){assert.match(d.id,/^[a-z0-9-]+$/,'Bad doctor id '+d.id);assert(d.name?.trim()&&d.role?.trim(),'Doctor needs name and role: '+d.id);for(const u of [d.profileUrl,d.bookingUrl])assert(https(u),'Doctor URL must be HTTPS: '+d.id);if(d.photo&&!https(d.photo)){assert.match(d.photo,/^doctors\/[a-z0-9-]+\.(webp|jpe?g|png)$/,'Bad photo path '+d.id);assert(fs.existsSync(new URL('../../public/'+d.photo,root)),'Missing photo file '+d.photo);}for(const b of d.branches||[])assert((clinic.branches||[]).some(x=>x.id===b),'Unknown branch '+b);for(const t of d.topics||[])assert(leaves.some(x=>x.id===t),'Unknown topic '+t+' for doctor '+d.id);}
 console.log(`Clinic OK: ${clinic.doctors.length} doctors, booking at ${clinic.bookingUrl}.`);
+// Medicine monitoring: every set points to existing medicines and items, each medicine is in one set at most,
+// warning signs have a threshold, and the short check-in stays short.
+const mon=read('monitoring.json'),medIds=new Set(read('medications.json').map(m=>m.id));
+assert.equal(mon.scale.length,4);assert.equal(mon.missed.length,3);
+assert(mon.sets.some(s=>s.id==='general'&&!s.meds.length),'Monitoring needs a general set');
+const monMeds=mon.sets.flatMap(s=>s.meds);assert.equal(new Set(monMeds).size,monMeds.length,'Medicine in two monitoring sets');
+for(const s of mon.sets){
+ for(const m of s.meds)assert(medIds.has(m),'Unknown monitored medicine '+s.id+'/'+m);
+ for(const i of s.items)assert(mon.items[i]?.label,'Unknown monitoring item '+s.id+'/'+i);
+ for(const n of s.numbers)assert(mon.numbers[n]?.unit,'Unknown monitoring number '+s.id+'/'+n);
+ assert(s.items.length+s.numbers.length<=8,'Monitoring set too long for a short check-in: '+s.id);
+ if(s.items.some(i=>mon.items[i].urgentAt!==undefined))assert(s.urgent.length,'Set with warning signs needs urgent advice: '+s.id);
+}
+for(const [id,i] of Object.entries(mon.items))if(i.urgentAt!==undefined)assert([1,2,3].includes(i.urgentAt),'Bad threshold '+id);
+console.log(`Monitoring OK: ${mon.sets.length} sets, ${monMeds.length} medicines, ${Object.keys(mon.items).length} items.`);

@@ -2,6 +2,8 @@ import {normalizeVisit,VISIT_KEY,getVisit} from './visit';
 import {normalizeScreenings,SCREENING_KEY} from './screenings';
 import {normalizeJournals,JOURNAL_KEY} from './journals';
 import {normalizeChildren,CHILDREN_KEY} from './children';
+import {TREATMENT_KEY} from './treatment';
+import {CHECKINS_KEY} from './monitoring';
 import meta from '../content/meta.json';
 import {dataChanged} from './persist';
 // Backups move a family's records between browsers and devices. Every value is checked again by its own reader after restore.
@@ -11,7 +13,7 @@ const ownKey=(key:string)=>key.startsWith('psyparent.')||key.startsWith('parentg
 // Files made before the rename carry app:'PsyParent' and are still accepted.
 const APP_IDS=['Kora','PsyParent'];
 export type BackupFile={app:'Kora';format:1;appVersion:string;createdAt:string;data:Record<string,string>};
-export type BackupSummary={questions:number;meds:number;observations:number;screenings:number;journals:number;children:number;other:number};
+export type BackupSummary={questions:number;meds:number;observations:number;screenings:number;journals:number;children:number;events:number;checkIns:number;other:number};
 const appKeys=()=>Object.keys(localStorage).filter(ownKey).sort();
 export function createBackup(now=new Date()):BackupFile{
   const data:Record<string,string>={};
@@ -38,17 +40,19 @@ export function parseBackup(text:string):{ok:true;data:Record<string,string>}|{o
 const parsed=(value:string|undefined)=>{if(value===undefined)return null;try{return JSON.parse(value);}catch{return null;}};
 export function summarizeBackup(data:Record<string,string>):BackupSummary{
   const visit=normalizeVisit(parsed(data[VISIT_KEY]));
-  const known=new Set([VISIT_KEY,SCREENING_KEY,JOURNAL_KEY,CHILDREN_KEY]);
+  const known=new Set([VISIT_KEY,SCREENING_KEY,JOURNAL_KEY,CHILDREN_KEY,TREATMENT_KEY,CHECKINS_KEY]);
+  const listed=(key:string,field:string)=>{const v=parsed(data[key]);return v&&Array.isArray(v[field])?v[field].length:0;};
   return {
     questions:visit.questions.length,meds:visit.meds.length,observations:Object.keys(visit.checklists).length,
     screenings:normalizeScreenings(parsed(data[SCREENING_KEY])).length,
     journals:normalizeJournals(parsed(data[JOURNAL_KEY])).length,
     children:normalizeChildren(parsed(data[CHILDREN_KEY])).length,
+    events:listed(TREATMENT_KEY,'events'),checkIns:listed(CHECKINS_KEY,'records'),
     other:Object.keys(data).filter(k=>!known.has(k)).length
   };
 }
 export function describeSummary(s:BackupSummary){
-  const parts=[['вопросов',s.questions],['назначений',s.meds],['наблюдений',s.observations],['результатов тестов',s.screenings],['записей дневников',s.journals],['профилей детей',s.children]] as const;
+  const parts=[['вопросов',s.questions],['назначений',s.meds],['наблюдений',s.observations],['результатов тестов',s.screenings],['записей дневников',s.journals],['профилей детей',s.children],['записей в ленте лечения',s.events],['коротких опросов',s.checkIns]] as const;
   const text=parts.filter(([,n])=>n>0).map(([label,n])=>label+': '+n).join(', ');
   return text||'основных записей нет, только отметки и настройки';
 }

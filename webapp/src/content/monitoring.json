@@ -1,0 +1,563 @@
+{
+ "scale": [
+  "Нет",
+  "Немного",
+  "Заметно",
+  "Сильно"
+ ],
+ "countLabel": "раз за неделю",
+ "missed": [
+  "Не было",
+  "1–2 раза",
+  "Чаще"
+ ],
+ "items": {
+  "appetite_low": {
+   "label": "Аппетит снижен",
+   "hint": "ест заметно меньше обычного"
+  },
+  "appetite_high": {
+   "label": "Аппетит повышен",
+   "hint": "тянет на еду, перекусы"
+  },
+  "sleep_onset": {
+   "label": "Трудно уснуть или сон хуже обычного"
+  },
+  "sleepy_day": {
+   "label": "Сонливость, вялость днём"
+  },
+  "morning_sleepy": {
+   "label": "Трудно проснуться, сонливость утром"
+  },
+  "headache": {
+   "label": "Головная боль"
+  },
+  "stomach": {
+   "label": "Тошнота, боль в животе"
+  },
+  "irritability": {
+   "label": "Раздражительность, плаксивость"
+  },
+  "restless_inside": {
+   "label": "Внутреннее беспокойство, не может усидеть на месте",
+   "hint": "мечется, постоянно встаёт, «места себе не находит»"
+  },
+  "stiffness": {
+   "label": "Скованность, непроизвольные движения"
+  },
+  "dizzy": {
+   "label": "Головокружение, особенно при вставании"
+  },
+  "prolactin": {
+   "label": "Выделения из груди, сбой цикла, увеличение груди"
+  },
+  "thirst": {
+   "label": "Жажда, частое мочеиспускание"
+  },
+  "tremor": {
+   "label": "Дрожь рук"
+  },
+  "hair_loss": {
+   "label": "Выпадение волос"
+  },
+  "dry_mouth": {
+   "label": "Сухость во рту, запоры"
+  },
+  "word_finding": {
+   "label": "Трудно подбирать слова, забывчивость"
+  },
+  "paradoxical": {
+   "label": "Возбуждение вместо успокоения"
+  },
+  "unsteady": {
+   "label": "Шаткость, неловкость"
+  },
+  "dark_thoughts": {
+   "label": "Разговоры о смерти, мысли о самоповреждении",
+   "urgentAt": 1
+  },
+  "impulsive": {
+   "label": "Новые импульсивные или рискованные поступки",
+   "urgentAt": 2
+  },
+  "rash": {
+   "label": "Сыпь на коже",
+   "urgentAt": 1
+  },
+  "toxicity": {
+   "label": "Рвота или понос вместе с сильной дрожью, шаткостью, спутанностью",
+   "urgentAt": 1
+  },
+  "sleep_behavior": {
+   "label": "Ходит, ест или что-то делает во сне и не помнит",
+   "urgentAt": 1
+  },
+  "fainting": {
+   "label": "Обмороки, предобморочные состояния",
+   "urgentAt": 1
+  },
+  "infection": {
+   "label": "Температура, боль в горле, язвочки во рту",
+   "urgentAt": 1
+  },
+  "water": {
+   "label": "Отёки, головная боль с тошнотой",
+   "urgentAt": 1
+  },
+  "liver": {
+   "label": "Желтуха, тёмная моча, боль в правом боку",
+   "urgentAt": 1
+  },
+  "other_side": {
+   "label": "Другие нежелательные эффекты",
+   "hint": "опишите в заметке"
+  }
+ },
+ "numbers": {
+  "weight": {
+   "label": "Вес",
+   "unit": "кг",
+   "min": 2,
+   "max": 250,
+   "step": 0.1
+  },
+  "pulse": {
+   "label": "Пульс в покое",
+   "unit": "уд/мин",
+   "min": 30,
+   "max": 220,
+   "step": 1
+  },
+  "dry_nights": {
+   "label": "Сухих ночей за неделю",
+   "unit": "из 7",
+   "min": 0,
+   "max": 7,
+   "step": 1
+  }
+ },
+ "sets": [
+  {
+   "id": "atomoxetine",
+   "title": "Атомоксетин",
+   "meds": [
+    "atomoxetine"
+   ],
+   "items": [
+    "appetite_low",
+    "stomach",
+    "sleepy_day",
+    "irritability",
+    "dark_thoughts",
+    "liver"
+   ],
+   "numbers": [
+    "weight",
+    "pulse"
+   ],
+   "labs": [
+    "Пульс и давление — перед началом и при изменении дозы."
+   ],
+   "urgent": [
+    "Разговоры о смерти или мысли о самоповреждении — свяжитесь с врачом сегодня.",
+    "Желтуха, тёмная моча, боль в правом боку — к врачу сразу."
+   ]
+  },
+  {
+   "id": "stimulant",
+   "title": "Стимуляторы",
+   "meds": [
+    "methylphenidate",
+    "modafinil"
+   ],
+   "items": [
+    "appetite_low",
+    "sleep_onset",
+    "headache",
+    "stomach",
+    "irritability"
+   ],
+   "numbers": [
+    "weight",
+    "pulse"
+   ],
+   "labs": [
+    "Рост, вес, пульс и давление — перед началом и регулярно."
+   ],
+   "urgent": []
+  },
+  {
+   "id": "alpha2",
+   "title": "Гуанфацин и клонидин",
+   "meds": [
+    "guanfacine_xr",
+    "clonidine_note"
+   ],
+   "items": [
+    "sleepy_day",
+    "dizzy",
+    "irritability",
+    "fainting"
+   ],
+   "numbers": [
+    "pulse"
+   ],
+   "labs": [
+    "Пульс и давление: препарат их снижает. Резко отменять нельзя — давление может подскочить."
+   ],
+   "urgent": [
+    "Обмороки или предобморочные состояния — сообщите врачу сегодня."
+   ]
+  },
+  {
+   "id": "antidepressant",
+   "title": "Антидепрессанты (СИОЗС и близкие)",
+   "meds": [
+    "ssri_sertraline",
+    "ssri_fluoxetine",
+    "ssri_fluvoxamine",
+    "ssri_escitalopram",
+    "citalopram",
+    "paroxetine",
+    "venlafaxine",
+    "duloxetine",
+    "bupropion",
+    "agomelatine"
+   ],
+   "items": [
+    "stomach",
+    "headache",
+    "sleep_onset",
+    "restless_inside",
+    "irritability",
+    "impulsive",
+    "dark_thoughts"
+   ],
+   "numbers": [],
+   "labs": [
+    "Первый месяц — связь с врачом каждую неделю, дозу поднимают постепенно."
+   ],
+   "urgent": [
+    "Звоните врачу сразу, не дожидаясь приёма, если появились внутреннее беспокойство, бессонница, новая раздражительность, импульсивные поступки или разговоры о смерти."
+   ]
+  },
+  {
+   "id": "antidepressant_sedating",
+   "title": "Миртазапин и тразодон",
+   "meds": [
+    "mirtazapine_note",
+    "trazodone_note"
+   ],
+   "items": [
+    "sleepy_day",
+    "appetite_high",
+    "dizzy",
+    "dark_thoughts"
+   ],
+   "numbers": [
+    "weight"
+   ],
+   "labs": [],
+   "urgent": [
+    "Разговоры о смерти или мысли о самоповреждении — свяжитесь с врачом сегодня."
+   ]
+  },
+  {
+   "id": "tricyclic",
+   "title": "Трициклические антидепрессанты",
+   "meds": [
+    "clomipramine",
+    "amitriptyline",
+    "imipramine"
+   ],
+   "items": [
+    "sleepy_day",
+    "dizzy",
+    "dry_mouth",
+    "dark_thoughts"
+   ],
+   "numbers": [
+    "weight",
+    "pulse"
+   ],
+   "labs": [
+    "ЭКГ при заметной дозе."
+   ],
+   "urgent": [
+    "Передозировка опасна: храните лекарство закрытым и выдавайте сами."
+   ]
+  },
+  {
+   "id": "antipsychotic",
+   "title": "Антипсихотики",
+   "meds": [
+    "risperidone_irritability_note",
+    "aripiprazole_irritability_note",
+    "quetiapine_note",
+    "olanzapine_note",
+    "paliperidone",
+    "lurasidone",
+    "cariprazine",
+    "ziprasidone",
+    "haloperidol",
+    "chlorpromazine",
+    "thioridazine",
+    "trifluoperazine",
+    "chlorprothixene",
+    "periciazine",
+    "sulpiride",
+    "perphenazine",
+    "tiapride",
+    "brexpiprazole",
+    "amisulpride"
+   ],
+   "items": [
+    "appetite_high",
+    "sleepy_day",
+    "restless_inside",
+    "stiffness",
+    "prolactin"
+   ],
+   "numbers": [
+    "weight"
+   ],
+   "labs": [
+    "Вес, рост, окружность талии — перед началом и регулярно.",
+    "Сахар и холестерин в крови — перед началом, через 3 месяца и затем раз в полгода–год.",
+    "Пролактин — если появились его признаки."
+   ],
+   "urgent": [
+    "Высокая температура с резкой скованностью мышц и спутанностью — редкое опасное состояние, срочно 103."
+   ]
+  },
+  {
+   "id": "clozapine",
+   "title": "Клозапин",
+   "meds": [
+    "clozapine_note"
+   ],
+   "items": [
+    "infection",
+    "appetite_high",
+    "sleepy_day",
+    "dry_mouth",
+    "restless_inside"
+   ],
+   "numbers": [
+    "weight",
+    "pulse"
+   ],
+   "labs": [
+    "Общий анализ крови: в первые месяцы — каждую неделю, потом реже. Это обязательно."
+   ],
+   "urgent": [
+    "Температура, боль в горле, язвочки во рту — срочно анализ крови.",
+    "Сильные запоры бывают опасны — сообщайте о них врачу."
+   ]
+  },
+  {
+   "id": "lithium",
+   "title": "Литий",
+   "meds": [
+    "lithium_bipolar"
+   ],
+   "items": [
+    "thirst",
+    "tremor",
+    "sleepy_day",
+    "toxicity"
+   ],
+   "numbers": [
+    "weight"
+   ],
+   "labs": [
+    "Уровень лития в крови: при подборе — часто, потом раз в 3–6 месяцев.",
+    "Креатинин и гормоны щитовидной железы — раз в полгода–год."
+   ],
+   "urgent": [
+    "Рвота, понос, сильная дрожь, шаткость, спутанность — признаки отравления литием. Срочно к врачу."
+   ]
+  },
+  {
+   "id": "valproate",
+   "title": "Вальпроат",
+   "meds": [
+    "valproate_bipolar_note"
+   ],
+   "items": [
+    "appetite_high",
+    "hair_loss",
+    "tremor",
+    "sleepy_day"
+   ],
+   "numbers": [
+    "weight"
+   ],
+   "labs": [
+    "Анализы печени и общий анализ крови (тромбоциты) — перед началом и регулярно.",
+    "У девушек — менструальный цикл."
+   ],
+   "urgent": []
+  },
+  {
+   "id": "lamotrigine",
+   "title": "Ламотриджин",
+   "meds": [
+    "lamotrigine_note"
+   ],
+   "items": [
+    "rash",
+    "dizzy",
+    "headache",
+    "sleepy_day"
+   ],
+   "numbers": [],
+   "labs": [],
+   "urgent": [
+    "Любая сыпь, особенно в первые недели, — сразу к врачу: редко бывает опасная кожная реакция."
+   ]
+  },
+  {
+   "id": "carbamazepine",
+   "title": "Карбамазепин и окскарбазепин",
+   "meds": [
+    "carbamazepine",
+    "oxcarbazepine"
+   ],
+   "items": [
+    "rash",
+    "dizzy",
+    "sleepy_day",
+    "stomach"
+   ],
+   "numbers": [],
+   "labs": [
+    "Общий анализ крови, анализы печени, натрий."
+   ],
+   "urgent": [
+    "Сыпь, температура, язвочки во рту — к врачу срочно."
+   ]
+  },
+  {
+   "id": "topiramate",
+   "title": "Топирамат",
+   "meds": [
+    "topiramate"
+   ],
+   "items": [
+    "word_finding",
+    "appetite_low",
+    "sleepy_day"
+   ],
+   "numbers": [
+    "weight"
+   ],
+   "labs": [],
+   "urgent": []
+  },
+  {
+   "id": "sleep",
+   "title": "Средства для сна",
+   "meds": [
+    "melatonin_note",
+    "zolpidem",
+    "zopiclone",
+    "zaleplon",
+    "doxylamine"
+   ],
+   "items": [
+    "sleep_onset",
+    "morning_sleepy",
+    "headache",
+    "sleep_behavior"
+   ],
+   "numbers": [],
+   "labs": [],
+   "urgent": [
+    "Сложное поведение во сне (ходьба, еда) бывает опасным — сообщите врачу."
+   ]
+  },
+  {
+   "id": "sedative",
+   "title": "Успокоительные и антигистаминные",
+   "meds": [
+    "hydroxyzine",
+    "alimemazine",
+    "diphenhydramine",
+    "chloropyramine",
+    "clemastine",
+    "diazepam",
+    "lorazepam",
+    "clonazepam",
+    "alprazolam",
+    "phenazepam",
+    "bromazepam",
+    "midazolam",
+    "buspirone",
+    "etifoxine",
+    "tofisopam",
+    "phenibut_note",
+    "pregabalin",
+    "gabapentin"
+   ],
+   "items": [
+    "sleepy_day",
+    "paradoxical",
+    "unsteady",
+    "dry_mouth"
+   ],
+   "numbers": [],
+   "labs": [],
+   "urgent": []
+  },
+  {
+   "id": "propranolol",
+   "title": "Пропранолол",
+   "meds": [
+    "propranolol"
+   ],
+   "items": [
+    "sleepy_day",
+    "dizzy",
+    "fainting"
+   ],
+   "numbers": [
+    "pulse"
+   ],
+   "labs": [
+    "Пульс и давление."
+   ],
+   "urgent": [
+    "Обмороки, очень редкий пульс, одышка или свистящее дыхание — сообщите врачу сегодня."
+   ]
+  },
+  {
+   "id": "desmopressin",
+   "title": "Десмопрессин",
+   "meds": [
+    "desmopressin"
+   ],
+   "items": [
+    "water"
+   ],
+   "numbers": [
+    "dry_nights"
+   ],
+   "labs": [],
+   "urgent": [
+    "За час до приёма и 8 часов после — не больше глотка воды. Отёки, головная боль с тошнотой — признаки задержки воды, к врачу."
+   ]
+  },
+  {
+   "id": "general",
+   "title": "Другие препараты",
+   "meds": [],
+   "items": [
+    "other_side"
+   ],
+   "numbers": [],
+   "labs": [],
+   "urgent": []
+  }
+ ]
+}

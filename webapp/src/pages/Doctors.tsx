@@ -21,7 +21,7 @@ export default function Doctors(){
  const set=(k:string,v:string)=>{const n=new URLSearchParams(params);v?n.set(k,v):n.delete(k);setParams(n,{replace:true});};
  const age=ageText!==''&&Number.isFinite(Number(ageText))?Number(ageText):undefined;
  const list=filterDoctors(clinic.doctors,{city:city||undefined,age,online}),cities=clinicCities();
- return <div className="container"><PageHeader title="Врачи клиники" subtitle={clinicLabel()+' — детские и подростковые специалисты. Запись на сайте клиники.'} backTo="/" backLabel="Главная"/>
+ return <div className="container"><PageHeader title="Врачи клиники" subtitle={clinicLabel()+' — детские и подростковые специалисты. Запись на сайте клиники.'} backTo="/library" backLabel="Справочник"/>
  <div className="stack">
  {clinic.doctors.length>0&&<section className="card doctorFilters">
   {cities.length>1&&<div className="chipRow" role="group" aria-label="Город">{['',...cities].map(c=><button type="button" key={c||'all'} className={'chip'+(city===c?' active':'')} aria-pressed={city===c} onClick={()=>set('city',c)}>{c||'Все города'}</button>)}</div>}
