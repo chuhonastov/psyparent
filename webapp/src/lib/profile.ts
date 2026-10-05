@@ -1,5 +1,6 @@
 import {readJSON,writeJSON} from './persist';
 import {getChildren,Child} from './children';
+import {normalizeRuns,PlanRun} from './plans';
 // The child's route: what the family works on, which diagnoses and specialists are involved and what is tracked.
 // Kept apart from children.v1 so the short profile (name and month of birth) stays readable by older versions.
 export const PROFILES_KEY='psyparent.profiles.v1';
@@ -12,11 +13,11 @@ export type Tracking={items:string[];custom:CustomItem[];journals:string[];sets:
 export type Doctor={id:string;name:string;role:string;phone:string;place:string};
 /** How often the short check-in is offered: every 7 or 14 days, or only in the week before a visit (0). */
 export type CheckinEvery=7|14|0;
-export type Profile={diagnoses:string[];specialists:string[];goals:Goal[];tracking:Tracking;note:string;doctors:Doctor[];checkinEvery:CheckinEvery};
+export type Profile={diagnoses:string[];specialists:string[];goals:Goal[];tracking:Tracking;note:string;doctors:Doctor[];checkinEvery:CheckinEvery;plans:PlanRun[]};
 export const MAX_DOCTORS=5;
 export const MAX_GOALS=6,MAX_CUSTOM=4;
 const emptyTracking=():Tracking=>({items:[],custom:[],journals:[],sets:[]});
-export const emptyProfile=():Profile=>({diagnoses:[],specialists:[],goals:[],tracking:emptyTracking(),note:'',doctors:[],checkinEvery:7});
+export const emptyProfile=():Profile=>({diagnoses:[],specialists:[],goals:[],tracking:emptyTracking(),note:'',doctors:[],checkinEvery:7,plans:[]});
 const ids=(v:unknown,max=30)=>Array.isArray(v)?[...new Set(v.filter((x):x is string=>typeof x==='string'&&/^[\w-]{1,80}$/.test(x)))].slice(0,max):[];
 const text=(v:unknown,max:number)=>typeof v==='string'?v.trim().slice(0,max):'';
 export const newId=(prefix:string)=>globalThis.crypto?.randomUUID?.()||prefix+'-'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
@@ -25,7 +26,7 @@ export function normalizeProfile(raw:unknown):Profile{
  const goals=(Array.isArray(r.goals)?r.goals:[]).flatMap((g:any)=>g&&typeof g.id==='string'&&text(g.text,120)?[{id:g.id,text:text(g.text,120),measure:g.measure==='count'?'count':'severity'} as Goal]:[]).slice(0,MAX_GOALS);
  const custom=(Array.isArray(t.custom)?t.custom:[]).flatMap((c:any)=>c&&typeof c.id==='string'&&text(c.label,80)?[{id:c.id,label:text(c.label,80)}]:[]).slice(0,MAX_CUSTOM);
  const doctors=(Array.isArray(r.doctors)?r.doctors:[]).flatMap((x:any)=>x&&typeof x.id==='string'&&(text(x.name,80)||text(x.phone,40))?[{id:x.id,name:text(x.name,80),role:text(x.role,80),phone:text(x.phone,40),place:text(x.place,120)}]:[]).slice(0,MAX_DOCTORS);
- return {diagnoses:ids(r.diagnoses),specialists:ids(r.specialists),goals,tracking:{items:ids(t.items,60),custom,journals:ids(t.journals,13),sets:ids(t.sets)},note:text(r.note,1000),doctors,checkinEvery:r.checkinEvery===14||r.checkinEvery===0?r.checkinEvery:7};
+ return {diagnoses:ids(r.diagnoses),specialists:ids(r.specialists),goals,tracking:{items:ids(t.items,60),custom,journals:ids(t.journals,13),sets:ids(t.sets)},note:text(r.note,1000),doctors,checkinEvery:r.checkinEvery===14||r.checkinEvery===0?r.checkinEvery:7,plans:normalizeRuns(r.plans)};
 }
 function all():Record<string,Profile>{
  const raw=readJSON<unknown>(PROFILES_KEY,{});

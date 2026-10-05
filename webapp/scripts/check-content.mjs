@@ -169,14 +169,31 @@ const routed=nav.routes.flatMap(r=>r.diagnoses);assert.equal(new Set(routed).siz
 console.log(`Navigator OK: ${nav.routes.length} routes, ${nav.topics.length} topics, ${Object.keys(nav.sources).length} sources.`);
 // Everyday queries: every answer has patterns, a calm text and links to existing pages; the first link is the next step.
 const queries=read('queries.json').items,journalIds=new Set(forms.map(f=>f.id)),routeIds=new Set(nav.routes.map(r=>r.id)),topicIds=new Set(nav.topics.map(t=>t.id));
-const staticPages=new Set(['/help','/child/safety','/review','/medications','/methods','/navigator','/doctors','/screenings/send','/visit','/difficulties']);
+const plansData=read('plans.json'),planIds=new Set(plansData.plans.map(p=>p.id));
+const staticPages=new Set(['/help','/child/safety','/review','/medications','/methods','/navigator','/doctors','/screenings/send','/visit','/difficulties','/plans','/parent','/child/passport']);
 assert.equal(new Set(queries.map(q=>q.id)).size,queries.length,'Duplicate query id');
 for(const q of queries){
  assert(q.patterns.length&&q.title&&q.text&&q.links.length,'Incomplete query '+q.id);
  for(const l of q.links){
   const [,section,a,b]=l.to.split('/');
-  const ok=staticPages.has(l.to)||(section==='navigator'&&a==='topic'&&topicIds.has(b))||(section==='navigator'&&routeIds.has(a))||(section==='forms'&&journalIds.has(a))||(section==='screenings'&&pageOk.screenings.has(a))||(pageOk[section]&&pageOk[section].has(a))||(section==='screenings'&&a==='mchat');
+  const ok=staticPages.has(l.to)||(section==='navigator'&&a==='topic'&&topicIds.has(b))||(section==='navigator'&&routeIds.has(a))||(section==='forms'&&journalIds.has(a))||(section==='screenings'&&pageOk.screenings.has(a))||(pageOk[section]&&pageOk[section].has(a))||(section==='screenings'&&a==='mchat')||(section==='plans'&&planIds.has(a));
   assert(ok,'Broken query link '+q.id+' → '+l.to);
  }
 }
 console.log(`Queries OK: ${queries.length} everyday questions.`);
+// Mini-plans: two weeks of steps, a goal for the check-in and when to see a doctor; steps have unique ids.
+assert.equal(planIds.size,plansData.plans.length,'Duplicate plan id');
+const stepIds=new Set();
+for(const p of plansData.plans){
+ assert(p.title&&p.short&&p.ages&&p.why&&p.goal?.text&&['count','severity'].includes(p.goal.measure),'Incomplete plan '+p.id);
+ assert.equal(p.weeks.length,2,'A plan has two weeks: '+p.id);
+ for(const w of p.weeks){assert(w.title&&w.steps.length>=2&&w.steps.length<=5,'Week of '+p.id);for(const st of w.steps){assert(st.id&&st.text,'Step of '+p.id);assert(!stepIds.has(st.id),'Duplicate step id '+st.id);stepIds.add(st.id);}}
+ assert(p.doctor.length>=1,'When to see a doctor: '+p.id);
+ for(const d of p.diagnoses)assert(dxIds.has(d),'Unknown plan diagnosis '+p.id+'/'+d);
+}
+console.log(`Plans OK: ${plansData.plans.length} mini-plans, ${stepIds.size} steps.`);
+// School passport: every section has a title, suggestions belong to known sections, the diagnosis map points to groups.
+const passport=read('passport.json'),sections=Object.keys(passport.sections);
+for(const [g,parts] of Object.entries(passport.groups))for(const [s,list] of Object.entries(parts)){assert(sections.includes(s),'Unknown passport section '+g+'/'+s);assert(list.length&&list.every(x=>typeof x==='string'&&x.length<=120),'Passport suggestions '+g+'/'+s);}
+for(const [d,g] of Object.entries(passport.map)){assert(dxIds.has(d),'Unknown passport diagnosis '+d);assert(passport.groups[g],'Unknown passport group '+g);}
+console.log(`Passport OK: ${sections.length} sections, ${Object.keys(passport.groups).length} suggestion groups.`);

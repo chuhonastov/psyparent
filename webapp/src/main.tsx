@@ -12,6 +12,8 @@ applySettings();
 // In Telegram the first screen waits up to 1.5 s for records kept in Telegram storage; in a browser it opens at once.
 bootSync().finally(()=>{
  migrateChildData();
+// 0.20 kept a statistics choice and unsent counters here; statistics were removed in 0.21.
+try{localStorage.removeItem('kora.stats.v1');}catch{}
  applySettings();
  ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><Router><App/></Router></React.StrictMode>);
  askPersistentStorage();

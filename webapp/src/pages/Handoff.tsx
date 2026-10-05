@@ -1,5 +1,4 @@
 import React,{useEffect,useMemo,useState} from 'react';
-import {track} from '../lib/analytics';
 import {Link,useLocation,useNavigate} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
@@ -28,7 +27,7 @@ export function SendForm(){
   if(!ageOk){toast(form==='school'?'Проверьте возраст':'Эта форма рассчитана на возраст '+spec.minAge+'–'+spec.maxAge+' лет',{variant:'error'});return;}
   const req:HandoffRequest={k:'q',v:1,id:newRequestId(),f:form,c:label.trim().slice(0,60),a:age===''?undefined:n,r:isTelegram()?'tg':'web',m:message.trim().slice(0,500)||undefined};
   const url=requestLink(await encodeHandoff(req));setLink(url);
-  track('teacher_sent');rememberRequest({id:req.id,f:form,childLabel:req.c,to:to.trim(),sentAt:new Date().toISOString()});
+  rememberRequest({id:req.id,f:form,childLabel:req.c,to:to.trim(),sentAt:new Date().toISOString()});
  };
  const text=()=>'Просьба заполнить форму «'+spec.title+'» о ребёнке ('+label.trim()+'). Это займёт несколько минут, регистрация не нужна: '+link;
  const share=async()=>{const t=text();if(await shareText(t,spec.title)!=='unavailable'||shareToTelegram(t))return;const ok=await copyText(t);toast(ok?'Текст со ссылкой скопирован — вставьте его в сообщение':'Не удалось отправить',{variant:ok?'info':'error'});};
@@ -104,7 +103,7 @@ export function ImportAnswer(){
  const read=async(input:string)=>{const code=extractCode(input);if(!code){setError('Не нашли ответ в этом тексте. Вставьте ссылку целиком.');return;}const r=await decodeHandoff(code);if(!r||r.k!=='a'){setError('Это не ответ на форму «Коры» или ссылка скопирована не целиком.');setAnswer(null);return;}setError('');setAnswer(r);};
  useEffect(()=>{if(hash.length>1)read(hash);},[hash]);
  const rec=answer?answerToRecord(answer):null;
- const save=()=>{if(!answer||!rec)return;if(saveAnswer(rec,include)){markAnswered(answer.id);track('teacher_saved');toast('Ответ учителя сохранён');navigate('kind' in rec&&rec.kind==='screening'?'/screenings/result/'+rec.result.id:'kind' in rec&&rec.kind==='journal'?'/forms/record/'+rec.record.id:'/screenings');}else toast('Не удалось сохранить',{variant:'error'});};
+ const save=()=>{if(!answer||!rec)return;if(saveAnswer(rec,include)){markAnswered(answer.id);toast('Ответ учителя сохранён');navigate('kind' in rec&&rec.kind==='screening'?'/screenings/result/'+rec.result.id:'kind' in rec&&rec.kind==='journal'?'/forms/record/'+rec.record.id:'/screenings');}else toast('Не удалось сохранить',{variant:'error'});};
  const already=answer&&getRequests().find(r=>r.id===answer.id)?.answeredAt;
  return <div className="container"><PageHeader title="Ответ учителя" subtitle="Ответ на форму, которую вы отправили по ссылке." backTo="/screenings" backLabel="Тесты"/>
  {!answer?<div className="stack">

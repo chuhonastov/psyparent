@@ -492,5 +492,19 @@ a.pickChip{display:inline-flex;align-items:center;text-decoration:none}
 
 /* 0.20 */
 .editChild{display:inline-flex;align-items:center;gap:6px;margin:-4px 0 12px}
-.honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
-.statsCard .buttonRow{margin-top:12px}
+/* 0.21: passport, mini-plans, parent */
+.passportView h2{font-size:1.4rem}
+.passportPart{margin-top:16px;padding:12px 14px;border-radius:12px;background:var(--soft)}
+.passportPart h3{font-size:.95rem;margin-bottom:6px}
+.passportPart ul{margin:0;padding-left:18px}
+.passportPart.upset,.passportPart.signs{background:var(--warm)}
+.passportPart.avoid{background:var(--danger-bg)}
+.passportPart.avoid h3{color:var(--danger)}
+.planWeek.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.planSteps{list-style:none;padding:0;margin:10px 0 0}
+.planSteps li{padding:8px 0;border-top:1px solid var(--line)}
+.planSteps li:first-child{border-top:0}
+.planSteps .selectionCheck{margin:0}
+.parentCheck .scalePick{margin:0}
+.planSteps .selectionCheck{align-items:flex-start;min-height:0;padding:4px 0}
+.planSteps .selectionCheck input{margin-top:3px}

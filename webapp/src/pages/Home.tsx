@@ -16,7 +16,6 @@ import {useAppointment} from '../lib/useAppointment';
 import {countdownLabel,daysUntil,formatAppointment} from '../lib/appointment';
 import {count as counted} from '../lib/plural';
 import {isTelegram} from '../lib/twa';
-import StatsPrompt from '../components/StatsPrompt';
 import {backupReminderDue,isIOS,isStandalone,postponeBackupReminder} from '../lib/device';
 /** Outside Telegram the records live only in this browser: a gentle reminder to keep a copy, and the Safari caveat on iPhone. */
 function StorageReminder({hasRecords}:{hasRecords:boolean}){
@@ -63,7 +62,6 @@ export default function Home() {
  <div className="brandRow"><Link className="brand" to="/"><span className="brandMark"><Icon name="leaf" size={22}/></span>Кора</Link><Link className="releaseBadge" to="/about">Для родителей</Link></div>
  {!q.trim()&&<Today/>}
  {!q.trim()&&<StorageReminder hasRecords={count>0||screenings.length>0||journals.length>0}/>}
- {!q.trim()&&<StatsPrompt/>}
  <GlobalSearch hint="Можно писать торговое название или сокращение, например «Минирин» или «ПТСР».">
  <div className="libraryRow"><Link to="/diagnoses"><Icon name="book" size={20}/>Диагнозы</Link><Link to="/review"><Icon name="pill" size={20}/>Назначения</Link><Link to="/exams"><Icon name="flask" size={20}/>Обследования</Link><Link to="/specialists"><Icon name="heart" size={20}/>Специалисты</Link><Link to="/methods"><Icon name="alert" size={20}/>Что не помогает</Link><Link to="/library"><Icon name="arrow" size={20}/>Весь справочник</Link></div>
  {!!recent.length&&<><div className="sectionHeading"><h2>Вы недавно смотрели</h2><button type="button" className="textButton" onClick={()=>clearRecent()}>Очистить</button></div>
@@ -71,6 +69,6 @@ export default function Home() {
  </GlobalSearch>
  <Link to="/doctors" className="actionCard warm doctorsCta"><span className="actionIcon"><Icon name="user" size={23}/></span><div className="actionMain"><h3>Записаться к врачу</h3><p>Детские психиатры и психологи клиники. Запись на сайте клиники</p></div><Icon name="arrow" size={18}/></Link>
  <div className="authorCard"><span className="authorAvatar">СК</span><div><strong>Материалы Степана Краснощекова</strong><p>Детский психиатр.</p><p>Справочник помогает подготовиться к приёму.</p></div></div>
- <div className="footerLinks"><Link to="/about">О проекте и ваших данных</Link><Link to="/feedback">Написать автору</Link><Link to="/children">Мои дети</Link><Link to="/glossary">Словарь</Link><Link to="/about#reading">Размер текста</Link><Link className="urgentLink" to="/help">Когда нужна срочная помощь</Link></div>
+ <div className="footerLinks"><Link to="/about">О проекте и ваших данных</Link><Link to="/parent">Поддержка для вас</Link><Link to="/feedback">Написать автору</Link><Link to="/children">Мои дети</Link><Link to="/glossary">Словарь</Link><Link to="/about#reading">Размер текста</Link><Link className="urgentLink" to="/help">Когда нужна срочная помощь</Link></div>
  </div>;
 }

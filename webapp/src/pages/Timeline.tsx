@@ -1,5 +1,4 @@
 import React,{useMemo,useState} from 'react';
-import {track} from '../lib/analytics';
 import {useUnsaved} from '../lib/unsaved';
 import {Link,useSearchParams} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
@@ -14,7 +13,8 @@ import {applyTrackingSet} from '../lib/profile';
 import {ageLabel} from '../lib/children';
 import {localDate} from '../lib/screenings';
 import {copyText,shareText} from '../lib/export';
-import {savePdf} from '../lib/files';
+import {saveDoc} from '../lib/files';
+import {timelineDoc} from '../lib/reports';
 import {shareToTelegram} from '../lib/twa';
 import {toast} from '../lib/toast';
 const KINDS:EventKind[]=['start','dose','stop','effect','side','exam','visit','event'];
@@ -34,10 +34,10 @@ export function EventForm({data,event,initialKind,initialMed,onDone}:{data:Route
   e.preventDefault();
   const input={date,kind,medId:medKind?med?.medId:undefined,medName:medKind&&!med?.medId?med?.medName:undefined,dose:medKind&&kind!=='stop'?dose.trim():undefined,text:text.trim()||undefined};
   const issues=validateEvent(input,today);setErrors(issues);if(issues.length)return;
-  if(event){if(!updateEvent(event.id,input,today)){toast('Не удалось сохранить',{variant:'error'});return;}track('edit');toast('Запись изменена');onDone();return;}
+  if(event){if(!updateEvent(event.id,input,today)){toast('Не удалось сохранить',{variant:'error'});return;}toast('Запись изменена');onDone();return;}
   if(!addEvent({...input,childId:data.child.id},today)){toast('Не удалось сохранить',{variant:'error'});return;}
   if(kind==='start'){const s=setForMed(input.medId);if(s.id!=='general'&&!data.profile.tracking.sets.includes(s.id)){applyTrackingSet(data.child.id,s.id,[...s.items,...s.numbers]);toast('Записано. В короткий опрос добавлены вопросы для этого препарата',{durationMs:4000});onDone();return;}}
-  track('event');toast('Записано в ленту');onDone();
+  toast('Записано в ленту');onDone();
  };
  return <form className="card eventForm" noValidate onSubmit={submit}><h2 style={{marginBottom:14}}>{event?'Изменить запись':'Новая запись'}</h2>
   {errors.length>0&&<div className="callout danger" role="alert" style={{marginBottom:14}}>{errors.map(x=><p key={x}>{x}</p>)}</div>}
@@ -59,7 +59,7 @@ export default function Timeline(){
  if(!child||!data)return <div className="container"><PageHeader title="Лента лечения" backTo="/child" backLabel="Ребёнок"/><div className="emptyState"><h3>Сначала добавьте ребёнка</h3><p>Лента собирает препараты, дозы, самочувствие и приёмы одного ребёнка.</p><Link className="btn" to="/child">Добавить ребёнка</Link></div></div>;
  const title=child.label+', '+ageLabel(child),shown=entries.filter(e=>!filter||e.group===filter),ordered=oldFirst?shown:shown.slice().reverse();
  const text=()=>formatTimeline(entries,title);
- const share=async()=>{track('report_export');const t=text();if(await shareText(t,'Лента лечения')!=='unavailable'||shareToTelegram(t))return;const ok=await copyText(t);toast(ok?'Текст скопирован':'Не удалось отправить',{variant:ok?'info':'error'});};
+ const share=async()=>{const t=text();if(await shareText(t,'Лента лечения')!=='unavailable'||shareToTelegram(t))return;const ok=await copyText(t);toast(ok?'Текст скопирован':'Не удалось отправить',{variant:ok?'info':'error'});};
  const days:[string,typeof ordered][]=[];for(const e of ordered){const last=days[days.length-1];if(last&&last[0]===e.date)last[1].push(e);else days.push([e.date,[e]]);}
  const eventById=(id?:string)=>id?getEvents().find(e=>e.id===id):undefined;
  return <div className="container"><PageHeader title="Лента лечения" subtitle="Препараты, дозы, самочувствие, шкалы и приёмы — по датам. Через полгода не придётся вспоминать." eyebrow={title} backTo="/child" backLabel="Ребёнок"/>
@@ -76,7 +76,7 @@ export default function Timeline(){
   </div>)}
  </section>)}
  {!entries.length&&!add&&<div className="emptyState"><Icon name="clock" size={27}/><h3>Лента пока пустая</h3><p>Начните с текущего препарата: когда его начали и в какой дозе. Потом отмечайте изменения дозы, самочувствие и приёмы. Результаты тестов и дневники этого ребёнка появятся здесь сами.</p></div>}
- {entries.length>0&&<div className="buttonRow" style={{marginTop:20}}><button className="btn secondary compact" onClick={async()=>{const ok=await copyText(text());toast(ok?'Лента скопирована':'Не удалось скопировать',{variant:ok?'success':'error'});}}><Icon name="copy" size={16}/>Скопировать</button><button className="btn secondary compact" onClick={()=>{track('report_export');savePdf(text(),'Kora-lenta-'+data.today+'.pdf');}}><Icon name="download" size={16}/>Скачать PDF</button></div>}
+ {entries.length>0&&<div className="buttonRow" style={{marginTop:20}}><button className="btn secondary compact" onClick={async()=>{const ok=await copyText(text());toast(ok?'Лента скопирована':'Не удалось скопировать',{variant:ok?'success':'error'});}}><Icon name="copy" size={16}/>Скопировать</button><button className="btn secondary compact" onClick={()=>saveDoc(timelineDoc(data),'Kora-lenta-'+data.today+'.pdf')}><Icon name="download" size={16}/>Скачать PDF</button></div>}
  <p className="small muted" style={{marginTop:16}}>Тесты и дневники попадают в ленту, если в них указано имя «{child.label}».</p>
  </div>;
 }

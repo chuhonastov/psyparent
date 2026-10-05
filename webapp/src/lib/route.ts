@@ -1,4 +1,5 @@
 import type {Child} from './children';
+import {activeRuns,planById,planDay} from './plans';
 import {belongsTo,Profile,GoalMeasure} from './profile';
 import {activeCourses,changeLabel,courses,dayNumber,doseDirection as doseDirectionOf,eventKindLabels,inSentence,lastVisit,medLabel,EventKind,TreatmentEvent} from './treatment';
 import {checkInPlan,countLabel,itemLabel,missedLabels,monitorNumbers,planIsEmpty,scaleLabels,summarizeCheckIn as summarizeCheckInText,urgentAnswers,CheckIn} from './monitoring';
@@ -38,7 +39,7 @@ export function todayItems(d:RouteData):TodayItem[]{
   out.push({id:'course-'+c.key,tone:'accent',icon:'pill',priority:4,title:n+'-й день '+what,text:c.label+(c.active&&c.dose?': '+c.dose:'')+(c.previousDose?' (было '+c.previousDose+')':''),to:'/child/timeline'});
  }
  if(!planIsEmpty(plan)){
-  const lastChange=current.map(c=>c.since).sort().pop(),since=last?daysBetween(last.date,d.today):Infinity,every=d.profile.checkinEvery??7;
+  const lastChange=current.map(c=>c.since).sort().pop(),since=last?daysBetween(last.date,d.today):Infinity,every=activeRuns(d.profile).length?7:d.profile.checkinEvery??7;
   // «Only before a visit» asks in the week before the appointment; a dose change still asks a few days later.
   const visitSoon=!!d.appointment&&daysBetween(d.today,d.appointment.date)>=0&&daysBetween(d.today,d.appointment.date)<=7;
   const changed=!!lastChange&&(!last||last.date<lastChange)&&dayNumber(lastChange,d.today)>=4;
@@ -46,6 +47,15 @@ export function todayItems(d:RouteData):TodayItem[]{
   const asked=plan.goals.length+plan.items.length+plan.numbers.length+(plan.askMissed?1:0);
   if(due)out.push({id:'checkin',tone:'accent',icon:'check',priority:3,title:'Короткий опрос: как прошла неделя',text:asked+' '+plural(asked,'вопрос','вопроса','вопросов')+', около минуты.'+(last?' Прошлый — '+ago(since)+'.':''),to:'/child/check-in'});
  }
+ // A mini-plan: the next step of the current week, and after two weeks — look at the result.
+ for(const run of activeRuns(d.profile)){
+  const plan=planById(run.planId);if(!plan)continue;
+  const {day,week,over}=planDay(run,d.today);
+  if(over)out.push({id:'plan-end-'+run.id,tone:'accent',icon:'check',priority:2,title:'Две недели плана «'+plan.title+'» прошли',text:'Посмотрите, что изменилось, и решите: продолжить или завершить.',to:'/plans/'+plan.id});
+  else{const next=plan.weeks[week].steps.find(s=>!run.done.includes(s.id));out.push({id:'plan-'+run.id+'-'+week,tone:'neutral',icon:'note',priority:5,title:'План «'+plan.title+'» · день '+day+' из 14',text:next?next.text:'Шаги этой недели отмечены — продолжайте в том же духе.',to:'/plans/'+plan.id});}
+ }
+ // «А как вы сами?» — «очень тяжело» in the last week's check-in offers support for the parent.
+ if(last&&last.parent===2&&daysBetween(last.date,d.today)<=7)out.push({id:'parent-'+last.id,tone:'warm',icon:'note',priority:2,title:'Вам сейчас очень тяжело',text:'Несколько слов о том, как поберечь себя и где искать помощь для себя.',to:'/parent'});
  for(const id of d.profile.tracking.journals){
   const t=journalTemplate(id);if(!t)continue;
   const rows=childJournals(d.journals,d.child).filter(r=>r.templateId===id),lastDate=rows.map(r=>r.date).sort().pop();

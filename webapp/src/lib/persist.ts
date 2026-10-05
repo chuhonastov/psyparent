@@ -21,8 +21,8 @@ export function writeJSON(key: string, value: unknown): boolean {
 }
 export function deleteLocalData() {
   try {
-    // kora.sync.v1 stays: its deletion marks keep the Telegram copy from bringing the records back. kora.stats.v1 keeps only the statistics choice.
-    const keys = Object.keys(localStorage).filter(k => k.startsWith('parentguide.') || k.startsWith('psyparent.') || (k.startsWith('kora.') && k !== 'kora.sync.v1' && k !== 'kora.stats.v1'));
+    // kora.sync.v1 stays: its deletion marks keep the Telegram copy from bringing the records back.
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('parentguide.') || k.startsWith('psyparent.') || (k.startsWith('kora.') && k !== 'kora.sync.v1'));
     keys.forEach(k => localStorage.removeItem(k));
     dataChanged();
     window.dispatchEvent(new Event('psyparent:visit-updated'));

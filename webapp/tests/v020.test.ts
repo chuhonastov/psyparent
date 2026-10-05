@@ -7,15 +7,15 @@ import {importFiles,referencedFiles,DOCUMENTS_KEY} from '../src/lib/documents';
 import {packJSON,unpackJSON} from '../src/lib/pack';
 import {readSaveLink,saveLink} from '../src/lib/files';
 import {classify,cleanText,makePdf} from '../src/lib/pdf/makePdf';
-import {formatChildReport} from '../src/lib/childReport';
+import {childReportDoc,memoDoc,timelineDoc} from '../src/lib/reports';
+import {cleanDoc} from '../src/lib/pdf/doc';
+import {renderDoc} from '../src/lib/pdf/makePdf';
 import {saveChild} from '../src/lib/children';
 import {addDoctor,addGoal,getProfile} from '../src/lib/profile';
 import {addEvent,getEvents} from '../src/lib/treatment';
 import {saveCheckIn} from '../src/lib/monitoring';
 import {todayItems,RouteData} from '../src/lib/route';
-import {detectSource,flush,isoWeek,pendingEvents,setStatsConsent,statsConsent,track,trackError,trackOpen} from '../src/lib/analytics';
-import {countersFor,isoWeek as serverWeek,record} from '../api/stats';
-import {mailFor,parseFeedback} from '../api/feedback';
+import {channelMessagesLink} from '../src/pages/Feedback';
 
 test('«later» and «already called the doctor» belong to one child and one alarming answer',()=>{
  const today='2026-10-05';
@@ -66,81 +66,38 @@ test('PDF: headings, lists and only drawable characters',async()=>{
  assert.equal(head,'%PDF-');
 });
 
-test('«Всё о ребёнке» collects the profile, the changes and the timeline',()=>{
+test('the report for a specialist: key facts, what changed, weekly grid, tables',async()=>{
  const today='2026-10-05',c=saveChild({label:'Маша',birth:'2017-03'})!;
  addDoctor(c.id,{name:'Иванова И. И.',role:'детский психиатр',phone:'+7 900 000-00-00',place:''});
  addGoal(c.id,'Тревога перед школой','severity');
- addEvent({childId:c.id,date:'2026-09-20',kind:'start',medId:'atomoxetine',dose:'10 мг'},today);
- const text=formatChildReport({child:c,profile:getProfile(c.id),events:getEvents(c.id),checkIns:[],screenings:[],journals:[],appointment:null,memoCount:0,today});
- assert.match(text,/^ВСЁ О РЕБЁНКЕ · Маша, 9 лет/);
- for(const part of ['Месяц рождения: март 2017','Иванова И. И., детский психиатр','• Тревога перед школой','ЛЕНТА ЛЕЧЕНИЯ','Атомоксетин'])assert(text.includes(part),part);
- assert.equal(text.split('\n').filter(l=>l.startsWith('Составлено')).length,1);
+ addEvent({childId:c.id,date:'2026-09-01',kind:'start',medId:'atomoxetine',dose:'10 мг'},today);
+ const goal=getProfile(c.id).goals[0].id;
+ saveCheckIn({childId:c.id,date:'2026-09-20',goals:{[goal]:3},items:{appetite_low:1},numbers:{},note:''});
+ saveCheckIn({childId:c.id,date:'2026-10-01',goals:{[goal]:1},items:{appetite_low:0,dark_thoughts:1},numbers:{},note:''});
+ const data:RouteData={child:c,profile:getProfile(c.id),events:getEvents(c.id),checkIns:(await import('../src/lib/monitoring')).getCheckIns(c.id),screenings:[],journals:[],appointment:null,memoCount:0,today};
+ const doc=childReportDoc(data),kinds=doc.blocks.map(b=>b.t);
+ assert.equal(kinds[0],'title');assert.equal(kinds[1],'facts');
+ const urgent=doc.blocks.find(b=>b.t==='callout') as any;
+ assert.equal(urgent.tone,'danger');assert.match(urgent.items[0],/^01\.10: /);
+ const main=doc.blocks.find(b=>b.t==='table') as any;
+ assert.deepEqual(main.head,['Показатель','Было','Стало','Изменение']);
+ assert.deepEqual(main.rows[0].map((c:any)=>typeof c==='string'?c:c.text),['Тревога перед школой','сильно','немного','лучше']);
+ const grid=doc.blocks.find(b=>b.t==='table'&&(b as any).head[1]==='20.09') as any;
+ assert(grid,'weekly grid by date');
+ assert.equal(grid.rows[0][1].tone,'sev3');
+ assert(doc.blocks.some(b=>b.t==='table'&&(b as any).head.includes('Препарат')),'treatment table');
+ // The document survives the trip through a link and draws as a PDF.
+ const back=cleanDoc(JSON.parse(JSON.stringify(doc)))!;
+ assert.equal(back.blocks.length,doc.blocks.length);
+ assert.equal(cleanDoc({blocks:[{t:'script',x:1},{t:'text',text:5}]})!.blocks.length,1);
+ const head=new TextDecoder().decode(new Uint8Array(await renderDoc(doc).arrayBuffer()).slice(0,5));
+ assert.equal(head,'%PDF-');
+ assert.equal(timelineDoc(data).blocks[1].t,'table');
+ const memo=memoDoc({visit:{version:2,questions:['Когда повышать дозу?'],meds:[],medDetails:{},checklists:{}},results:[],journals:[],appointment:null,route:data,childTitle:'Маша, 9 лет',today});
+ const qi=memo.blocks.findIndex(b=>b.t==='list'),di=memo.blocks.findIndex(b=>b.t==='table');
+ assert(qi>0&&qi<di,'questions come before the tables in the memo');
 });
 
-test('statistics: nothing before consent, then counters only, each once',async()=>{
- assert.equal(isoWeek('2026-10-05'),'2026-W41');assert.equal(isoWeek('2021-01-03'),'2020-W53');assert.equal(isoWeek('2024-12-30'),'2025-W01');
- assert.equal(serverWeek('2026-10-05'),'2026-W41');
- trackOpen('2026-10-05');track('checkin','2026-10-05');trackError('save','2026-10-05');
- assert.equal(statsConsent(),undefined);
- assert.equal(pendingEvents().length,0,'nothing is queued without consent');
- setStatsConsent('yes','2026-10-05');
- const first=pendingEvents().map(e=>e.t);
- assert.deepEqual(first,['join','day','week','month','first'],'a check-in made before consent still counts as the first record');
- const day=pendingEvents().find(e=>e.t==='day')!;
- assert.equal(day.n,1);assert.equal(day.s,'direct');assert.equal(day.p,'web');
- trackOpen('2026-10-05');
- assert.equal(pendingEvents().length,5,'opened again the same day: nothing new');
- track('checkin','2026-10-05');track('journal','2026-10-05');
- assert.deepEqual(pendingEvents().slice(5).map(e=>e.t+':'+(e.a||e.m)),['act:checkin','task:2026-10','act:journal'],'the monthly «useful action» is counted once');
- const ids=new Set(pendingEvents().map(e=>e.i));assert.equal(ids.size,pendingEvents().length);
- // Nothing personal in the queue.
- assert.doesNotMatch(JSON.stringify(pendingEvents()),/Маша|сертралин|psyparent\./i);
- const sent:any[]=[];
- await flush((async(_u:string,init:any)=>{sent.push(JSON.parse(init.body));return {ok:false,status:503};}) as any);
- assert.equal(pendingEvents().length,8,'kept after a failed delivery');
- await flush((async(_u:string,init:any)=>{sent.push(JSON.parse(init.body));return {ok:true,status:204};}) as any);
- assert.equal(pendingEvents().length,0);
- assert.deepEqual(Object.keys(sent[1]).sort(),['e','v']);
- setStatsConsent('no');trackOpen('2026-10-06');assert.equal(pendingEvents().length,0);
-});
-
-test('statistics source: campaign tag, referrer or direct',()=>{
- assert.equal(detectSource('?utm_source=VK_post','',null),'vk_post');
- assert.equal(detectSource('','https://away.vk.com/x?to=1',null),'vk.com');
- assert.equal(detectSource('','',  'src_tg-channel'),'tg-channel');
- assert.equal(detectSource('','https://psyparent.vercel.app/child',null),'direct');
-});
-
-test('the statistics server keeps only known counters and counts a repeated delivery once',async()=>{
- const today='2026-10-05';
- assert.deepEqual(countersFor({i:'abcdefgh1',t:'day',d:today,p:'tg',n:1,s:'vk.com'},today),[['d:'+today,'visits'],['d:'+today,'visits:tg'],['d:'+today,'new'],['d:'+today,'new:tg'],['d:'+today,'src:vk.com']]);
- assert.equal(countersFor({i:'abcdefgh1',t:'act',d:today,a:'diagnosis_adhd'},today),null,'unknown action');
- assert.equal(countersFor({i:'abcdefgh1',t:'act',d:'2026-09-01',a:'checkin'},today),null,'old date');
- assert.equal(countersFor({i:'x',t:'act',d:today,a:'checkin'},today),null,'bad id');
- assert.equal(countersFor({i:'abcdefgh1',t:'day',d:today,p:'tg',n:1,s:'<script>'},today)!.length,4,'odd source dropped');
- assert.deepEqual(countersFor({i:'abcdefgh1',t:'week',w:'2026-W41',c:'2026-W38'},today),[['w:2026-W41','active'],['w:2026-W41','c:2026-W38']]);
- assert.equal(countersFor({i:'abcdefgh1',t:'week',w:'2026-W41',c:'2026-W43'},today),null,'cohort after the week');
- // Fake Upstash: SET NX remembers ids, HINCRBY adds.
- const ids=new Set<string>(),counts=new Map<string,number>();
- const fetcher=async(_url:string,init:{body:string})=>({ok:true,json:async()=>JSON.parse(init.body).map((c:any[])=>{if(c[0]==='SET'){if(ids.has(c[1]))return {result:null};ids.add(c[1]);return {result:'OK'};}if(c[0]==='HINCRBY'){const k=c[1]+'|'+c[2];counts.set(k,(counts.get(k)||0)+1);return {result:counts.get(k)};}return {result:1};})});
- Object.assign(process.env,{KV_REST_API_URL:'https://example.upstash.io',KV_REST_API_TOKEN:'t'});
- const batch=[{i:'evt000001',t:'act',d:today,a:'checkin'},{i:'evt000002',t:'act',d:today,a:'checkin'},{i:'evt000003',t:'act',d:today,a:'weird'}];
- assert.equal((await record(batch,fetcher as any,today)).counted,2);
- assert.equal((await record(batch,fetcher as any,today)).counted,0,'the same events again add nothing');
- assert.equal(counts.get('kora:d:'+today+'|a:checkin'),2);
- delete process.env.KV_REST_API_URL;delete process.env.KV_REST_API_TOKEN;
- assert.deepEqual(await record(batch,fetcher as any,today),{stored:false,counted:0});
-});
-
-test('feedback: spam traps, length and a reply address',()=>{
- assert.deepEqual(parseFeedback({message:'Привет, нашёл ошибку',website:'x',elapsed:9000}),{error:'spam'});
- assert.deepEqual(parseFeedback({message:'Привет, нашёл ошибку',elapsed:200}),{error:'spam'});
- assert.deepEqual(parseFeedback({message:'ок',elapsed:9000}),{error:'length'});
- const f=parseFeedback({message:'  В карточке опечатка  ',contact:'mama@example.ru',platform:'tg',app:'0.20.0',elapsed:9000});
- assert(!('error' in f));
- const mail=mailFor(f as any);
- assert.equal(mail.replyTo,'mama@example.ru');
- assert.match(mail.text,/^В карточке опечатка\n/);
- assert.match(mail.text,/Открыто: Telegram, сборка 0\.20\.0/);
- assert.equal(mailFor({...(f as any),contact:'@mama'}).replyTo,undefined);
+test('feedback goes to the direct messages of the author channel, nothing is sent by the app',()=>{
+ assert.equal(channelMessagesLink,'https://t.me/doc_kras?direct');
 });

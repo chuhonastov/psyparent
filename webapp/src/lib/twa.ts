@@ -32,6 +32,11 @@ export function shareToTelegram(text:string) {
   if(link.length>8000) return false;
   try {WebApp.openTelegramLink(link);return true;} catch {return false;}
 }
+/** Opens a t.me link: inside Telegram without leaving it, elsewhere in a new tab (the Telegram app or web). */
+export function openTelegramUrl(url:string) {
+  if(isTelegram()) {try {WebApp.openTelegramLink(url);return;} catch {}}
+  window.open(url,'_blank','noopener,noreferrer');
+}
 export function getTgUserFirstName():string|null {return WebApp.initDataUnsafe?.user?.first_name ?? null;}
 /** Payload of a t.me/<bot>?startapp=… link, e.g. a teacher's answer. */
 export function getStartParam():string|null {try{return (WebApp.initDataUnsafe as {start_param?:string})?.start_param||null;}catch{return null;}}
