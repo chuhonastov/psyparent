@@ -54,8 +54,10 @@ export function todayItems(d:RouteData):TodayItem[]{
   if(over)out.push({id:'plan-end-'+run.id,tone:'accent',icon:'check',priority:2,title:'Две недели плана «'+plan.title+'» прошли',text:'Посмотрите, что изменилось, и решите: продолжить или завершить.',to:'/plans/'+plan.id});
   else{const next=plan.weeks[week].steps.find(s=>!run.done.includes(s.id));out.push({id:'plan-'+run.id+'-'+week,tone:'neutral',icon:'note',priority:5,title:'План «'+plan.title+'» · день '+day+' из 14',text:next?next.text:'Шаги этой недели отмечены — продолжайте в том же духе.',to:'/plans/'+plan.id});}
  }
- // «А как вы сами?» — «очень тяжело» in the last week's check-in offers support for the parent.
- if(last&&last.parent===2&&daysBetween(last.date,d.today)<=7)out.push({id:'parent-'+last.id,tone:'warm',icon:'note',priority:2,title:'Вам сейчас очень тяжело',text:'Несколько слов о том, как поберечь себя и где искать помощь для себя.',to:'/parent'});
+ // «А как вы сами?» — any answer worse than «нормально» in the last week's check-in offers support for the parent.
+ if(last&&last.parent!==undefined&&last.parent>=1&&daysBetween(last.date,d.today)<=7)out.push(last.parent>=2
+  ?{id:'parent-'+last.id,tone:'warm',icon:'note',priority:2,title:'Вам сейчас очень тяжело',text:'Несколько слов о том, как поберечь себя и где искать помощь для себя.',to:'/parent'}
+  :{id:'parent-'+last.id,tone:'warm',icon:'note',priority:5,title:'Неделя была непростой',text:'Как поберечь себя, пока не стало совсем тяжело: пара простых шагов.',to:'/parent'});
  for(const id of d.profile.tracking.journals){
   const t=journalTemplate(id);if(!t)continue;
   const rows=childJournals(d.journals,d.child).filter(r=>r.templateId===id),lastDate=rows.map(r=>r.date).sort().pop();
