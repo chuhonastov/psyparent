@@ -7,6 +7,7 @@ import {useVisitCount} from './useVisitCount';
 import {getActiveChild,getProfile,subscribeProfiles} from './profile';
 import {getEvents,subscribeTreatment} from './treatment';
 import {getCheckIns,subscribeCheckIns} from './monitoring';
+import {getDocuments,subscribeDocuments} from './documents';
 import {localDate} from './screenings';
 import type {RouteData} from './route';
 function useStore<T>(read:()=>T,subscribe:(h:()=>void)=>()=>void,deps:unknown[]){
@@ -19,9 +20,10 @@ export function useActiveChild(){const children=useChildren(),[tick,setTick]=use
 export const useProfile=(childId:string)=>useStore(()=>getProfile(childId),subscribeProfiles,[childId]);
 export const useEvents=(childId:string)=>useStore(()=>getEvents(childId),subscribeTreatment,[childId]);
 export const useCheckIns=(childId:string)=>useStore(()=>getCheckIns(childId),subscribeCheckIns,[childId]);
+export const useDocuments=(childId:string)=>useStore(()=>getDocuments(childId),subscribeDocuments,[childId]);
 /** Everything the route screens need for one child, refreshed when any of the records change. */
 export function useRouteData(childId:string|undefined):RouteData|null{
  const children=useChildren(),child=children.find(c=>c.id===childId)||null,id=child?.id||'';
- const profile=useProfile(id),events=useEvents(id),checkIns=useCheckIns(id),screenings=useScreenings(),journals=useJournals(),appointment=useAppointment(),memoCount=useVisitCount();
- return useMemo(()=>child?{child,profile,events,checkIns,screenings,journals,appointment,memoCount,today:localDate()}:null,[child,profile,events,checkIns,screenings,journals,appointment,memoCount]);
+ const profile=useProfile(id),events=useEvents(id),checkIns=useCheckIns(id),docs=useDocuments(id),screenings=useScreenings(),journals=useJournals(),appointment=useAppointment(),memoCount=useVisitCount();
+ return useMemo(()=>child?{child,profile,events,checkIns,screenings,journals,appointment,memoCount,today:localDate(),docs}:null,[child,profile,events,checkIns,screenings,journals,appointment,memoCount,docs]);
 }

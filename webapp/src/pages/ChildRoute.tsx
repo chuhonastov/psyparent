@@ -16,6 +16,9 @@ import {journalTemplates} from '../lib/journalContent';
 import {screenerById} from '../lib/screeningContent';
 import {countdownLabel,daysUntil,formatAppointment} from '../lib/appointment';
 import {toast} from '../lib/toast';
+import {getPlan,planFilled} from '../lib/safety';
+import {childAge} from '../lib/children';
+import {routeForDiagnosis} from '../lib/navigator';
 import {plural} from '../lib/plural';
 const TRACKED_JOURNALS=['sleep','behavior','tolerability','anxiety','mood','tics','rituals','eating','toileting','communication'];
 
@@ -83,7 +86,11 @@ export default function ChildRoute(){
  <section className="card"><div className="cardHead"><h2>Тесты и шкалы</h2><Link to="/screenings">Все тесты</Link></div>
   {latest.length?<ul className="plainList">{latest.map(r=><li key={r.id}><Link to={'/screenings/result/'+r.id}>{screenerById(r.screenerId)?.name}</Link><span className="small muted">{r.score.total} из {r.score.max} · {dayMonth(r.completedDate)}</span></li>)}</ul>
   :<p className="small muted" style={{marginTop:8}}>Пока нет результатов с именем «{child.label}». Повторные тесты раз в 1–2 месяца показывают, как меняется состояние.</p>}
+  <Link className="btn secondary compact" style={{marginTop:12}} to="/screenings/send"><Icon name="share" size={15}/>Форма для учителя</Link>
  </section>
+ <Link to="/child/documents" className="screeningHistoryLink"><span className="actionIcon"><Icon name="note"/></span><span><strong>Документы</strong><span className="small muted">{data.docs?.length?data.docs.length+' '+plural(data.docs.length,'документ','документа','документов')+' · заключения, ПМПК, обследования':'Заключения, ПМПК, ЭЭГ, анализы, выписки — фото или PDF'}</span></span><Icon name="arrow" size={18}/></Link>
+ {(()=>{const routes=[...new Map(p.diagnoses.map(routeForDiagnosis).filter((r):r is NonNullable<typeof r>=>!!r).map(r=>[r.id,r] as const)).values()];return routes.length>0&&<section className="card"><h2>Маршрут в России</h2><p className="small muted">Специалисты, ПМПК, школа, инвалидность и документы — по шагам.</p><div className="pickChips" style={{marginTop:12}}>{routes.map(r=><Link key={r.id} className="pickChip" to={'/navigator/'+r.id}>{r.title}</Link>)}</div></section>;})()}
+ {(()=>{const filled=planFilled(getPlan(child.id)),teen=childAge(child).years>=10;return (filled||teen)&&<Link to="/child/safety" className="screeningHistoryLink"><span className="actionIcon"><Icon name="shield"/></span><span><strong>План безопасности</strong><span className="small muted">{filled?'Признаки, кому звонить, безопасный дом — открыть или отправить':'На случай кризиса: заполните заранее, вместе с подростком'}</span></span><Icon name="arrow" size={18}/></Link>;})()}
  <section className="card soft"><h2>{data.appointment&&days>=0?'Приём '+countdownLabel(days):'Следующий приём'}</h2><p className="small" style={{marginTop:8}}>{data.appointment&&days>=0?formatAppointment(data.appointment):'Дату можно указать в памятке к приёму.'}</p>
   <div className="buttonRow" style={{marginTop:12}}><Link className="btn compact" to="/visit/changes">Что изменилось{reportIsEmpty(changes)?'':' · '+changes.weeks+' нед.'}</Link><Link className="btn secondary compact" to="/visit">Памятка</Link></div>
  </section>

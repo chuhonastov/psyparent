@@ -9,8 +9,9 @@ import {screenerById,Respondent} from './screeningContent';
 const WHO:Record<Respondent,string>={parent:'родитель',teacher:'учитель',self:'сам ребёнок',clinician:'со специалистом'};
 import {journalTemplate} from './journalContent';
 import {plural} from './plural';
+import {docKindLabels,DocMeta} from './documents';
 // "Today" and "What changed since the last visit": both are computed from the family's own records, nothing is stored.
-export type RouteData={child:Child;profile:Profile;events:TreatmentEvent[];checkIns:CheckIn[];screenings:ScreeningResult[];journals:JournalRecord[];appointment:Appointment|null;memoCount:number;today:string};
+export type RouteData={child:Child;profile:Profile;events:TreatmentEvent[];checkIns:CheckIn[];screenings:ScreeningResult[];journals:JournalRecord[];appointment:Appointment|null;memoCount:number;today:string;docs?:DocMeta[]};
 export type TodayItem={id:string;tone:'danger'|'warm'|'accent'|'neutral';icon:'alert'|'calendar'|'pill'|'check'|'clock'|'note';title:string;text?:string;to:string;priority:number};
 const DAY=86400000;
 export const addDays=(date:string,days:number)=>new Date(Date.parse(date+'T12:00:00Z')+days*DAY).toISOString().slice(0,10);
@@ -48,6 +49,10 @@ export function todayItems(d:RouteData):TodayItem[]{
   if(lastDate===d.today)continue;
   out.push({id:'journal-'+id,tone:'neutral',icon:'clock',priority:5,title:t.title,text:lastDate?'Последняя запись — '+ago(daysBetween(lastDate,d.today))+'.':'Записей пока нет.',to:'/forms/'+id});
  }
+ // Answers that came back from a teacher in the last three days.
+ const fresh=(at:string)=>daysBetween(at.slice(0,10),d.today)<=3;
+ const teacher=[...childScreenings(d.screenings,d.child).filter(r=>r.respondent==='teacher'&&fresh(r.createdAt)).map(r=>({id:r.id,title:screenerById(r.screenerId)?.name||'Шкала',to:'/screenings/result/'+r.id})),...childJournals(d.journals,d.child).filter(r=>r.respondent==='teacher'&&fresh(r.createdAt)).map(r=>({id:r.id,title:journalTemplate(r.templateId)?.title||'Наблюдения педагога',to:'/forms/record/'+r.id}))];
+ if(teacher.length)out.push({id:'teacher',tone:'accent',icon:'note',priority:2,title:'Новые ответы учителя',text:teacher.map(t=>t.title).join(', ')+(d.memoCount?'. Они могут войти в памятку врачу.':''),to:teacher[0].to});
  if(current.length){
   const latest=new Map<string,ScreeningResult>();
   for(const r of childScreenings(d.screenings,d.child))if(!['mchat','ygtss'].includes(r.screenerId)){const k=r.screenerId+'|'+r.respondent,o=latest.get(k);if(!o||o.completedDate<r.completedDate)latest.set(k,r);}
@@ -62,7 +67,7 @@ export type ChangeReport={from:string;to:string;weeks:number;sinceVisit:boolean;
  meds:{date:string;text:string}[];current:{label:string;dose?:string;since:string}[];
  goals:Trend[];effects:{label:string;max:number}[];numbers:{label:string;first:number;last:number;unit:string}[];missed:number|null;
  scales:{name:string;respondent:string;before?:number;after:number;max:number}[];notes:{date:string;kind:EventKind;text:string}[];
- journals:{title:string;count:number}[];checkIns:number;questions:number};
+ journals:{title:string;count:number}[];checkIns:number;questions:number;docs:{date:string;title:string;note:string}[]};
 /** Everything recorded for the child between the last visit (or the chosen number of weeks) and today. */
 export function changeReport(d:RouteData,weeks?:number):ChangeReport{
  const visit=lastVisit(d.events,d.today),sinceVisit=!weeks&&!!visit&&daysBetween(visit,d.today)<=183;
@@ -89,9 +94,10 @@ export function changeReport(d:RouteData,weeks?:number):ChangeReport{
  const jCount=new Map<string,number>();for(const r of childJournals(d.journals,d.child))if(inside(r.date))jCount.set(r.templateId,(jCount.get(r.templateId)||0)+1);
  return {from,to:d.today,weeks:Math.max(1,Math.round(daysBetween(from,d.today)/7)),sinceVisit,meds,current:activeCourses(d.events).map(c=>({label:c.label,dose:c.dose,since:c.since})),
   goals,effects:[...effectMax.entries()].map(([id,max])=>({label:itemLabel(id,d.profile)||id,max})).sort((a,b)=>b.max-a.max),numbers,missed,scales,notes,
-  journals:[...jCount.entries()].map(([id,count])=>({title:journalTemplate(id)?.title||id,count})),checkIns:checks.length,questions:d.memoCount};
+  journals:[...jCount.entries()].map(([id,count])=>({title:journalTemplate(id)?.title||id,count})),checkIns:checks.length,questions:d.memoCount,
+  docs:(d.docs||[]).filter(x=>inside(x.date)).map(x=>({date:x.date,title:x.title,note:x.note})).sort((a,b)=>a.date.localeCompare(b.date))};
 }
-export const reportIsEmpty=(r:ChangeReport)=>!r.meds.length&&!r.goals.length&&!r.effects.length&&!r.numbers.length&&!r.scales.length&&!r.notes.length&&!r.journals.length&&!r.checkIns;
+export const reportIsEmpty=(r:ChangeReport)=>!r.docs.length&&!r.meds.length&&!r.goals.length&&!r.effects.length&&!r.numbers.length&&!r.scales.length&&!r.notes.length&&!r.journals.length&&!r.checkIns;
 const num=(v:number)=>String(Math.round(v*10)/10).replace('.',',');
 export function trendWord(t:Trend){
  if(t.n<2||t.first===t.last)return t.n<2?'':'без изменений';
@@ -111,13 +117,14 @@ export function formatChanges(r:ChangeReport,childTitle:string){
  }
  if(r.scales.length){L.push('','Шкалы (не диагноз):');r.scales.forEach(s=>L.push('• '+s.name+' ('+s.respondent+'): '+(s.before!==undefined?s.before+' → ':'')+s.after+' из '+s.max));}
  if(r.notes.length){L.push('','Записи в ленте:');r.notes.forEach(n=>L.push('• '+dayMonth(n.date)+' — '+eventKindLabels[n.kind]+(n.text?': '+n.text:'')));}
+ if(r.docs.length){L.push('','Документы:');r.docs.forEach(x=>L.push('• '+dayMonth(x.date)+' — '+x.title+(x.note?': '+x.note:'')));}
  if(r.journals.length)L.push('','Дневники: '+r.journals.map(j=>j.title+' — '+j.count+' '+plural(j.count,'запись','записи','записей')).join('; '));
  if(r.questions)L.push('','Вопросов и записей в памятке: '+r.questions);
  return L.join('\n');
 }
 export {medLabel,changeLabel};
 
-export type EntryGroup='treatment'|'state'|'scales';
+export type EntryGroup='treatment'|'state'|'scales'|'docs';
 export type TimelineEntry={key:string;date:string;order:string;group:EntryGroup;tag:string;tone:'accent'|'warm'|'danger'|'neutral';title:string;text?:string;to?:string;eventId?:string;checkInId?:string};
 const arrow={up:' ↑',down:' ↓',same:'',unknown:''} as const;
 /** Every dated record of the child on one line: medicines, visits, notes, check-ins, scales and diaries. */
@@ -133,6 +140,7 @@ export function timelineEntries(d:RouteData):TimelineEntry[]{
  const results=childScreenings(d.screenings,d.child).slice().sort((a,b)=>a.completedDate.localeCompare(b.completedDate));
  results.forEach((r,i)=>{const prev=results.slice(0,i).filter(x=>x.screenerId===r.screenerId&&x.respondent===r.respondent).pop();
   out.push({key:r.id,date:r.completedDate,order:r.createdAt,group:'scales',tag:'Шкала',tone:'neutral',title:(screenerById(r.screenerId)?.name||r.screenerId)+' ('+WHO[r.respondent]+'): '+(prev?prev.score.total+' → ':'')+r.score.total+' из '+r.score.max,text:r.score.label,to:'/screenings/result/'+r.id});});
+ for(const doc of d.docs||[])out.push({key:doc.id,date:doc.date,order:doc.createdAt,group:'docs',tag:docKindLabels[doc.kind],tone:'neutral',title:doc.title,text:doc.note||undefined,to:'/child/documents'});
  for(const r of childJournals(d.journals,d.child))out.push({key:r.id,date:r.date,order:r.createdAt,group:'state',tag:'Дневник',tone:'neutral',title:journalTemplate(r.templateId)?.title||'Дневник',to:'/forms/record/'+r.id});
  return out.sort((a,b)=>a.date.localeCompare(b.date)||a.order.localeCompare(b.order));
 }

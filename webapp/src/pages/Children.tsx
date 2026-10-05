@@ -6,6 +6,8 @@ import {toast} from '../lib/toast';
 import {removeProfile,setActiveChild} from '../lib/profile';
 import {removeChildEvents} from '../lib/treatment';
 import {removeChildCheckIns} from '../lib/monitoring';
+import {removePlan} from '../lib/safety';
+import {removeChildDocuments} from '../lib/documents';
 import {useNavigate} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
@@ -20,7 +22,7 @@ export default function Children(){
  {children.map(c=>editing===c.id?<ChildForm key={c.id} child={c} onDone={done}/>:<section className="card childCard" key={c.id}>
   <div className="childCardTop"><span className="childAvatar" aria-hidden="true">{c.label.slice(0,1).toUpperCase()}</span><div><h2>{c.label}</h2><p className="small muted">{ageLabel(c)} · месяц рождения: {birthLabel(c)}</p></div></div>
   <div className="buttonRow" style={{marginTop:14}}><button type="button" className="btn compact" onClick={()=>{setActiveChild(c.id);navigate('/child');}}>Маршрут<Icon name="arrow" size={15}/></button><Link className="btn secondary compact" to={screeningsLink(c)}>Тесты</Link><Link className="btn secondary compact" to={'/forms/history?child='+encodeURIComponent(c.label)}>Дневники</Link></div>
-  <div className="buttonRow" style={{marginTop:6}}><button type="button" className="textButton" onClick={()=>setEditing(c.id)}>Изменить</button><button type="button" className="textButton danger" onClick={()=>{if(window.confirm('Удалить профиль «'+c.label+'»? Удалятся его лента лечения, короткие опросы и цели. Результаты тестов и дневники останутся.')&&removeChild(c.id)){removeProfile(c.id);removeChildEvents(c.id);removeChildCheckIns(c.id);toast('Профиль удалён');}}}>Удалить профиль</button></div>
+  <div className="buttonRow" style={{marginTop:6}}><button type="button" className="textButton" onClick={()=>setEditing(c.id)}>Изменить</button><button type="button" className="textButton danger" onClick={()=>{if(window.confirm('Удалить профиль «'+c.label+'»? Удалятся его лента лечения, короткие опросы, цели, план безопасности и документы. Результаты тестов и дневники останутся.')&&removeChild(c.id)){removeProfile(c.id);removeChildEvents(c.id);removeChildCheckIns(c.id);removePlan(c.id);removeChildDocuments(c.id);toast('Профиль удалён');}}}>Удалить профиль</button></div>
  </section>)}
  {editing==='new'?<ChildForm onDone={done} first={!children.length}/>:children.length<MAX_CHILDREN&&<button type="button" ref={addRef} className="btn secondary full" onClick={()=>setEditing('new')}><Icon name="plus" size={17}/>Добавить ребёнка</button>}
  <div className="privacyNote"><Icon name="shield" size={16}/><span>Фамилия и точная дата рождения не нужны. Профили хранятся на вашем устройстве и попадают в резервную копию. Если переименовать профиль, прежние записи останутся под старым именем.</span></div>
