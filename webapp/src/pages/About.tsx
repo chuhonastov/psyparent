@@ -12,6 +12,7 @@ import {downloadFile} from '../lib/export';
 import {isTelegram} from '../lib/twa';
 import {disableCloudSync,enableCloudSync,getSyncView,subscribeSync,syncNow} from '../lib/sync';
 import {isIOS,isStandalone} from '../lib/device';
+import {clearFiles} from '../lib/documents';
 const useSyncView=()=>useSyncExternalStore(subscribeSync,getSyncView);
 const when=(t:number)=>new Date(t).toLocaleString('ru-RU',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
 function TelegramStorage(){
@@ -74,8 +75,9 @@ export default function About() {
  useEffect(()=>{if(hash)requestAnimationFrame(()=>document.getElementById(hash.slice(1))?.scrollIntoView());},[hash]);
  const removeAll=async()=>{
   const cloud=getSyncView().cloud;
-  if(!window.confirm('Удалить все записи «Коры» на этом устройстве, включая памятку, дату приёма, историю скринингов с ответами, дневники, отметки в карточках и настройки?'+(cloud?' Копия в облаке Telegram тоже удалится, синхронизация выключится.':'')+' Это действие нельзя отменить.'))return;
+  if(!window.confirm('Удалить все записи «Коры» на этом устройстве, включая памятку, дату приёма, ленту лечения, опросы, историю скринингов с ответами, дневники, документы с файлами, план безопасности, отметки в карточках и настройки?'+(cloud?' Копия в облаке Telegram тоже удалится, синхронизация выключится.':'')+' Это действие нельзя отменить.'))return;
   if(cloud){try{await disableCloudSync();}catch{toast('Не удалось удалить копию из облака Telegram. Записи не тронуты, попробуйте ещё раз.',{variant:'error',durationMs:5000});return;}}
+  await clearFiles();
   if(deleteLocalData())toast('Все локальные записи удалены');
  };
  return <div className="container"><PageHeader title="О приложении «Кора»" subtitle="Понятная информация после приёма и опора для следующего разговора с врачом." backTo="/" backLabel="Сегодня"/><div className="stack">

@@ -3,7 +3,7 @@ import {NavLink,useLocation} from 'react-router-dom';
 import Icon,{IconName} from './Icon';
 import {useVisitCount} from '../lib/useVisitCount';
 // Five main sections: today's route, the child, the reference, tests and diaries, the visit.
-const LIBRARY=['/library','/diagnoses','/medications','/review','/exams','/specialists','/methods','/glossary','/doctors'];
+const LIBRARY=['/library','/navigator','/diagnoses','/medications','/review','/exams','/specialists','/methods','/glossary','/doctors'];
 export default function BottomNav() {
  const count=useVisitCount(),path=useLocation().pathname;
  const items:{to:string;label:string;icon:IconName;active?:boolean}[]=[

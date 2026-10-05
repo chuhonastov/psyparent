@@ -33,3 +33,5 @@ export function shareToTelegram(text:string) {
   try {WebApp.openTelegramLink(link);return true;} catch {return false;}
 }
 export function getTgUserFirstName():string|null {return WebApp.initDataUnsafe?.user?.first_name ?? null;}
+/** Payload of a t.me/<bot>?startapp=… link, e.g. a teacher's answer. */
+export function getStartParam():string|null {try{return (WebApp.initDataUnsafe as {start_param?:string})?.start_param||null;}catch{return null;}}

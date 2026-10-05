@@ -15,7 +15,7 @@ import {copyText,downloadText,shareText} from '../lib/export';
 import {shareToTelegram} from '../lib/twa';
 import {toast} from '../lib/toast';
 const KINDS:EventKind[]=['start','dose','stop','effect','side','exam','visit','event'];
-const FILTERS:{id:''|EntryGroup;label:string}[]=[{id:'',label:'Всё'},{id:'treatment',label:'Лечение и приёмы'},{id:'state',label:'Самочувствие'},{id:'scales',label:'Шкалы и анализы'}];
+const FILTERS:{id:''|EntryGroup;label:string}[]=[{id:'',label:'Всё'},{id:'treatment',label:'Лечение и приёмы'},{id:'state',label:'Самочувствие'},{id:'scales',label:'Шкалы и анализы'},{id:'docs',label:'Документы'}];
 
 export function EventForm({data,event,initialKind,initialMed,onDone}:{data:RouteData;event?:TreatmentEvent;initialKind?:EventKind;initialMed?:string;onDone:()=>void}){
  const today=localDate(),current=activeCourses(data.events);

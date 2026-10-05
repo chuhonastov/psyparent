@@ -150,3 +150,20 @@ for(const s of mon.sets){
 }
 for(const [id,i] of Object.entries(mon.items))if(i.urgentAt!==undefined)assert([1,2,3].includes(i.urgentAt),'Bad threshold '+id);
 console.log(`Monitoring OK: ${mon.sets.length} sets, ${monMeds.length} medicines, ${Object.keys(mon.items).length} items.`);
+// Russian navigator: every route points to existing topics, diagnoses and app pages; sources are HTTPS.
+const nav=read('navigator.json'),dxIds=new Set(leaves.map(d=>d.id));
+const pageOk={diagnoses:dxIds,exams:new Set(read('investigations.json').items.map(x=>x.id)),specialists:new Set(read('specialists.json').map(x=>x.id)),medications:medIds,methods:new Set(read('methods.json').items.map(x=>x.id)),screenings:new Set(['send','vanderbilt2002','snapiv','sdq','psc17','scared'])};
+for(const [id,s] of Object.entries(nav.sources))assert(/^https:\/\/\S+$/.test(s.url)&&s.label,'Bad navigator source '+id);
+for(const t of nav.topics){assert(t.title&&t.text&&t.points.length,'Incomplete topic '+t.id);for(const s of t.sources)assert(nav.sources[s],'Unknown source '+s);}
+for(const r of nav.routes){
+ assert(r.title&&r.intro&&r.steps.length>=4,'Incomplete route '+r.id);
+ for(const d of r.diagnoses)assert(dxIds.has(d),'Unknown route diagnosis '+r.id+'/'+d);
+ for(const s of r.steps){
+  assert(s.title&&(s.text||s.list||s.topics),'Empty step '+r.id+'/'+s.title);
+  if(s.verdict)assert(nav.verdicts[s.verdict],'Bad verdict '+s.verdict);
+  for(const t of s.topics||[])assert(nav.topics.some(x=>x.id===t),'Unknown topic '+t);
+  for(const l of s.links||[]){const [,section,id]=l.to.split('/');if(id&&pageOk[section])assert(pageOk[section].has(id),'Broken navigator link '+l.to);}
+ }
+}
+const routed=nav.routes.flatMap(r=>r.diagnoses);assert.equal(new Set(routed).size,routed.length,'Diagnosis in two routes');
+console.log(`Navigator OK: ${nav.routes.length} routes, ${nav.topics.length} topics, ${Object.keys(nav.sources).length} sources.`);
