@@ -508,3 +508,5 @@ a.pickChip{display:inline-flex;align-items:center;text-decoration:none}
 .parentCheck .scalePick{margin:0}
 .planSteps .selectionCheck{align-items:flex-start;min-height:0;padding:4px 0}
 .planSteps .selectionCheck input{margin-top:3px}
+.reminderToggle{display:inline-flex;align-items:center;gap:6px;margin-top:12px}
+.reminderBox{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--soft2)}

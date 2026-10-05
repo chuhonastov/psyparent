@@ -9,6 +9,7 @@ import {scaleLabels} from '../lib/monitoring';
 import {ageLabel} from '../lib/children';
 import {localDate} from '../lib/screenings';
 import {toast} from '../lib/toast';
+import {PlanReminder} from '../components/Reminder';
 const value=(measure:'count'|'severity',v:number)=>measure==='count'?v+' за неделю':(scaleLabels[v]||'').toLocaleLowerCase('ru');
 
 /** The catalogue: plans that fit the child's diagnoses first, running ones on top. */
@@ -38,7 +39,7 @@ export function PlanDetail(){
   {active&&state&&(state.over
    ?<section className="card soft"><h2>Две недели прошли</h2><p style={{marginTop:8}}>{trendLine?'«'+(goal?.text||plan.goal.text)+'»: '+trendLine+'.':'В коротких опросах нет ответов про эту цель — отметьте неделю, чтобы увидеть результат.'}</p><p className="small muted" style={{marginTop:6}}>Перемены идут волнами: если сейчас не видно разницы, это не значит, что план не работает.</p>
      <div className="buttonRow" style={{marginTop:12}}><button className="btn" onClick={()=>{extendPlan(child!.id,active.id,today);toast('Продолжаем ещё две недели');}}>Продолжить ещё 2 недели</button><button className="btn secondary" onClick={()=>{finishPlan(child!.id,active.id,today);toast('План завершён');}}>Завершить</button></div></section>
-   :<section className="card soft"><div className="cardHead"><h2>День {state.day} из {PLAN_DAYS}</h2><Link to="/child/check-in">Опрос</Link></div><p className="small" style={{marginTop:6}}>Цель в коротком опросе: «{goal?.text||plan.goal.text}»{trendLine?' · '+trendLine:''}.</p></section>)}
+   :<section className="card soft"><div className="cardHead"><h2>День {state.day} из {PLAN_DAYS}</h2><Link to="/child/check-in">Опрос</Link></div><p className="small" style={{marginTop:6}}>Цель в коротком опросе: «{goal?.text||plan.goal.text}»{trendLine?' · '+trendLine:''}.</p><PlanReminder plan={plan} run={active}/></section>)}
   <section className="card"><h2>Почему так бывает</h2><p style={{marginTop:8}}>{plan.why}</p></section>
   {plan.weeks.map((w,i)=><section className={'card planWeek'+(state&&!state.over&&state.week===i?' current':'')} key={w.title}><div className="eyebrow">Неделя {i+1}</div><h2>{w.title}</h2>
    <ul className="planSteps">{w.steps.map(s=><li key={s.id}>{active?<label className="selectionCheck"><input type="checkbox" checked={active.done.includes(s.id)} onChange={()=>toggleStep(child!.id,active.id,s.id)}/><span>{s.text}</span></label>:<span>{s.text}</span>}</li>)}</ul></section>)}

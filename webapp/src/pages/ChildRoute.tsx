@@ -22,6 +22,7 @@ import {childAge} from '../lib/children';
 import {routeForDiagnosis} from '../lib/navigator';
 import {plural} from '../lib/plural';
 import {saveDoc} from '../lib/files';
+import {CheckinReminder} from '../components/Reminder';
 import {planById,planDay} from '../lib/plans';
 import {getPassport,passportFilled} from '../lib/passport';
 import {childReportDoc} from '../lib/reports';
@@ -86,6 +87,7 @@ export default function ChildRoute(){
   <p className="small" style={{marginTop:8}}>{last?'Прошлый — '+dayMonth(last.date)+': '+summarizeCheckIn(last,p):'Цели и то, что врач просит отслеживать. Около минуты.'}</p>
   <div className="optionRow" role="radiogroup" aria-label="Как часто спрашивать" style={{marginTop:12}}>{([[7,'Раз в неделю'],[14,'Раз в 2 недели'],[0,'Перед приёмом']] as const).map(([v,l])=><label key={v} className={p.checkinEvery===v?'selected':''}><input type="radio" name="checkin-every" checked={p.checkinEvery===v} onChange={()=>saveProfile(child.id,{checkinEvery:v})}/>{l}</label>)}</div>
   <Link className="btn full" style={{marginTop:12}} to="/child/check-in"><Icon name="check" size={17}/>{plan.goals.length+plan.items.length?'Пройти опрос':'Настроить опрос'}</Link>
+  <CheckinReminder child={child} every={p.checkinEvery} appointment={data.appointment}/>
  </section>
  {current.length?<section className="card"><div className="cardHead"><h2>Лечение сейчас</h2><Link to="/child/timeline">Лента</Link></div>
   {current.length?<div className="courseList">{current.map(c=><div className="course" key={c.key}><div><h3>{c.label}</h3><p className="small">{c.dose||'Доза не указана'}</p><p className="small muted">{c.lastKind==='start'?'Начат':'Изменение'} {dayMonth(c.since)} · {dayNumber(c.since,data.today)}-й день</p></div>

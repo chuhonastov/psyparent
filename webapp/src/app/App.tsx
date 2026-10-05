@@ -43,6 +43,9 @@ import ScreeningDetail from '../pages/ScreeningDetail';
 import ScreeningHistory,{ScreeningSavedResult} from '../pages/ScreeningHistory';
 import {getStartParam,initTwa,setTelegramBack} from '../lib/twa';
 import {useActiveChild} from '../lib/useActiveChild';
+import {parseStartParam} from '../lib/reminders';
+import {getChildren} from '../lib/children';
+import {setActiveChild} from '../lib/profile';
 import {hasStorageError} from '../lib/persist';
 import {applySettings,subscribeSettings} from '../lib/settings';
 class ErrorBoundary extends React.Component<{children:React.ReactNode},{failed:boolean}> {
@@ -55,7 +58,12 @@ function NavigationEffects() {
  useEffect(()=>{window.scrollTo(0,0);document.body.scrollTop=0;},[location.pathname]);
  useEffect(()=>setTelegramBack(location.pathname!=='/',()=>{if((window.history.state?.idx||0)>0)navigate(-1);else navigate('/');}),[location.pathname,navigate]);
  // A teacher's answer opened as t.me/<bot>?startapp=… arrives as the start parameter of the mini app.
- useEffect(()=>{const p=getStartParam();try{if(p&&sessionStorage.getItem('kora.start')!==p){sessionStorage.setItem('kora.start',p);navigate('/import#'+p);}}catch{}},[navigate]);
+ // Calendar reminders open the check-in of a child (startapp=checkin_<id>) or a mini-plan (startapp=plan_<id>).
+ useEffect(()=>{const p=getStartParam();try{if(p&&sessionStorage.getItem('kora.start')!==p){sessionStorage.setItem('kora.start',p);const r=parseStartParam(p);
+  if(r?.kind==='checkin'){if(getChildren().some(c=>c.id===r.childId))setActiveChild(r.childId);navigate('/child/check-in');}
+  else if(r?.kind==='plan')navigate('/plans/'+r.planId);
+  else navigate('/import#'+p);}}catch{}},[navigate]);
+
  return null;
 }
 /** Child pages start fresh for each child: form state and drafts never carry over to another child. */

@@ -15,7 +15,7 @@ import {toast} from '../lib/toast';
 import {useDraft} from '../lib/drafts';
 import DraftNotice from '../components/DraftNotice';
 
-export const PARENT_LABELS=['Справляюсь','Тяжеловато','Очень тяжело'];
+export const PARENT_LABELS=['Нормально','Тяжеловато','Очень тяжело'];
 export default function CheckIn(){
  const child=useActiveChild(),data=useRouteData(child?.id),today=localDate();
  const current=useMemo(()=>data?activeCourses(data.events):[],[data]);
@@ -29,7 +29,7 @@ export default function CheckIn(){
   return <div className="container">{header}<div className="stack">
    {urgent.length?<div className="callout danger" role="alert"><strong>Свяжитесь с врачом, не дожидаясь приёма</strong><p>Вы отметили: {urgent.join(', ').toLocaleLowerCase('ru')}. Позвоните лечащему врачу сегодня. Если есть угроза жизни — 112.</p>{plan.urgent.map(x=><p key={x} className="small">{x}</p>)}<Link className="btn danger compact" style={{marginTop:12}} to="/help">Когда нельзя ждать</Link></div>
    :<div className="callout"><strong>Готово</strong><p>{summarizeCheckIn(saved,data.profile,plan)}</p></div>}
-   {saved.parent===2&&<div className="callout warn"><strong>Вам сейчас очень тяжело</strong><p>Это не про слабость и не про плохое родительство — так бывает почти со всеми, кто долго тянет много без передышки. Здесь — как поберечь себя и где искать помощь для себя.</p><Link className="btn compact" style={{marginTop:10}} to="/parent">Поддержка для вас</Link></div>}
+   {saved.parent!==undefined&&saved.parent>=1&&<div className="callout warn"><strong>{saved.parent>=2?'Вам сейчас очень тяжело':'Неделя была непростой'}</strong><p>{saved.parent>=2?'Это не про слабость и не про плохое родительство — так бывает почти со всеми, кто долго тянет много без передышки. Здесь — как поберечь себя и где искать помощь для себя.':'Усталость копится незаметно. Здесь — несколько простых способов поберечь себя, пока не стало совсем тяжело.'}</p><Link className="btn compact" style={{marginTop:10}} to="/parent">Поддержка для вас</Link></div>}
    <div className="buttonRow"><Link className="btn" to="/child/timeline">Открыть ленту</Link><Link className="btn secondary" to="/">На «Сегодня»</Link></div>
   </div></div>;
  }

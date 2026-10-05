@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {BrowserRouter,HashRouter} from 'react-router-dom';
+import {getChildren} from './lib/children';
+import {setActiveChild} from './lib/profile';
 import App from './app/App';
 import {applySettings} from './lib/settings';
 import {bootSync} from './lib/sync';
@@ -14,6 +16,8 @@ bootSync().finally(()=>{
  migrateChildData();
 // 0.20 kept a statistics choice and unsent counters here; statistics were removed in 0.21.
 try{localStorage.removeItem('kora.stats.v1');}catch{}
+// A calendar reminder opened in a browser (/child/check-in?child=<id>) chooses the child before the first screen.
+try{const id=new URLSearchParams(window.location.search).get('child');if(id&&getChildren().some(c=>c.id===id))setActiveChild(id);}catch{}
  applySettings();
  ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><Router><App/></Router></React.StrictMode>);
  askPersistentStorage();

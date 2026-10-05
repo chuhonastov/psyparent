@@ -55,8 +55,8 @@ export function formatAppointment(a:Appointment){
   const date=new Date(a.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric',weekday:'long'});
   return date+(a.time?', '+a.time:'')+(a.with?.trim()?' · '+a.with.trim():'');
 }
-const icsText=(v:string)=>v.replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/[,;]/g,m=>'\\'+m);
-const stamp=(d:Date)=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+export const icsText=(v:string)=>v.replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/[,;]/g,m=>'\\'+m);
+export const stamp=(d:Date)=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
 /** A calendar file with a reminder the day before. Times are local ("floating"), as written in the referral. */
 export function appointmentIcs(a:Appointment,now=new Date()){
   const day=a.date.replace(/-/g,'');
@@ -76,7 +76,7 @@ export function appointmentIcs(a:Appointment,now=new Date()){
   return lines.map(fold).join('\r\n')+'\r\n';
 }
 // RFC 5545: content lines are folded at 75 octets; Cyrillic letters take two octets each.
-function fold(line:string){
+export function fold(line:string){
   const out:string[]=[];let current='',size=0;
   for(const ch of line){
     const bytes=new TextEncoder().encode(ch).length;
@@ -86,7 +86,7 @@ function fold(line:string){
   out.push(current);
   return out.join('\r\n ');
 }
-function daysLater(date:string,days:number){
+export function daysLater(date:string,days:number){
   const [y,m,d]=date.split('-').map(Number);
   return new Date(Date.UTC(y,m-1,d+days)).toISOString().slice(0,10).replace(/-/g,'');
 }

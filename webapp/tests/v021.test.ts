@@ -86,4 +86,9 @@ test('«А как вы сами?» is for the parent only: support on Today, not
  const report=JSON.stringify(childReportDoc(d))+formatChanges(changeReport(d),'Маша');
  assert.doesNotMatch(report,/тяжело|Справляюсь|как вы сами/i);
  assert.equal(saveCheckIn({childId:c.id,date:'2026-10-05',goals:{},items:{},numbers:{},parent:0,note:''})!.parent,0,'a parent answer alone is enough to save');
+ // «Нормально» brings no reminder; «тяжеловато» brings a softer one.
+ assert(!todayItems(data(c.id,'2026-10-05')).some(i=>i.to==='/parent'),'no reminder after «нормально»');
+ const hard=saveCheckIn({childId:c.id,date:'2026-10-05',goals:{},items:{},numbers:{},parent:1,note:''})!;
+ const soft=todayItems(data(c.id,'2026-10-05')).find(i=>i.id==='parent-'+hard.id)!;
+ assert.equal(soft.title,'Неделя была непростой');assert.equal(soft.to,'/parent');
 });
