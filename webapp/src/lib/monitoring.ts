@@ -69,13 +69,19 @@ export function subscribeCheckIns(handler:()=>void){
  return ()=>{window.removeEventListener(EVENT,handler);window.removeEventListener('psyparent:all-data-cleared',handler);window.removeEventListener('storage',storage);};
 }
 /** Short line for the timeline: goals first, then noticeable effects. */
-export function summarizeCheckIn(c:CheckIn,profile:Profile){
+export function summarizeCheckIn(c:CheckIn,profile:Profile,plan?:CheckInPlan){
  const parts:string[]=[];
  for(const g of profile.goals)if(c.goals[g.id]!==undefined)parts.push(g.text+': '+(g.measure==='count'?c.goals[g.id]+' '+data.countLabel:scaleLabels[c.goals[g.id]].toLocaleLowerCase('ru')));
  for(const [id,v] of Object.entries(c.items))if(v>0)parts.push((monitorItems[id]?.label||profile.tracking.custom.find(x=>x.id===id)?.label||id)+': '+scaleLabels[v].toLocaleLowerCase('ru'));
  for(const [id,v] of Object.entries(c.numbers))if(monitorNumbers[id])parts.push(monitorNumbers[id].label+': '+String(v).replace('.',',')+' '+monitorNumbers[id].unit);
  if(c.missed)parts.push('пропуски приёма: '+missedLabels[c.missed].toLocaleLowerCase('ru'));
- return parts.join(' · ')||(c.note?c.note.slice(0,120):'Без жалоб');
+ // Say what was answered rather than «без жалоб»: an unanswered question is not a «no».
+ const answered=Object.keys(c.goals).length+Object.keys(c.items).length+Object.keys(c.numbers).length+(c.missed!==undefined?1:0);
+ const asked=plan?plan.goals.length+plan.items.length+plan.numbers.length+(plan.askMissed?1:0):0;
+ const gap=plan&&asked>answered?' Без ответа: '+(asked-answered)+' из '+asked+'.':'';
+ if(parts.length)return parts.join(' · ')+(gap?' ·'+gap.toLocaleLowerCase('ru').replace(/\.$/,''):'');
+ if(!answered)return c.note?c.note.slice(0,120):'Только заметка, без ответов на вопросы';
+ return 'Трудностей не отмечено (ответов: '+answered+').'+gap;
 }
 export const countLabel=data.countLabel;
 export const itemLabel=(id:string,profile:Profile)=>monitorItems[id]?.label||profile.tracking.custom.find(x=>x.id===id)?.label||'';

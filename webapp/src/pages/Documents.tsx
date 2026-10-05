@@ -22,7 +22,7 @@ function DocForm({childId,onDone}:{childId:string;onDone:()=>void}){
   <div className="formField" style={{marginTop:14}}><label className="fieldLabel" htmlFor="doc-title">Название (необязательно)</label><input className="input" id="doc-title" maxLength={120} placeholder={docKindLabels[kind]+': кто выдал, о чём'} value={title} onChange={e=>setTitle(e.target.value)}/></div>
   <div className="formField"><label className="fieldLabel" htmlFor="doc-date">Дата документа</label><input className="input" id="doc-date" type="date" max={today} value={date} onChange={e=>setDate(e.target.value)}/></div>
   <div className="formField"><label className="fieldLabel" htmlFor="doc-note">Главное из документа (необязательно)</label><textarea id="doc-note" maxLength={1000} placeholder="Например: эпиактивности нет; рекомендован вариант 7.1 и логопед" value={note} onChange={e=>setNote(e.target.value)}/></div>
-  <div className="formField"><label className="fieldLabel" htmlFor="doc-file">Фото или PDF (необязательно)</label><input id="doc-file" type="file" accept="image/*,application/pdf" onChange={e=>setFile(e.target.files?.[0]||null)}/>{file&&<p className="small muted">{file.name} · {sizeLabel(file.size)}</p>}<p className="small muted">Файл хранится только на этом устройстве и не входит в резервную копию — оригиналы держите у себя.</p></div>
+  <div className="formField"><label className="fieldLabel" htmlFor="doc-file">Фото или PDF (необязательно)</label><input id="doc-file" type="file" accept="image/*,application/pdf" onChange={e=>setFile(e.target.files?.[0]||null)}/>{file&&<p className="small muted">{file.name} · {sizeLabel(file.size)}</p>}<p className="small muted">Файл хранится на этом устройстве. Чтобы не потерять его при смене телефона, сделайте в «О приложении» резервную копию «с файлами документов».</p></div>
   <div className="buttonRow" style={{marginTop:12}}><button className="btn" disabled={busy}>{busy?'Сохраняем…':'Добавить'}</button><button type="button" className="btn secondary" onClick={onDone}>Отмена</button></div>
  </form>;
 }
@@ -50,6 +50,6 @@ export default function Documents(){
  {kinds.length>1&&<div className="pickChips" role="group" aria-label="Тип" style={{marginTop:16}}><button type="button" className="pickChip" aria-pressed={!kind} onClick={()=>setKind('')}>Все</button>{kinds.map(k=><button type="button" key={k} className="pickChip" aria-pressed={kind===k} onClick={()=>setKind(kind===k?'':k)}>{docKindLabels[k]}</button>)}</div>}
  <div className="stack" style={{marginTop:16}}>{shown.map(d=><DocCard key={d.id} d={d}/>)}</div>
  {!docs.length&&!adding&&<div className="emptyState" style={{marginTop:16}}><Icon name="note" size={27}/><h3>Документов пока нет</h3><p>Сфотографируйте заключения и выписки — они будут под рукой на приёме и в ПМПК. Главное из документа можно записать текстом: это попадёт в ленту и в сводку для врача.</p></div>}
- <p className="small muted" style={{marginTop:16}}>Список документов входит в резервную копию и синхронизацию Telegram, а сами файлы остаются на устройстве, где их добавили.</p>
+ <p className="small muted" style={{marginTop:16}}><Link to="/about#backup">Резервная копия с файлами</Link>. Список документов входит в резервную копию и синхронизацию Telegram. Сами файлы остаются на устройстве, где их добавили, и переносятся только полной копией «с файлами документов».</p>
  </div>;
 }

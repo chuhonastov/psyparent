@@ -1,7 +1,11 @@
 import {readJSON,writeJSON} from './persist';
+import {getActiveChild} from './profile';
 import {plural} from './plural';
 export type Appointment={version:1;date:string;time?:string;with?:string};
 export const APPOINTMENT_KEY='psyparent.appointment.v1';
+// Each child has its own next visit; the plain key is used while there are no child profiles.
+export const appointmentKeyFor=(childId:string|null)=>childId?APPOINTMENT_KEY+':'+childId:APPOINTMENT_KEY;
+const activeKey=()=>appointmentKeyFor(getActiveChild()?.id||null);
 const EVENT='psyparent:appointment-updated';
 const isDate=(v:unknown):v is string=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T00:00:00Z'))&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
 const isTime=(v:unknown):v is string=>typeof v==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(v);
@@ -14,9 +18,10 @@ export function normalizeAppointment(raw:unknown):Appointment|null{
   if(typeof r.with==='string'&&r.with.trim())out.with=r.with.slice(0,200);
   return out;
 }
-export const getAppointment=()=>normalizeAppointment(readJSON<unknown>(APPOINTMENT_KEY,null));
+export const getAppointmentFor=(childId:string|null)=>normalizeAppointment(readJSON<unknown>(appointmentKeyFor(childId),null));
+export const getAppointment=()=>normalizeAppointment(readJSON<unknown>(activeKey(),null));
 function write(value:Appointment|null){
-  if(!writeJSON(APPOINTMENT_KEY,value))return false;
+  if(!writeJSON(activeKey(),value))return false;
   window.dispatchEvent(new Event(EVENT));
   return true;
 }
@@ -86,7 +91,7 @@ function daysLater(date:string,days:number){
   return new Date(Date.UTC(y,m-1,d+days)).toISOString().slice(0,10).replace(/-/g,'');
 }
 export function subscribeAppointment(handler:()=>void){
-  const storage=(e:StorageEvent)=>{if(!e.key||e.key===APPOINTMENT_KEY)handler();};
+  const storage=(e:StorageEvent)=>{if(!e.key||e.key.startsWith(APPOINTMENT_KEY))handler();};
   window.addEventListener(EVENT,handler);
   window.addEventListener('psyparent:all-data-cleared',handler);
   window.addEventListener('storage',storage);

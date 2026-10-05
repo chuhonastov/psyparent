@@ -1,6 +1,6 @@
 :root{
  color-scheme:light;
- --bg:#f6f7f2;--card:#fff;--text:#20332e;--muted:#63756f;--line:#dfe6df;
+ --bg:#f6f7f2;--card:#fff;--text:#20332e;--muted:#5c6e68;--line:#dfe6df;
  --accent:#195e4e;--accent-hover:#124a3d;--on-accent:#fff;--soft:#eaf3eb;--soft2:#f0f3ed;
  --warm:#f5efdd;--warm-text:#72602d;--danger:#963d35;--danger-bg:#fcf0ec;
  --shadow:0 5px 22px rgba(35,61,47,.035);--radius:20px;
@@ -456,3 +456,36 @@ a.pickChip{display:inline-flex;align-items:center;text-decoration:none}
 .listCard.selectedCard svg{color:var(--accent)}
 .docCard h3{margin-top:2px}
 .docPreview{display:block;max-width:100%;max-height:520px;margin-top:10px;border-radius:12px;border:1px solid var(--line)}
+/* 0.19: answers for everyday queries */
+.answers{margin-bottom:6px}
+.answerCard{padding:17px 18px;border-radius:18px;background:var(--soft);margin-bottom:10px}
+.answerCard h3{font-size:1.0625rem}
+.answerCard p{font-size:0.9375rem;margin-top:6px}
+.answerCard.urgent{background:var(--danger-bg)}
+.answerCard.urgent h3,.answerCard.urgent p{color:var(--danger)}
+.answerLinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.answerLinks .pickChip{display:inline-flex;align-items:center;text-decoration:none;background:var(--card)}
+.visitFor{display:grid;gap:4px;margin:0 0 14px}
+.visitFor strong{font-size:1.125rem}
+.visitFor .childSwitcher{margin:8px 0 0}
+.urgentNow{margin-top:10px}
+/* 0.19: Today — one main action, the rest optional */
+.todayMainCard{border-radius:20px;background:var(--accent);color:var(--on-accent);padding:4px 4px 10px;box-shadow:var(--shadow)}
+.todayMainLink{display:flex;align-items:center;gap:14px;padding:16px 16px 8px;color:inherit}
+.todayMainLink:hover{text-decoration:none}
+.todayMainCard .todayIcon{background:rgba(255,255,255,.16);color:var(--on-accent)}
+.todayMainCard .todayMain strong{font-size:1.125rem}
+.todayMainCard .todayMain span{color:var(--on-accent);opacity:.88}
+.todayMainCard .todayLater{color:var(--on-accent);opacity:.85;margin-left:70px;padding:4px 0;font-size:0.875rem}
+.todayMainCard.danger{background:var(--danger-bg);color:var(--danger)}
+.todayMainCard.danger .todayIcon{background:rgba(255,255,255,.6);color:var(--danger)}
+.todayMainCard.danger .todayMain span,.todayMainCard.danger .todayLater{color:var(--danger)}
+.todayMainCard.warm{background:var(--warm);color:var(--text)}
+.todayMainCard.warm .todayIcon{background:rgba(255,255,255,.6);color:var(--warm-text)}
+.todayMainCard.warm .todayMain span,.todayMainCard.warm .todayLater{color:var(--warm-text)}
+.todayMore{margin:16px 0 8px}
+.todayItem.compact{padding:6px 6px 6px 16px;box-shadow:none}
+.todayItemLink{flex:1;min-width:0;color:var(--text);padding:8px 0}
+.todayItemLink:hover{text-decoration:none}
+.todayItem.compact .iconButton{border:0;background:none;width:36px;height:36px;flex:0 0 36px}
+.todayItem.compact .todayMain strong{font-size:0.9688rem}

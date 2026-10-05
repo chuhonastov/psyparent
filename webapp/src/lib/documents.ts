@@ -76,3 +76,22 @@ export async function removeChildDocuments(childId:string){
  return write(rows.filter(d=>d.childId!==childId));
 }
 export const sizeLabel=(n:number)=>n<1024*1024?Math.max(1,Math.round(n/1024))+' КБ':(n/1024/1024).toFixed(1).replace('.',',')+' МБ';
+
+export type BackupFiles=Record<string,{name:string;type:string;data:string}>;
+const toBase64=async(blob:Blob)=>{const bytes=new Uint8Array(await blob.arrayBuffer());let s='';for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(s);};
+/** Files of all documents on this device, for a full backup. Missing files (added on another device) are skipped. */
+export async function exportFiles():Promise<{files:BackupFiles;missing:number}>{
+ const files:BackupFiles={};let missing=0;
+ for(const d of getDocuments())if(d.file){const blob=await readFile(d.file.id);if(blob)files[d.file.id]={name:d.file.name,type:d.file.type,data:await toBase64(blob)};else missing++;}
+ return {files,missing};
+}
+/** Puts files from a full backup back into this browser. */
+export async function importFiles(files:BackupFiles){
+ let count=0;
+ for(const [id,f] of Object.entries(files)){
+  try{const bin=atob(f.data),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);await tx('readwrite',s=>{s.put(new Blob([bytes],{type:f.type}),id);});count++;}catch{}
+ }
+ return count;
+}
+export const filesSize=()=>getDocuments().reduce((n,d)=>n+(d.file?.size||0),0);
+

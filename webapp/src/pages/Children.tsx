@@ -8,6 +8,7 @@ import {removeChildEvents} from '../lib/treatment';
 import {removeChildCheckIns} from '../lib/monitoring';
 import {removePlan} from '../lib/safety';
 import {removeChildDocuments} from '../lib/documents';
+import {migrateChildData,removeChildMemo,renameChildRecords} from '../lib/childLinks';
 import {useNavigate} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
@@ -22,16 +23,17 @@ export default function Children(){
  {children.map(c=>editing===c.id?<ChildForm key={c.id} child={c} onDone={done}/>:<section className="card childCard" key={c.id}>
   <div className="childCardTop"><span className="childAvatar" aria-hidden="true">{c.label.slice(0,1).toUpperCase()}</span><div><h2>{c.label}</h2><p className="small muted">{ageLabel(c)} · месяц рождения: {birthLabel(c)}</p></div></div>
   <div className="buttonRow" style={{marginTop:14}}><button type="button" className="btn compact" onClick={()=>{setActiveChild(c.id);navigate('/child');}}>Маршрут<Icon name="arrow" size={15}/></button><Link className="btn secondary compact" to={screeningsLink(c)}>Тесты</Link><Link className="btn secondary compact" to={'/forms/history?child='+encodeURIComponent(c.label)}>Дневники</Link></div>
-  <div className="buttonRow" style={{marginTop:6}}><button type="button" className="textButton" onClick={()=>setEditing(c.id)}>Изменить</button><button type="button" className="textButton danger" onClick={()=>{if(window.confirm('Удалить профиль «'+c.label+'»? Удалятся его лента лечения, короткие опросы, цели, план безопасности и документы. Результаты тестов и дневники останутся.')&&removeChild(c.id)){removeProfile(c.id);removeChildEvents(c.id);removeChildCheckIns(c.id);removePlan(c.id);removeChildDocuments(c.id);toast('Профиль удалён');}}}>Удалить профиль</button></div>
+  <div className="buttonRow" style={{marginTop:6}}><button type="button" className="textButton" onClick={()=>setEditing(c.id)}>Изменить</button><button type="button" className="textButton danger" onClick={()=>{if(window.confirm('Удалить профиль «'+c.label+'»? Удалятся его лента лечения, памятка и дата приёма, короткие опросы, цели, план безопасности и документы. Результаты тестов и дневники останутся.')&&removeChild(c.id)){removeProfile(c.id);removeChildEvents(c.id);removeChildCheckIns(c.id);removePlan(c.id);removeChildDocuments(c.id);removeChildMemo(c.id);toast('Профиль удалён');}}}>Удалить профиль</button></div>
  </section>)}
  {editing==='new'?<ChildForm onDone={done} first={!children.length}/>:children.length<MAX_CHILDREN&&<button type="button" ref={addRef} className="btn secondary full" onClick={()=>setEditing('new')}><Icon name="plus" size={17}/>Добавить ребёнка</button>}
- <div className="privacyNote"><Icon name="shield" size={16}/><span>Фамилия и точная дата рождения не нужны. Профили хранятся на вашем устройстве и попадают в резервную копию. Если переименовать профиль, прежние записи останутся под старым именем.</span></div>
+ <div className="privacyNote"><Icon name="shield" size={16}/><span>Фамилия и точная дата рождения не нужны. Профили хранятся на вашем устройстве и попадают в резервную копию. Если переименовать профиль, тесты и дневники ребёнка останутся с ним.</span></div>
  </div></div>;
 }
 export function ChildForm({child,onDone,first}:{child?:Child;onDone:()=>void;first?:boolean}){
  const [label,setLabel]=useState(child?.label||''),[birth,setBirth]=useState(child?.birth||''),[errors,setErrors]=useState<string[]>([]),errorRef=useRef<HTMLDivElement>(null);
  const submit=(e:React.FormEvent)=>{e.preventDefault();const issues=validateChild({label,birth});setErrors(issues);if(issues.length){requestAnimationFrame(()=>errorRef.current?.focus());return;}
-  if(saveChild({id:child?.id,label,birth})){toast(child?'Профиль обновлён':'Профиль добавлен');onDone();}else toast('Не удалось сохранить профиль',{variant:'error'});};
+  const saved=saveChild({id:child?.id,label,birth});
+  if(saved){if(child&&child.label!==saved.label)renameChildRecords(saved.id,child.label,saved.label);migrateChildData();toast(child?'Профиль обновлён':'Профиль добавлен');onDone();}else toast('Не удалось сохранить профиль',{variant:'error'});};
  return <form className="card" noValidate onSubmit={submit}><h2 style={{marginBottom:16}}>{child?'Изменить профиль':first?'Добавьте ребёнка':'Новый профиль'}</h2>
   {errors.length>0&&<div className="callout danger" role="alert" tabIndex={-1} ref={errorRef} style={{marginBottom:14}}>{errors.map(x=><p key={x}>{x}</p>)}</div>}
   <div className="formField"><label className="fieldLabel" htmlFor="child-label">Как обозначить</label><input className="input" id="child-label" value={label} maxLength={30} autoComplete="off" placeholder="Например: Маша или старший" onChange={e=>setLabel(e.target.value)}/></div>

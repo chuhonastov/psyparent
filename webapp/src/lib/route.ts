@@ -1,5 +1,5 @@
 import type {Child} from './children';
-import {sameChild,Profile,GoalMeasure} from './profile';
+import {belongsTo,Profile,GoalMeasure} from './profile';
 import {activeCourses,changeLabel,courses,dayNumber,doseDirection as doseDirectionOf,eventKindLabels,inSentence,lastVisit,medLabel,EventKind,TreatmentEvent} from './treatment';
 import {checkInPlan,countLabel,itemLabel,missedLabels,monitorNumbers,planIsEmpty,scaleLabels,summarizeCheckIn as summarizeCheckInText,urgentAnswers,CheckIn} from './monitoring';
 import type {ScreeningResult} from './screenings';
@@ -20,8 +20,8 @@ const MONTHS=['января','февраля','марта','апреля','ма�
 export const dayMonth=(date:string)=>Number(date.slice(8,10))+' '+MONTHS[Number(date.slice(5,7))-1];
 export const fullDate=(date:string)=>dayMonth(date)+' '+date.slice(0,4);
 const ago=(days:number)=>days<=0?'сегодня':days===1?'вчера':days<7?days+' '+plural(days,'день','дня','дней')+' назад':Math.round(days/7)+' '+plural(Math.round(days/7),'неделю','недели','недель')+' назад';
-export const childScreenings=(rows:ScreeningResult[],child:Child)=>rows.filter(r=>sameChild(r.childLabel,child));
-export const childJournals=(rows:JournalRecord[],child:Child)=>rows.filter(r=>sameChild(r.childLabel,child));
+export const childScreenings=(rows:ScreeningResult[],child:Child)=>rows.filter(r=>belongsTo(r,child));
+export const childJournals=(rows:JournalRecord[],child:Child)=>rows.filter(r=>belongsTo(r,child));
 
 export function todayItems(d:RouteData):TodayItem[]{
  const out:TodayItem[]=[],current=activeCourses(d.events),plan=checkInPlan(d.profile,current),last=d.checkIns[d.checkIns.length-1];
@@ -38,8 +38,11 @@ export function todayItems(d:RouteData):TodayItem[]{
   out.push({id:'course-'+c.key,tone:'accent',icon:'pill',priority:4,title:n+'-й день '+what,text:c.label+(c.active&&c.dose?': '+c.dose:'')+(c.previousDose?' (было '+c.previousDose+')':''),to:'/child/timeline'});
  }
  if(!planIsEmpty(plan)){
-  const lastChange=current.map(c=>c.since).sort().pop(),since=last?daysBetween(last.date,d.today):Infinity;
-  const due=!last||since>=7||(!!lastChange&&last.date<lastChange&&dayNumber(lastChange,d.today)>=4);
+  const lastChange=current.map(c=>c.since).sort().pop(),since=last?daysBetween(last.date,d.today):Infinity,every=d.profile.checkinEvery??7;
+  // «Only before a visit» asks in the week before the appointment; a dose change still asks a few days later.
+  const visitSoon=!!d.appointment&&daysBetween(d.today,d.appointment.date)>=0&&daysBetween(d.today,d.appointment.date)<=7;
+  const changed=!!lastChange&&(!last||last.date<lastChange)&&dayNumber(lastChange,d.today)>=4;
+  const due=every===0?(visitSoon&&since>=4)||changed:!last||since>=every||changed;
   const asked=plan.goals.length+plan.items.length+plan.numbers.length+(plan.askMissed?1:0);
   if(due)out.push({id:'checkin',tone:'accent',icon:'check',priority:3,title:'Короткий опрос: как прошла неделя',text:asked+' '+plural(asked,'вопрос','вопроса','вопросов')+', около минуты.'+(last?' Прошлый — '+ago(since)+'.':''),to:'/child/check-in'});
  }

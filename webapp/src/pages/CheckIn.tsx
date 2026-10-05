@@ -12,19 +12,22 @@ import {ageLabel} from '../lib/children';
 import {localDate} from '../lib/screenings';
 import {dayMonth} from '../lib/route';
 import {toast} from '../lib/toast';
+import {useDraft} from '../lib/drafts';
+import DraftNotice from '../components/DraftNotice';
 
 export default function CheckIn(){
  const child=useActiveChild(),data=useRouteData(child?.id),today=localDate();
  const current=useMemo(()=>data?activeCourses(data.events):[],[data]);
  const plan=useMemo(()=>data?checkInPlan(data.profile,current):null,[data,current]);
  const [date,setDate]=useState(today),[goals,setGoals]=useState<Record<string,number>>({}),[counts,setCounts]=useState<Record<string,string>>({}),[items,setItems]=useState<Record<string,number>>({}),[numbers,setNumbers]=useState<Record<string,string>>({}),[missed,setMissed]=useState<number>(),[note,setNote]=useState(''),[errors,setErrors]=useState<string[]>([]),[saved,setSaved]=useState<Record_|null>(null);
+ const draft=useDraft(child?'checkin.'+child.id:null,{date,goals,counts,items,numbers,missed,note},d=>{setDate(d.date);setGoals(d.goals);setCounts(d.counts);setItems(d.items);setNumbers(d.numbers);setMissed(d.missed);setNote(d.note);});
  if(!child||!data||!plan)return <div className="container"><PageHeader title="Короткий опрос" backTo="/child" backLabel="Ребёнок"/><div className="emptyState"><h3>Сначала добавьте ребёнка</h3><Link className="btn" to="/child">Добавить ребёнка</Link></div></div>;
  const header=<PageHeader title="Короткий опрос" subtitle="Как прошла последняя неделя. Около минуты — без медицинских чек-листов." eyebrow={child.label+', '+ageLabel(child)} backTo="/child" backLabel="Ребёнок"/>;
  if(saved){
   const urgent=urgentAnswers(saved);
   return <div className="container">{header}<div className="stack">
    {urgent.length?<div className="callout danger" role="alert"><strong>Свяжитесь с врачом, не дожидаясь приёма</strong><p>Вы отметили: {urgent.join(', ').toLocaleLowerCase('ru')}. Позвоните лечащему врачу сегодня. Если есть угроза жизни — 112.</p>{plan.urgent.map(x=><p key={x} className="small">{x}</p>)}<Link className="btn danger compact" style={{marginTop:12}} to="/help">Когда нельзя ждать</Link></div>
-   :<div className="callout"><strong>Готово</strong><p>{summarizeCheckIn(saved,data.profile)}</p></div>}
+   :<div className="callout"><strong>Готово</strong><p>{summarizeCheckIn(saved,data.profile,plan)}</p></div>}
    <div className="buttonRow"><Link className="btn" to="/child/timeline">Открыть ленту</Link><Link className="btn secondary" to="/">На «Сегодня»</Link></div>
   </div></div>;
  }
@@ -37,11 +40,12 @@ export default function CheckIn(){
   const issues=[...validateCheckIn(input,plan,today),...Object.entries(counts).filter(([,v])=>v.trim()!==''&&!/^\d{1,3}$/.test(v.trim())).map(()=>'Число раз за неделю — целое число до 999.')];
   setErrors(issues);if(issues.length){window.scrollTo(0,0);return;}
   const rec=saveCheckIn(input);if(!rec){toast('Не удалось сохранить',{variant:'error'});return;}
-  setSaved(rec);window.scrollTo(0,0);if(!urgentAnswers(rec).length)toast('Опрос сохранён');
+  draft.clear();setSaved(rec);window.scrollTo(0,0);if(!urgentAnswers(rec).length)toast('Опрос сохранён');
  };
  const last=data.checkIns[data.checkIns.length-1];
  return <div className="container">{header}<ChildSwitcher active={child} manage={false}/>
  <form className="stack" noValidate onSubmit={submit}>
+  {draft.pending&&<DraftNotice at={draft.pending.at} onRestore={draft.restore} onDiscard={draft.discard}/>}
   {errors.length>0&&<div className="callout danger" role="alert">{errors.map(x=><p key={x}>{x}</p>)}</div>}
   {last&&<p className="small muted">Прошлый опрос — {dayMonth(last.date)}. Можно ответить не на всё: пропуск не считается ответом «нет».</p>}
   <div className="formField"><label className="fieldLabel" htmlFor="checkin-date">Дата</label><input className="input" id="checkin-date" type="date" max={today} value={date} onChange={e=>setDate(e.target.value)}/></div>
@@ -50,7 +54,8 @@ export default function CheckIn(){
     :<ScalePick key={g.id} name={'g-'+g.id} legend={g.text} labels={scaleLabels} value={goals[g.id]} onChange={v=>{const n={...goals};if(v===undefined)delete n[g.id];else n[g.id]=v;setGoals(n);}}/>)}
   </section>}
   {plan.items.length>0&&<section className="card"><h2>Самочувствие на лечении</h2><p className="small muted">То, что врач просит отслеживать при {current.length>1?'текущих препаратах':'текущем препарате'}{current.length?': '+current.map(c=>c.label).join(', '):''}.</p>
-   {plan.items.map(i=><ScalePick key={i.id} name={'i-'+i.id} legend={i.label} hint={i.hint} danger={i.urgentAt!==undefined} labels={scaleLabels} value={items[i.id]} onChange={v=>{const n={...items};if(v===undefined)delete n[i.id];else n[i.id]=v;setItems(n);}}/>)}
+   {plan.items.map(i=><React.Fragment key={i.id}><ScalePick name={'i-'+i.id} legend={i.label} hint={i.hint} danger={i.urgentAt!==undefined} labels={scaleLabels} value={items[i.id]} onChange={v=>{const n={...items};if(v===undefined)delete n[i.id];else n[i.id]=v;setItems(n);}}/>
+    {i.urgentAt!==undefined&&items[i.id]!==undefined&&items[i.id]>=i.urgentAt&&<div className="callout danger urgentNow" role="alert"><strong>Свяжитесь с врачом сегодня, не дожидаясь приёма</strong><p>Это тревожный признак. Если есть угроза жизни — 112. Опрос можно сохранить позже.</p><Link className="btn danger compact" style={{marginTop:10}} to="/help">Когда нельзя ждать</Link></div>}</React.Fragment>)}
   </section>}
   {(plan.numbers.length>0||plan.askMissed)&&<section className="card"><h2>Цифры и приём</h2>
    {plan.numbers.map(n=><div className="formField" key={n.id} style={{marginTop:14}}><label className="fieldLabel" htmlFor={'n-'+n.id}>{n.label}, {n.unit}</label><input className="input narrowInput" id={'n-'+n.id} inputMode="decimal" value={numbers[n.id]||''} onChange={e=>setNumbers({...numbers,[n.id]:e.target.value})}/></div>)}

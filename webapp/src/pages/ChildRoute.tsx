@@ -6,7 +6,7 @@ import ChildSwitcher from '../components/ChildSwitcher';
 import DiagnosisPicker from '../components/DiagnosisPicker';
 import {ChildForm} from './Children';
 import {useActiveChild,useRouteData} from '../lib/useRoute';
-import {addCustomItem,addGoal,removeCustomItem,removeGoal,saveProfile,toggleTracked,GoalMeasure,MAX_CUSTOM,MAX_GOALS} from '../lib/profile';
+import {addCustomItem,addDoctor,addGoal,removeCustomItem,removeDoctor,removeGoal,saveProfile,toggleTracked,Doctor,GoalMeasure,MAX_CUSTOM,MAX_DOCTORS,MAX_GOALS} from '../lib/profile';
 import {activeCourses,dayNumber} from '../lib/treatment';
 import {checkInPlan,monitorItems,monitorNumbers,setForMed,summarizeCheckIn} from '../lib/monitoring';
 import {childScreenings,dayMonth,changeReport,reportIsEmpty} from '../lib/route';
@@ -25,7 +25,7 @@ const TRACKED_JOURNALS=['sleep','behavior','tolerability','anxiety','mood','tics
 function Goals({childId,goals}:{childId:string;goals:{id:string;text:string;measure:GoalMeasure}[]}){
  const [text,setText]=useState(''),[measure,setMeasure]=useState<GoalMeasure>('severity');
  const add=(e:React.FormEvent)=>{e.preventDefault();if(addGoal(childId,text,measure)){setText('');toast('Цель добавлена');}};
- return <section className="card" id="goals"><h2>Что хотим изменить</h2><p className="small muted">Две-три главные трудности своими словами. Короткий опрос раз в неделю спросит, как они меняются.</p>
+ return <section className="card" id="goals"><h2>Что хотим изменить</h2><p className="small muted">{goals.length?'Короткий опрос будет спрашивать, как это меняется.':'Начните с одной главной цели своими словами — того, что сейчас важнее всего для семьи.'}</p>
   {goals.length>0&&<ul className="plainList">{goals.map(g=><li key={g.id}><span>{g.text}<span className="small muted"> · {g.measure==='count'?'сколько раз за неделю':'насколько выражено'}</span></span><button type="button" className="iconButton" aria-label={'Убрать цель «'+g.text+'»'} onClick={()=>removeGoal(childId,g.id)}><Icon name="close" size={15}/></button></li>)}</ul>}
   {goals.length<MAX_GOALS&&<form onSubmit={add} style={{marginTop:14}}><label className="fieldLabel" htmlFor="goal-text">Новая цель</label><input className="input" id="goal-text" maxLength={120} placeholder="Например: тревога перед школой, вспышки злости" value={text} onChange={e=>setText(e.target.value)}/>
    <div className="optionRow" role="radiogroup" aria-label="Как отмечать" style={{marginTop:10}}><label className={measure==='severity'?'selected':''}><input type="radio" name="goal-measure" checked={measure==='severity'} onChange={()=>setMeasure('severity')}/>Насколько выражено</label><label className={measure==='count'?'selected':''}><input type="radio" name="goal-measure" checked={measure==='count'} onChange={()=>setMeasure('count')}/>Сколько раз</label></div>
@@ -52,6 +52,16 @@ function Tracking({data}:{data:NonNullable<ReturnType<typeof useRouteData>>}){
  </section>;
 }
 
+function Doctors({childId,doctors}:{childId:string;doctors:Doctor[]}){
+ const [adding,setAdding]=useState(false),[d,setD]=useState({name:'',role:'',phone:'',place:''});
+ const save=(e:React.FormEvent)=>{e.preventDefault();if(addDoctor(childId,d)){setD({name:'',role:'',phone:'',place:''});setAdding(false);toast('Специалист добавлен');}};
+ return <section className="card"><div className="cardHead"><h2>Мои специалисты</h2>{!adding&&doctors.length<MAX_DOCTORS&&<button type="button" className="textButton" onClick={()=>setAdding(true)}>Добавить</button>}</div><p className="small muted">Лечащий врач, психолог, логопед — где бы вы ни наблюдались. Их можно выбрать в памятке к приёму.</p>
+  {doctors.length>0&&<ul className="plainList">{doctors.map(x=><li key={x.id}><span><strong>{x.name||'Без имени'}</strong>{(x.role||x.place)&&<span className="small muted"> · {[x.role,x.place].filter(Boolean).join(', ')}</span>}</span><span className="buttonRow" style={{flexWrap:'nowrap',gap:6}}>{x.phone&&<a className="btn secondary compact" href={'tel:'+x.phone.replace(/[^\d+]/g,'')}><Icon name="phone" size={14}/>{x.phone}</a>}<button type="button" className="iconButton" aria-label={'Удалить «'+(x.name||x.phone)+'»'} onClick={()=>removeDoctor(childId,x.id)}><Icon name="close" size={15}/></button></span></li>)}</ul>}
+  {adding&&<form onSubmit={save} style={{marginTop:12}}><div className="contactRow"><input className="input" aria-label="Имя" placeholder="Имя" maxLength={80} value={d.name} onChange={e=>setD({...d,name:e.target.value})}/><input className="input" aria-label="Кто это" placeholder="Например, детский психиатр" maxLength={80} value={d.role} onChange={e=>setD({...d,role:e.target.value})}/></div><div className="contactRow"><input className="input" aria-label="Телефон" placeholder="Телефон" inputMode="tel" maxLength={40} value={d.phone} onChange={e=>setD({...d,phone:e.target.value})}/><input className="input" aria-label="Где принимает" placeholder="Где принимает" maxLength={120} value={d.place} onChange={e=>setD({...d,place:e.target.value})}/></div><div className="buttonRow" style={{marginTop:10}}><button className="btn compact" disabled={!d.name.trim()&&!d.phone.trim()}>Сохранить</button><button type="button" className="btn secondary compact" onClick={()=>setAdding(false)}>Отмена</button></div></form>}
+  {!doctors.length&&!adding&&<p className="small" style={{marginTop:8}}>Добавьте лечащего врача — тогда его не придётся искать в телефоне перед приёмом или в трудную минуту.</p>}
+ </section>;
+}
+
 export default function ChildRoute(){
  const child=useActiveChild(),data=useRouteData(child?.id),[addingDx,setAddingDx]=useState(false);
  const current=useMemo(()=>data?activeCourses(data.events):[],[data]);
@@ -63,18 +73,19 @@ export default function ChildRoute(){
  return <div className="container"><PageHeader title={child.label} subtitle={[ageLabel(child),...dxs.map(dxName)].join(' · ')} eyebrow="Маршрут ребёнка" backTo="/" backLabel="Сегодня"/>
  <ChildSwitcher active={child}/>
  <div className="stack" style={{marginTop:16}}>
- <section className="card"><div className="cardHead"><h2>Лечение сейчас</h2><Link to="/child/timeline">Лента</Link></div>
+ <Goals childId={child.id} goals={p.goals}/>
+ <section className="card"><div className="cardHead"><h2>Короткий опрос</h2>{data.checkIns.length>0&&<span className="small muted">{data.checkIns.length} {plural(data.checkIns.length,'опрос','опроса','опросов')}</span>}</div>
+  <p className="small" style={{marginTop:8}}>{last?'Прошлый — '+dayMonth(last.date)+': '+summarizeCheckIn(last,p):'Цели и то, что врач просит отслеживать. Около минуты.'}</p>
+  <div className="optionRow" role="radiogroup" aria-label="Как часто спрашивать" style={{marginTop:12}}>{([[7,'Раз в неделю'],[14,'Раз в 2 недели'],[0,'Перед приёмом']] as const).map(([v,l])=><label key={v} className={p.checkinEvery===v?'selected':''}><input type="radio" name="checkin-every" checked={p.checkinEvery===v} onChange={()=>saveProfile(child.id,{checkinEvery:v})}/>{l}</label>)}</div>
+  <Link className="btn full" style={{marginTop:12}} to="/child/check-in"><Icon name="check" size={17}/>{plan.goals.length+plan.items.length?'Пройти опрос':'Настроить опрос'}</Link>
+ </section>
+ {current.length?<section className="card"><div className="cardHead"><h2>Лечение сейчас</h2><Link to="/child/timeline">Лента</Link></div>
   {current.length?<div className="courseList">{current.map(c=><div className="course" key={c.key}><div><h3>{c.label}</h3><p className="small">{c.dose||'Доза не указана'}</p><p className="small muted">{c.lastKind==='start'?'Начат':'Изменение'} {dayMonth(c.since)} · {dayNumber(c.since,data.today)}-й день</p></div>
    <div className="courseActions"><Link className="btn secondary compact" to={'/child/timeline?add=dose&med='+encodeURIComponent(c.key)}>Доза</Link><Link className="btn secondary compact" to={'/child/timeline?add=stop&med='+encodeURIComponent(c.key)}>Отменён</Link></div></div>)}</div>
   :<p className="small muted" style={{marginTop:8}}>Препараты не отмечены. Добавьте текущий — с датой начала и дозой из назначения.</p>}
   <div className="buttonRow" style={{marginTop:14}}><Link className="btn compact" to="/child/timeline?add=start"><Icon name="plus" size={16}/>Препарат</Link><Link className="btn secondary compact" to="/child/timeline?add=effect">Записать изменение</Link></div>
  </section>
- <section className="card"><div className="cardHead"><h2>Короткий опрос</h2>{data.checkIns.length>0&&<span className="small muted">{data.checkIns.length} {plural(data.checkIns.length,'опрос','опроса','опросов')}</span>}</div>
-  <p className="small" style={{marginTop:8}}>{last?'Прошлый — '+dayMonth(last.date)+': '+summarizeCheckIn(last,p):'Раз в неделю: цели и то, что врач просит отслеживать. Около минуты.'}</p>
-  <Link className="btn full" style={{marginTop:12}} to="/child/check-in"><Icon name="check" size={17}/>{plan.goals.length+plan.items.length?'Пройти опрос':'Настроить опрос'}</Link>
- </section>
- <Goals childId={child.id} goals={p.goals}/>
- <Tracking data={data}/>
+  :<Link to="/child/timeline?add=start" className="screeningHistoryLink"><span className="actionIcon"><Icon name="pill"/></span><span><strong>Если назначены лекарства</strong><span className="small muted">Отметьте препарат с дозой из назначения — опрос будет спрашивать то, что при нём важно</span></span><Icon name="arrow" size={18}/></Link>}
  <section className="card"><div className="cardHead"><h2>Диагнозы</h2>{!addingDx&&<button type="button" className="textButton" onClick={()=>setAddingDx(true)}>Добавить</button>}</div><p className="small muted">Из заключения врача — чтобы справочник и подсказки были про вашего ребёнка.</p>
   {dxs.length>0&&<div className="pickChips" style={{marginTop:12}}>{dxs.map(d=><span className="chipWithRemove" key={d.id}><Link className="pickChip" to={'/diagnoses/'+d.id}>{dxName(d)}</Link><button type="button" className="chipRemove" aria-label={'Убрать «'+dxName(d)+'»'} onClick={()=>saveProfile(child.id,pr=>({diagnoses:pr.diagnoses.filter(x=>x!==d.id)}))}><Icon name="close" size={13}/></button></span>)}</div>}
   {addingDx&&<div style={{marginTop:12}}><DiagnosisPicker label="Какой диагноз указан в заключении?" value="" onChange={id=>{if(id)saveProfile(child.id,pr=>({diagnoses:[...pr.diagnoses,id]}));setAddingDx(false);}}/></div>}
@@ -83,6 +94,8 @@ export default function ChildRoute(){
   <div className="pickChips" style={{marginTop:12}}>{specialists.map(s=><button type="button" key={s.id} className="pickChip" aria-pressed={p.specialists.includes(s.id)} onClick={()=>saveProfile(child.id,pr=>({specialists:pr.specialists.includes(s.id)?pr.specialists.filter(x=>x!==s.id):[...pr.specialists,s.id]}))}>{s.shortTitle}</button>)}</div>
   {p.specialists.length>0&&<p className="small" style={{marginTop:12}}>Чем помогает каждый — в <Link to="/specialists">разделе специалистов</Link>.</p>}
  </section>
+ <Doctors childId={child.id} doctors={p.doctors}/>
+ <Tracking data={data}/>
  <section className="card"><div className="cardHead"><h2>Тесты и шкалы</h2><Link to="/screenings">Все тесты</Link></div>
   {latest.length?<ul className="plainList">{latest.map(r=><li key={r.id}><Link to={'/screenings/result/'+r.id}>{screenerById(r.screenerId)?.name}</Link><span className="small muted">{r.score.total} из {r.score.max} · {dayMonth(r.completedDate)}</span></li>)}</ul>
   :<p className="small muted" style={{marginTop:8}}>Пока нет результатов с именем «{child.label}». Повторные тесты раз в 1–2 месяца показывают, как меняется состояние.</p>}

@@ -7,6 +7,7 @@ import {useActiveChild,useEvents} from '../lib/useRoute';
 import {activeCourses} from '../lib/treatment';
 import {CRISIS,emptyPlan,familyActions,formatPlan,getPlan,planFilled,savePlan,subscribeSafety,suggestions,Contact,SafetyPlan as Plan} from '../lib/safety';
 import {ageLabel} from '../lib/children';
+import {getProfile} from '../lib/profile';
 import {copyText,shareText} from '../lib/export';
 import {shareToTelegram} from '../lib/twa';
 import {toast} from '../lib/toast';
@@ -58,7 +59,7 @@ export default function SafetyPlan(){
  const Phones=({title,items}:{title:string;items:Contact[]})=>items.some(c=>c.name||c.phone)?<section className="card"><h2>{title}</h2><ul className="plainList">{items.filter(c=>c.name||c.phone).map((c,i)=><li key={i}><span>{c.name||'Телефон'}</span>{c.phone&&<a className="btn secondary compact" href={tel(c.phone)}><Icon name="phone" size={15}/>{c.phone}</a>}</li>)}</ul></section>:null;
  return <div className="container">{header}<ChildSwitcher active={child} manage={false}/>
  <section className="card soft"><h2>Если опасность прямо сейчас</h2><div className="buttonRow" style={{marginTop:12}}><a href="tel:112" className="btn"><Icon name="phone"/>112</a><a href="tel:103" className="btn secondary">Скорая 103</a></div><p style={{marginTop:12}}><a href="tel:88002000122"><strong>8-800-2000-122</strong></a> — детский телефон доверия: бесплатно, круглосуточно, для детей и родителей.</p></section>
- {!filled?<div className="stack" style={{marginTop:14}}><div className="callout"><strong>Зачем писать план заранее</strong><p>В кризис трудно думать. Письменный план — не формальность, а конкретный порядок действий: признаки, что помогает, кому звонить, что убрать из доступа. Его составляют при любом уровне риска — лучше вместе с подростком и врачом.</p></div><button className="btn full" onClick={()=>setEditing(true)}><Icon name="plus" size={17}/>Составить план</button></div>
+ {!filled?<div className="stack" style={{marginTop:14}}><div className="callout"><strong>Зачем писать план заранее</strong><p>В кризис трудно думать. Письменный план — не формальность, а конкретный порядок действий: признаки, что помогает, кому звонить, что убрать из доступа. Его составляют при любом уровне риска — лучше вместе с подростком и врачом.</p></div><button className="btn full" onClick={()=>{const doc=getProfile(child.id).doctors[0];if(doc&&!plan.doctor.name&&!plan.doctor.phone)setPlan({...plan,doctor:{name:[doc.name,doc.role].filter(Boolean).join(', '),phone:doc.phone}});setEditing(true);}}><Icon name="plus" size={17}/>Составить план</button></div>
  :<div className="stack" style={{marginTop:14}}>
   <Section title="Признаки, что становится хуже" items={plan.warning}/>
   <Section title="Что помогает справиться самому" items={plan.coping}/>

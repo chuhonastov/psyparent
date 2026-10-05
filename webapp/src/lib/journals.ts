@@ -1,10 +1,11 @@
 import {readJSON,writeJSON} from './persist';
+import {childIdForLabel} from './children';
 import {journalTemplate,JournalTemplate,journalValueLabel} from './journalContent';
 import {localDate} from './screenings';
 import {Respondent,respondentLabels} from './screeningContent';
 export const JOURNAL_KEY='psyparent.journals.v1';
 const EVENT='psyparent:journals-updated';
-export type JournalInput={templateId:string;childLabel:string;age?:number;respondent:Respondent;observerLabel:string;date:string;periodStart?:string;treatment:string;values:Record<string,string>;includeInVisit:boolean};
+export type JournalInput={templateId:string;childId?:string;childLabel:string;age?:number;respondent:Respondent;observerLabel:string;date:string;periodStart?:string;treatment:string;values:Record<string,string>;includeInVisit:boolean};
 export type JournalRecord=JournalInput&{id:string;templateVersion:number;createdAt:string;updatedAt:string};
 export const validDate=(value:unknown):value is string=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value+'T12:00:00Z').toISOString().slice(0,10)===value;
 function validDateTime(value:string){return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)&&validDate(value.slice(0,10))&&Number(value.slice(11,13))<24&&Number(value.slice(14,16))<60;}
@@ -48,14 +49,16 @@ export function normalizeJournals(raw:unknown):JournalRecord[]{
   if(!r||typeof r!=='object'||typeof r.id!=='string'||!r.id||ids.has(r.id)||typeof r.createdAt!=='string'||!Number.isFinite(Date.parse(r.createdAt))||typeof r.updatedAt!=='string'||!Number.isFinite(Date.parse(r.updatedAt)))return [];
   const t=journalTemplate(r.templateId);if(!t||r.templateVersion!==t.version||validateJournal(r).length)return [];
   ids.add(r.id);
-  return [{id:r.id,templateId:t.id,templateVersion:t.version,childLabel:r.childLabel.trim(),age:r.age,respondent:r.respondent,observerLabel:r.observerLabel.trim(),date:r.date,periodStart:r.periodStart,treatment:r.treatment,values:Object.fromEntries(Object.entries(r.values).filter(([,v])=>typeof v==='string'&&v.trim())),includeInVisit:r.includeInVisit,createdAt:r.createdAt,updatedAt:r.updatedAt} as JournalRecord];
+  return [{...(typeof r.childId==='string'&&r.childId?{childId:r.childId}:{}),id:r.id,templateId:t.id,templateVersion:t.version,childLabel:r.childLabel.trim(),age:r.age,respondent:r.respondent,observerLabel:r.observerLabel.trim(),date:r.date,periodStart:r.periodStart,treatment:r.treatment,values:Object.fromEntries(Object.entries(r.values).filter(([,v])=>typeof v==='string'&&v.trim())),includeInVisit:r.includeInVisit,createdAt:r.createdAt,updatedAt:r.updatedAt} as JournalRecord];
  }).sort((a:JournalRecord,b:JournalRecord)=>b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt));
 }
 export const getJournals=()=>normalizeJournals(readJSON<unknown>(JOURNAL_KEY,null));
 const write=(records:JournalRecord[])=>{if(!writeJSON(JOURNAL_KEY,{version:1,records}))return false;window.dispatchEvent(new Event(EVENT));return true;};
-export function createJournal(input:JournalInput):JournalRecord{const errors=validateJournal(input);if(errors.length)throw new Error(errors.join(' '));const now=new Date().toISOString();return {...input,childLabel:input.childLabel.trim(),observerLabel:input.observerLabel.trim(),id:globalThis.crypto?.randomUUID?.()||'journal-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2),templateVersion:journalTemplate(input.templateId)!.version,createdAt:now,updatedAt:now};}
+export function createJournal(input:JournalInput):JournalRecord{const errors=validateJournal(input);if(errors.length)throw new Error(errors.join(' '));const now=new Date().toISOString();return {...input,childId:input.childId||childIdForLabel(input.childLabel),childLabel:input.childLabel.trim(),observerLabel:input.observerLabel.trim(),id:globalThis.crypto?.randomUUID?.()||'journal-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2),templateVersion:journalTemplate(input.templateId)!.version,createdAt:now,updatedAt:now};}
 export function saveJournal(record:JournalRecord){const valid=normalizeJournals({version:1,records:[record]});if(valid.length!==1)return false;const rows=getJournals();if(rows.some(r=>r.id===record.id))return false;return write([valid[0],...rows]);}
-export function updateJournal(id:string,input:JournalInput){const rows=getJournals(),old=rows.find(r=>r.id===id);if(!old||old.templateId!==input.templateId||validateJournal(input).length)return false;return write(rows.map(r=>r.id===id?{...input,childLabel:input.childLabel.trim(),observerLabel:input.observerLabel.trim(),id,templateVersion:old.templateVersion,createdAt:old.createdAt,updatedAt:new Date().toISOString()}:r));}
+export function updateJournal(id:string,input:JournalInput){const rows=getJournals(),old=rows.find(r=>r.id===id);if(!old||old.templateId!==input.templateId||validateJournal(input).length)return false;return write(rows.map(r=>r.id===id?{...input,childId:input.childId||childIdForLabel(input.childLabel)||(r.childLabel===input.childLabel.trim()?r.childId:undefined),childLabel:input.childLabel.trim(),observerLabel:input.observerLabel.trim(),id,templateVersion:old.templateVersion,createdAt:old.createdAt,updatedAt:new Date().toISOString()}:r));}
+/** Rewrites stored records, e.g. to link them to a profile after a rename. */
+export function updateJournals(map:(r:JournalRecord)=>JournalRecord){const rows=getJournals(),next=rows.map(map);return JSON.stringify(next)===JSON.stringify(rows)?true:write(next);}
 export const removeJournal=(id:string)=>write(getJournals().filter(r=>r.id!==id));
 export const includeJournals=(ids:string[],includeInVisit:boolean)=>write(getJournals().map(r=>ids.includes(r.id)?{...r,includeInVisit}:r));
 export function subscribeJournals(handler:()=>void){const storage=(e:StorageEvent)=>{if(!e.key||e.key===JOURNAL_KEY)handler();};window.addEventListener(EVENT,handler);window.addEventListener('psyparent:all-data-cleared',handler);window.addEventListener('storage',storage);return ()=>{window.removeEventListener(EVENT,handler);window.removeEventListener('psyparent:all-data-cleared',handler);window.removeEventListener('storage',storage);};}

@@ -167,3 +167,16 @@ for(const r of nav.routes){
 }
 const routed=nav.routes.flatMap(r=>r.diagnoses);assert.equal(new Set(routed).size,routed.length,'Diagnosis in two routes');
 console.log(`Navigator OK: ${nav.routes.length} routes, ${nav.topics.length} topics, ${Object.keys(nav.sources).length} sources.`);
+// Everyday queries: every answer has patterns, a calm text and links to existing pages; the first link is the next step.
+const queries=read('queries.json').items,journalIds=new Set(forms.map(f=>f.id)),routeIds=new Set(nav.routes.map(r=>r.id)),topicIds=new Set(nav.topics.map(t=>t.id));
+const staticPages=new Set(['/help','/child/safety','/review','/medications','/methods','/navigator','/doctors','/screenings/send','/visit','/difficulties']);
+assert.equal(new Set(queries.map(q=>q.id)).size,queries.length,'Duplicate query id');
+for(const q of queries){
+ assert(q.patterns.length&&q.title&&q.text&&q.links.length,'Incomplete query '+q.id);
+ for(const l of q.links){
+  const [,section,a,b]=l.to.split('/');
+  const ok=staticPages.has(l.to)||(section==='navigator'&&a==='topic'&&topicIds.has(b))||(section==='navigator'&&routeIds.has(a))||(section==='forms'&&journalIds.has(a))||(section==='screenings'&&pageOk.screenings.has(a))||(pageOk[section]&&pageOk[section].has(a))||(section==='screenings'&&a==='mchat');
+  assert(ok,'Broken query link '+q.id+' → '+l.to);
+ }
+}
+console.log(`Queries OK: ${queries.length} everyday questions.`);
