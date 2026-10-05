@@ -1,5 +1,5 @@
 import React from 'react';
-export type IconName = 'home'|'book'|'pill'|'note'|'arrow'|'back'|'check'|'plus'|'search'|'shield'|'heart'|'leaf'|'download'|'copy'|'close'|'trash'|'external'|'clock'|'calendar'|'share'|'upload'|'print'|'phone'|'user'|'flask'|'alert';
+export type IconName = 'home'|'book'|'pill'|'note'|'arrow'|'back'|'check'|'plus'|'search'|'shield'|'heart'|'leaf'|'download'|'copy'|'close'|'trash'|'external'|'clock'|'calendar'|'share'|'upload'|'print'|'phone'|'user'|'flask'|'alert'|'edit'|'mail';
 const paths: Record<IconName,React.ReactNode> = {
  phone:<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>,
  user:<><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
@@ -10,6 +10,8 @@ const paths: Record<IconName,React.ReactNode> = {
  arrow:<path d="M5 12h14m-6-6 6 6-6 6"/>,
  back:<path d="M19 12H5m6-6-6 6 6 6"/>,
  check:<path d="m5 12 4 4L19 6"/>,
+ edit:<path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-4-4L4 16zm9.5-13.5 4 4"/>,
+ mail:<><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/></>,
  plus:<path d="M12 5v14M5 12h14"/>,
  search:<><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></>,
  flask:<><path d="M9 3h6M10 3v6l-5.2 9A2 2 0 0 0 6.5 21h11a2 2 0 0 0 1.7-3L14 9V3"/><path d="M7.4 15h9.2"/></>,

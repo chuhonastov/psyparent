@@ -489,3 +489,8 @@ a.pickChip{display:inline-flex;align-items:center;text-decoration:none}
 .todayItemLink:hover{text-decoration:none}
 .todayItem.compact .iconButton{border:0;background:none;width:36px;height:36px;flex:0 0 36px}
 .todayItem.compact .todayMain strong{font-size:0.9688rem}
+
+/* 0.20 */
+.editChild{display:inline-flex;align-items:center;gap:6px;margin:-4px 0 12px}
+.honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.statsCard .buttonRow{margin-top:12px}

@@ -1,4 +1,5 @@
 import React,{useMemo,useState} from 'react';
+import {track} from '../lib/analytics';
 import {Link} from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Icon from '../components/Icon';
@@ -20,7 +21,7 @@ export default function CheckIn(){
  const current=useMemo(()=>data?activeCourses(data.events):[],[data]);
  const plan=useMemo(()=>data?checkInPlan(data.profile,current):null,[data,current]);
  const [date,setDate]=useState(today),[goals,setGoals]=useState<Record<string,number>>({}),[counts,setCounts]=useState<Record<string,string>>({}),[items,setItems]=useState<Record<string,number>>({}),[numbers,setNumbers]=useState<Record<string,string>>({}),[missed,setMissed]=useState<number>(),[note,setNote]=useState(''),[errors,setErrors]=useState<string[]>([]),[saved,setSaved]=useState<Record_|null>(null);
- const draft=useDraft(child?'checkin.'+child.id:null,{date,goals,counts,items,numbers,missed,note},d=>{setDate(d.date);setGoals(d.goals);setCounts(d.counts);setItems(d.items);setNumbers(d.numbers);setMissed(d.missed);setNote(d.note);});
+ const draft=useDraft(child?'checkin.'+child.id:null,{date,goals,counts,items,numbers,missed,note},d=>{setDate(d.date);setGoals(d.goals);setCounts(d.counts);setItems(d.items);setNumbers(d.numbers);setMissed(d.missed);setNote(d.note);},child?child.label+': ответы сохранены как черновик':undefined);
  if(!child||!data||!plan)return <div className="container"><PageHeader title="Короткий опрос" backTo="/child" backLabel="Ребёнок"/><div className="emptyState"><h3>Сначала добавьте ребёнка</h3><Link className="btn" to="/child">Добавить ребёнка</Link></div></div>;
  const header=<PageHeader title="Короткий опрос" subtitle="Как прошла последняя неделя. Около минуты — без медицинских чек-листов." eyebrow={child.label+', '+ageLabel(child)} backTo="/child" backLabel="Ребёнок"/>;
  if(saved){
@@ -40,7 +41,7 @@ export default function CheckIn(){
   const issues=[...validateCheckIn(input,plan,today),...Object.entries(counts).filter(([,v])=>v.trim()!==''&&!/^\d{1,3}$/.test(v.trim())).map(()=>'Число раз за неделю — целое число до 999.')];
   setErrors(issues);if(issues.length){window.scrollTo(0,0);return;}
   const rec=saveCheckIn(input);if(!rec){toast('Не удалось сохранить',{variant:'error'});return;}
-  draft.clear();setSaved(rec);window.scrollTo(0,0);if(!urgentAnswers(rec).length)toast('Опрос сохранён');
+  draft.clear();track('checkin');setSaved(rec);window.scrollTo(0,0);if(!urgentAnswers(rec).length)toast('Опрос сохранён');
  };
  const last=data.checkIns[data.checkIns.length-1];
  return <div className="container">{header}<ChildSwitcher active={child} manage={false}/>

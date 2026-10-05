@@ -1,0 +1,6 @@
+// Browser-like globals for modules that look at window when imported (PDF export, statistics).
+class MemoryStorage{[key:string]:any;getItem(k:string){return Object.hasOwn(this,k)?this[k]:null;}setItem(k:string,v:string){this[k]=String(v);}removeItem(k:string){delete this[k];}}
+export const fakeWindow=()=>Object.assign(new EventTarget(),{location:{protocol:'https:',hostname:'psyparent.vercel.app',origin:'https://psyparent.vercel.app',search:'',pathname:'/',hash:'',href:'https://psyparent.vercel.app/'},parent:null,innerHeight:800,innerWidth:400,setTimeout:()=>0,clearTimeout:()=>{},atob:globalThis.atob,btoa:globalThis.btoa});
+const fakeDocument={documentElement:{style:{setProperty(){},removeProperty(){}}},referrer:'',visibilityState:'visible',addEventListener(){},removeEventListener(){},createElement:()=>({style:{}}),head:{appendChild(){}},body:{append(){}},querySelector:()=>null,getElementsByTagName:()=>[]};
+export function resetEnv(){Object.defineProperty(globalThis,'document',{value:fakeDocument,configurable:true});Object.defineProperty(globalThis,'localStorage',{value:new MemoryStorage(),configurable:true});Object.defineProperty(globalThis,'window',{value:fakeWindow(),configurable:true});}
+resetEnv();

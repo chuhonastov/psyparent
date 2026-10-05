@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """Create a self-contained browser preview from the Vite production build."""
 from pathlib import Path
+import os
 import re
 import base64
+import subprocess
 
 root = Path(__file__).resolve().parents[1]
-dist = root / 'webapp' / 'dist'
+# A separate one-file build: the web build loads PDF export on demand from its own chunk, which a local file cannot fetch.
+subprocess.run(['npx', 'vite', 'build', '--logLevel', 'warn'], cwd=root / 'webapp', check=True, env={**os.environ, 'KORA_SINGLE': '1'})
+dist = root / 'webapp' / 'dist-single'
 html = (dist / 'index.html').read_text(encoding='utf-8')
 script = re.search(r'<script[^>]+src="([^"]+)"[^>]*></script>', html)
 style = re.search(r'<link[^>]+href="([^"]+\.css)"[^>]*>', html)
@@ -14,7 +18,7 @@ if not script or not style:
 js = (dist / script.group(1).lstrip('/')).read_text(encoding='utf-8')
 css = (dist / style.group(1).lstrip('/')).read_text(encoding='utf-8')
 js = re.sub(r'</script', r'<\\/script', js, flags=re.IGNORECASE)
-pdf = root / 'webapp/public/forms/YGTSS-R-2017-RU-working.pdf'
+pdf = root / 'webapp/public/forms/YGTSS-R-2017-RU.pdf'
 if pdf.exists():
     pdf_url = 'data:application/pdf;base64,' + base64.b64encode(pdf.read_bytes()).decode('ascii')
     html = html.replace('</head>', '<script>window.__PSYPARENT_CLINICAL_PDF__=' + repr(pdf_url) + ';</script></head>')

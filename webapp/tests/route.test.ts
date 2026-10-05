@@ -114,7 +114,7 @@ test('today shows the visit, recent dose changes, a due check-in and warnings',(
  assert(items.findIndex(i=>i.id==='checkin')<items.findIndex(i=>i.id==='visit'));
  saveCheckIn({childId:c.id,date:addDays(TODAY,-1),goals:{},items:{fainting:1},numbers:{},note:''});
  const next=todayItems(data(c));
- assert.equal(next[0].id,'urgent');
+ assert.match(next[0].id,/^urgent-/);
  assert(!next.some(i=>i.id==='checkin'),'a check-in yesterday is not due again');
 });
 

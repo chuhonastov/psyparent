@@ -25,7 +25,7 @@ export const childJournals=(rows:JournalRecord[],child:Child)=>rows.filter(r=>be
 
 export function todayItems(d:RouteData):TodayItem[]{
  const out:TodayItem[]=[],current=activeCourses(d.events),plan=checkInPlan(d.profile,current),last=d.checkIns[d.checkIns.length-1];
- if(last&&daysBetween(last.date,d.today)<=3){const urgent=urgentAnswers(last);if(urgent.length)out.push({id:'urgent',tone:'danger',icon:'alert',priority:0,title:'В последнем опросе есть тревожный признак',text:urgent.join(', ')+'. Свяжитесь с врачом, не дожидаясь приёма.',to:'/help'});}
+ if(last&&daysBetween(last.date,d.today)<=3){const urgent=urgentAnswers(last);if(urgent.length)out.push({id:'urgent-'+last.id,tone:'danger',icon:'alert',priority:0,title:'В последнем опросе есть тревожный признак',text:urgent.join(', ')+'. Свяжитесь с врачом, не дожидаясь приёма.',to:'/help'});}
  if(d.appointment){
   const days=daysBetween(d.today,d.appointment.date);
   if(days>=0&&days<=30){

@@ -10,12 +10,13 @@ import {useScreenings} from '../lib/useScreenings';
 import {useJournals} from '../lib/useJournals';
 import {useActiveChild,useRouteData} from '../lib/useRoute';
 import {todayItems,addDays} from '../lib/route';
-import {isSnoozed,snooze} from '../lib/snooze';
+import {acknowledge,isSnoozed,snooze,snoozeKey} from '../lib/snooze';
 import {ageLabel} from '../lib/children';
 import {useAppointment} from '../lib/useAppointment';
 import {countdownLabel,daysUntil,formatAppointment} from '../lib/appointment';
 import {count as counted} from '../lib/plural';
 import {isTelegram} from '../lib/twa';
+import StatsPrompt from '../components/StatsPrompt';
 import {backupReminderDue,isIOS,isStandalone,postponeBackupReminder} from '../lib/device';
 /** Outside Telegram the records live only in this browser: a gentle reminder to keep a copy, and the Safari caveat on iPhone. */
 function StorageReminder({hasRecords}:{hasRecords:boolean}){
@@ -37,7 +38,7 @@ const CHOICES:{to:string;icon:'book'|'pill'|'heart'|'note';title:string;text:str
 function Today(){
  const child=useActiveChild(),data=useRouteData(child?.id),[tick,setTick]=useState(0),appointment=useAppointment(),count=useVisitCount(),days=appointment?daysUntil(appointment.date):-1;
  useEffect(()=>{const h=()=>setTick(t=>t+1);window.addEventListener('kora:snooze',h);return ()=>window.removeEventListener('kora:snooze',h);},[]);
- const items=useMemo(()=>data?todayItems(data).filter(i=>!isSnoozed(i.id,data.today)):[],[data,tick]);
+ const items=useMemo(()=>data?todayItems(data).filter(i=>!isSnoozed(snoozeKey(data.child.id,i.id),data.today)):[],[data,tick]);
  // Without a child profile the home screen asks what the parent came for; the profile is offered, not required.
  if(!child||!data)return <><section className="hero"><div className="heroMark"><Icon name="leaf" size={185}/></div><div className="eyebrow">Понятно о детской психиатрии</div><h1>После приёма<br/>хочется ясности.</h1><p>Разберитесь в диагнозе и назначениях, найдите первый шаг при трудностях ребёнка и подготовьтесь к следующему приёму.</p><div className="heroFoot"><Icon name="shield" size={16}/>С опорой на научные данные</div></section>
   {(days>=0||count>0)&&<Link to="/visit" className="actionCard warm"><span className="actionIcon"><Icon name={days>=0?'calendar':'note'} size={23}/></span><div className="actionMain">{days>=0&&appointment?<><h3>Приём {countdownLabel(days)}</h3><p>{formatAppointment(appointment)}{count?'. В памятке '+counted(count,'запись','записи','записей')+'.':''}</p></>:<><h3>В памятке {counted(count,'запись','записи','записей')}</h3><p>Можно продолжить и указать дату приёма</p></>}</div><Icon name="arrow" size={18}/></Link>}
@@ -45,7 +46,7 @@ function Today(){
   <div className="actionGrid">{CHOICES.map((c,i)=><Link key={c.to} to={c.to} className={'actionCard'+(i===0?' primary':'')}><span className="actionIcon"><Icon name={c.icon} size={23}/></span><div className="actionMain"><h3>{c.title}</h3><p>{c.text}</p></div><Icon name="arrow" size={18}/></Link>)}</div></section>
   <Link to="/child" className="screeningHistoryLink routeStart"><span className="actionIcon"><Icon name="user"/></span><span><strong>Сохранять историю ребёнка</strong><span className="small muted">Когда захотите отмечать лечение, цели и изменения к приёму. Нужны только имя и месяц рождения.</span></span><Icon name="arrow" size={18}/></Link></>;
  const [main,...rest]=items;
- const later=(id:string,urgent?:boolean)=>snooze(id,addDays(data.today,urgent?3:1),data.today);
+ const later=(id:string,urgent?:boolean)=>{const key=snoozeKey(child.id,id);if(urgent)acknowledge(key,data.today);else snooze(key,addDays(data.today,1),data.today);};
  return <section className="today" aria-labelledby="today-title">
   <div className="eyebrow">{todayTitle()}</div><h1 id="today-title">Сегодня · {child.label}, {ageLabel(child)}</h1>
   <ChildSwitcher active={child} manage={false}/>
@@ -62,6 +63,7 @@ export default function Home() {
  <div className="brandRow"><Link className="brand" to="/"><span className="brandMark"><Icon name="leaf" size={22}/></span>Кора</Link><Link className="releaseBadge" to="/about">Для родителей</Link></div>
  {!q.trim()&&<Today/>}
  {!q.trim()&&<StorageReminder hasRecords={count>0||screenings.length>0||journals.length>0}/>}
+ {!q.trim()&&<StatsPrompt/>}
  <GlobalSearch hint="Можно писать торговое название или сокращение, например «Минирин» или «ПТСР».">
  <div className="libraryRow"><Link to="/diagnoses"><Icon name="book" size={20}/>Диагнозы</Link><Link to="/review"><Icon name="pill" size={20}/>Назначения</Link><Link to="/exams"><Icon name="flask" size={20}/>Обследования</Link><Link to="/specialists"><Icon name="heart" size={20}/>Специалисты</Link><Link to="/methods"><Icon name="alert" size={20}/>Что не помогает</Link><Link to="/library"><Icon name="arrow" size={20}/>Весь справочник</Link></div>
  {!!recent.length&&<><div className="sectionHeading"><h2>Вы недавно смотрели</h2><button type="button" className="textButton" onClick={()=>clearRecent()}>Очистить</button></div>
@@ -69,6 +71,6 @@ export default function Home() {
  </GlobalSearch>
  <Link to="/doctors" className="actionCard warm doctorsCta"><span className="actionIcon"><Icon name="user" size={23}/></span><div className="actionMain"><h3>Записаться к врачу</h3><p>Детские психиатры и психологи клиники. Запись на сайте клиники</p></div><Icon name="arrow" size={18}/></Link>
  <div className="authorCard"><span className="authorAvatar">СК</span><div><strong>Материалы Степана Краснощекова</strong><p>Детский психиатр.</p><p>Справочник помогает подготовиться к приёму.</p></div></div>
- <div className="footerLinks"><Link to="/about">О проекте и ваших данных</Link><Link to="/children">Мои дети</Link><Link to="/glossary">Словарь</Link><Link to="/about#reading">Размер текста</Link><Link className="urgentLink" to="/help">Когда нужна срочная помощь</Link></div>
+ <div className="footerLinks"><Link to="/about">О проекте и ваших данных</Link><Link to="/feedback">Написать автору</Link><Link to="/children">Мои дети</Link><Link to="/glossary">Словарь</Link><Link to="/about#reading">Размер текста</Link><Link className="urgentLink" to="/help">Когда нужна срочная помощь</Link></div>
  </div>;
 }

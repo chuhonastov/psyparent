@@ -2,7 +2,8 @@ import React from 'react';
 import {Link} from 'react-router-dom';
 import {ScreeningResult,formatScreening} from '../lib/screenings';
 import {screenerById,respondentLabels,impactOptions,sdqFields,scaleFields,formFor,sectionAt} from '../lib/screeningContent';
-import {copyText,downloadText} from '../lib/export';
+import {copyText} from '../lib/export';
+import {savePdf} from '../lib/files';
 import {toast} from '../lib/toast';
 import Disclosure from './Disclosure';
 import Icon from './Icon';
@@ -32,7 +33,7 @@ export default function ScreeningResultCard({result:r}:{result:ScreeningResult})
  {r.notes&&<p style={{whiteSpace:'pre-wrap'}}>Заметка: {r.notes}</p>}
  <p className="small muted">{r.translation}</p><p className="small muted">Версия: {r.instrumentVersion}.</p>
  </Disclosure>
- <div className="buttonRow noPrint"><button className="btn secondary" onClick={copy}><Icon name="copy" size={17}/>Скопировать результат</button><button className="btn secondary" onClick={()=>downloadText(formatScreening(r),'Kora-'+s.name.replace(/[^a-z0-9-]/gi,'-')+'-'+r.completedDate+'.txt')}><Icon name="download" size={17}/>Скачать результат .txt</button></div>
+ <div className="buttonRow noPrint"><button className="btn secondary" onClick={copy}><Icon name="copy" size={17}/>Скопировать результат</button><button className="btn secondary" onClick={()=>savePdf(formatScreening(r),'Kora-'+s.name.replace(/[^a-z0-9-]/gi,'-')+'-'+r.completedDate+'.pdf')}><Icon name="download" size={17}/>Скачать результат (PDF)</button></div>
  <Disclosure title="Границы этого опросника"><p>{s.limitations}</p><p className="small muted">{s.attribution}</p></Disclosure>
  <div className="topics">{s.related.map(id=><Link key={id} to={'/diagnoses/'+id} className="topic">{diagnosisById(id)?dxName(diagnosisById(id)!):id}</Link>)}</div>
  <Sources items={s.sources}/>

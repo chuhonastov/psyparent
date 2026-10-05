@@ -1,4 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
+import {track} from '../lib/analytics';
 import {useDraft} from '../lib/drafts';
 import DraftNotice from '../components/DraftNotice';
 import {Link,useLocation,useNavigate,useParams,useSearchParams} from 'react-router-dom';
@@ -7,7 +8,7 @@ import {createJournal,formatJournal,journalAlerts,JournalInput,JournalRecord,sav
 import {useJournals} from '../lib/useJournals';
 import {localDate} from '../lib/screenings';
 import {Respondent,respondentLabels} from '../lib/screeningContent';
-import {downloadText} from '../lib/export';
+import {savePdf} from '../lib/files';
 import {toast} from '../lib/toast';
 import PageHeader from '../components/PageHeader';
 import Sources from '../components/Sources';
@@ -34,8 +35,8 @@ function Editor({t,existing,previous,backTo}:{t:JournalTemplate;existing?:Journa
  const input:JournalInput={templateId:t.id,childLabel,age:age===''?undefined:Number(age),respondent,observerLabel,date,periodStart:periodStart||undefined,treatment,values,includeInVisit};
  const alertMessages=journalAlerts(input),set=(id:string,value:string)=>setValues(old=>({...old,[id]:value}));
  const validated=()=>{const issues=validateJournal(input);setErrors(issues);if(issues.length){requestAnimationFrame(()=>errorRef.current?.focus());return false;}return true;};
- const submit=(e:React.FormEvent)=>{e.preventDefault();if(!validated())return;const row=existing?{...existing,...input}:createJournal(input),ok=existing?updateJournal(existing.id,input):saveJournal(row);setFailed(!ok);if(ok){draft.clear();toast(existing?'Изменения сохранены':'Запись сохранена');nav('/forms/record/'+row.id,{replace:true});}else toast('Не удалось сохранить. Скачайте запись перед закрытием.',{variant:'error'});};
- const download=()=>{if(validated())downloadText(formatJournal(existing?{...existing,...input}:createJournal(input)),'Kora-'+t.id+'-'+date+'.txt');};
+ const submit=(e:React.FormEvent)=>{e.preventDefault();if(!validated())return;const row=existing?{...existing,...input}:createJournal(input),ok=existing?updateJournal(existing.id,input):saveJournal(row);setFailed(!ok);if(ok){draft.clear();track(existing?'edit':'journal');toast(existing?'Изменения сохранены':'Запись сохранена');nav('/forms/record/'+row.id,{replace:true});}else toast('Не удалось сохранить. Скачайте запись перед закрытием.',{variant:'error'});};
+ const download=()=>{if(validated())savePdf(formatJournal(existing?{...existing,...input}:createJournal(input)),'Kora-'+t.id+'-'+date+'.pdf');};
  const renderField=(f:JournalField)=>{const id='journal-'+f.id,help=f.help?'journal-help-'+f.id:undefined,props={id,value:values[f.id]??'',onChange:(e:React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>)=>set(f.id,e.target.value),'aria-describedby':help};return <div className={'formField '+(f.type==='textarea'?'journalWide':'')} key={f.id}><label className="fieldLabel" htmlFor={id}>{f.label}{f.required?' *':''}</label>{f.type==='textarea'?<textarea {...props} maxLength={3000}/>:f.type==='select'?<select {...props}><option value="">Не указано</option>{f.options?.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>:<input {...props} type={f.type} className="input" min={f.min} max={f.max} step={f.type==='number'?f.step||1:undefined} maxLength={f.type==='text'?3000:undefined}/>} {f.help&&<p id={help} className="small muted">{f.help}</p>}</div>;};
  return <div className="container"><PageHeader title={t.title} subtitle={t.cadence} backTo={backTo} backLabel={existing?'К записи':'Все формы'} eyebrow={existing?'Редактирование записи':'Новая запись'}/>
  <form noValidate onSubmit={submit} className="stack">{draft.pending&&<DraftNotice at={draft.pending.at} onRestore={draft.restore} onDiscard={draft.discard}/>}<div className="callout"><strong>Как заполнять</strong><p>{t.instructions}</p></div>
@@ -53,7 +54,7 @@ function Editor({t,existing,previous,backTo}:{t:JournalTemplate;existing?:Journa
  <label className="selectionCheck"><input type="checkbox" checked={includeInVisit} onChange={e=>setInclude(e.target.checked)}/><span>Включить эту запись в памятку врачу</span></label>
  {!!errors.length&&<div className="callout danger" role="alert" tabIndex={-1} ref={errorRef}><strong>Проверьте запись</strong><ul>{errors.map((e,i)=><li key={i}>{e}</li>)}</ul></div>}
  {failed&&<p className="callout danger" role="alert">Браузер не сохранил запись. Текст остаётся на экране: скачайте его перед закрытием.</p>}
- <button className="btn full" type="submit">{existing?'Сохранить изменения':'Сохранить запись'}</button><button className="btn secondary full" type="button" onClick={download}>Скачать запись без сохранения .txt</button>
+ <button className="btn full" type="submit">{existing?'Сохранить изменения':'Сохранить запись'}</button><button className="btn secondary full" type="button" onClick={download}>Скачать запись без сохранения (PDF)</button>
  <p className="small muted">До сохранения текст остаётся только на этом экране. Приложение не отправляет записи врачу. На общем устройстве сохранённые сведения могут увидеть другие.</p>
  <p className="small muted">Форма наблюдений из приложения «Кора». Не валидированная диагностическая шкала. Источники ниже описывают принципы оценки и помощи, а не подтверждают точность этой формы.</p><Sources items={t.sources}/>
  </form></div>;

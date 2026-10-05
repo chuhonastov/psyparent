@@ -85,13 +85,21 @@ export async function exportFiles():Promise<{files:BackupFiles;missing:number}>{
  for(const d of getDocuments())if(d.file){const blob=await readFile(d.file.id);if(blob)files[d.file.id]={name:d.file.name,type:d.file.type,data:await toBase64(blob)};else missing++;}
  return {files,missing};
 }
-/** Puts files from a full backup back into this browser. */
-export async function importFiles(files:BackupFiles){
- let count=0;
+export type FileRestore={restored:number;failed:string[];absent:number};
+/**
+ * Puts files from a full backup back into this browser and reports each outcome honestly:
+ * restored, failed (unreadable data or the browser refused the space) and absent (the copy had no file for a document).
+ */
+export async function importFiles(files:BackupFiles={},referenced:string[]=[]):Promise<FileRestore>{
+ let restored=0;const failed:string[]=[];
  for(const [id,f] of Object.entries(files)){
-  try{const bin=atob(f.data),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);await tx('readwrite',s=>{s.put(new Blob([bytes],{type:f.type}),id);});count++;}catch{}
+  try{const bin=atob(f.data),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);await tx('readwrite',s=>{s.put(new Blob([bytes],{type:f.type}),id);});restored++;}catch{failed.push(f.name||id);}
  }
- return count;
+ return {restored,failed,absent:referenced.filter(id=>!files[id]).length};
+}
+/** File ids the documents in a backup refer to. */
+export function referencedFiles(data:Record<string,string>):string[]{
+ try{const v=JSON.parse(data[DOCUMENTS_KEY]||'null');return Array.isArray(v?.docs)?v.docs.map((d:any)=>d?.file?.id).filter((x:unknown):x is string=>typeof x==='string'):[];}catch{return [];}
 }
 export const filesSize=()=>getDocuments().reduce((n,d)=>n+(d.file?.size||0),0);
 
